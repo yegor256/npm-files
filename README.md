@@ -16,7 +16,7 @@ This is the dependency you need:
 ```xml
 <dependency>
   <groupId>com.yegor256</groupId>
-  <artifactId>rpm-files</artifactId>
+  <artifactId>npm-files</artifactId>
   <version>[...]</version>
 </dependency>
 ```
