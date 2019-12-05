@@ -9,7 +9,16 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.yegor256/npm-files.svg)](https://maven-badges.herokuapp.com/maven-central/com.yegor256/npm-files)
 [![PDD status](http://www.0pdd.com/svg?name=yegor256/npm-files)](http://www.0pdd.com/p?name=yegor256/npm-files)
 
-TBD...
+Similar solutions:
+
+   * [Artifactory](https://www.jfrog.com/confluence/display/RTF/npm+Registry)
+   * [Package cloud](https://packagecloud.io/docs#node_npm)
+
+References: 
+
+   * [NPM registry internals](https://blog.packagecloud.io/eng/2018/01/24/npm-registry-internals/)
+   * [CommonJS Package Registry specification](http://wiki.commonjs.org/wiki/Packages/Registry)
+   * [The JavaScript Package Registry](https://docs.npmjs.com/misc/registry)
 
 This is the dependency you need:
 
