@@ -11,7 +11,7 @@ cache:
     - $HOME/.m2
 
 before_install:
-  - sudo apt-get -y install npm nodejs
+  - sudo apt-get -y install npm
 
 script:
   - set -e
