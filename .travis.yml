@@ -5,6 +5,7 @@ cache:
     - $HOME/.m2
 script:
   - set -e
+  - npm config set registry http://127.0.0.1:8080
   - mvn clean test
 env:
   global:
