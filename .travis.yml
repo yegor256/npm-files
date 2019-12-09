@@ -1,4 +1,6 @@
 language: java
+jdk:
+  - openjdk11
 sudo: true
 dist: bionic
 addons:
@@ -19,5 +21,3 @@ env:
   global:
     - MAVEN_OPTS="-Xmx256m"
     - JAVA_OPTS="-Xmx256m"
-jdk:
-  - openjdk8
