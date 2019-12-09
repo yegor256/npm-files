@@ -10,7 +10,6 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.file.Files;
 
 
 /**
@@ -20,13 +19,13 @@ import java.nio.file.Files;
 public class NPMRegistry {
 	
 	private final Vertx vertx;
-	private final Storage storage;
 	private final int port;
 	private final HttpServer httpServer;
+	private final NpmRepo repo;
 	
-	public NPMRegistry(Vertx vertx, Storage storage, int port) {
+	public NPMRegistry(Vertx vertx, NpmRepo repo, int port) {
 		this.vertx = vertx;
-		this.storage = storage;
+		this.repo = repo;
 		this.port = port;
 		Router router = Router.router(vertx);
 		// handle npm publish command
@@ -36,6 +35,8 @@ public class NPMRegistry {
 				Logger.info(NPMRegistry.class, "Uploaded package:%s package:\n%s", packageName, body.toJsonObject().encodePrettily());
 				JsonReader reader = Json.createReader(new StringReader(body.toString()));
 				JsonObject requestJson = reader.readObject();
+				boolean updated = repo.getPackage(packageName).update(requestJson);
+				Logger.info(NPMRegistry.class, "package updated:" + updated);
 				ctx.response().end(
 						Json.createObjectBuilder()
 								.add("ok", "created new package")
@@ -49,11 +50,7 @@ public class NPMRegistry {
 	}
 	
 	public NPMRegistry() throws IOException {
-		this(Vertx.vertx(), new Storage.Simple(), 8080);
-	}
-	
-	public NPMRegistry(Storage storage) {
-		this(Vertx.vertx(), storage, 8080);
+		this(Vertx.vertx(), new NpmRepo.Simple(), 8080);
 	}
 	
 	public void start() {
