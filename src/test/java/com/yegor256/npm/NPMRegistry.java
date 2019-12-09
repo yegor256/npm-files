@@ -21,11 +21,11 @@ public class NPMRegistry {
 	private final Vertx vertx;
 	private final int port;
 	private final HttpServer httpServer;
-	private final NpmRepo repo;
+	private final Npm npm;
 	
-	public NPMRegistry(Vertx vertx, NpmRepo repo, int port) {
+	public NPMRegistry(Vertx vertx, Storage storage, int port) {
 		this.vertx = vertx;
-		this.repo = repo;
+		this.npm = new Npm(storage);
 		this.port = port;
 		Router router = Router.router(vertx);
 		// handle npm publish command
@@ -35,8 +35,7 @@ public class NPMRegistry {
 				Logger.info(NPMRegistry.class, "Uploaded package:%s package:\n%s", packageName, body.toJsonObject().encodePrettily());
 				JsonReader reader = Json.createReader(new StringReader(body.toString()));
 				JsonObject requestJson = reader.readObject();
-				boolean updated = repo.getPackage(packageName).update(requestJson);
-				Logger.info(NPMRegistry.class, "package package:%s updated:" + updated, packageName);
+				npm.publish("/" + packageName, requestJson);
 				ctx.response().end(
 						Json.createObjectBuilder()
 								.add("ok", "created new package")
@@ -50,7 +49,7 @@ public class NPMRegistry {
 	}
 	
 	public NPMRegistry() throws IOException {
-		this(Vertx.vertx(), new NpmRepo.Simple(), 8080);
+		this(Vertx.vertx(), new Storage.Simple(), 8080);
 	}
 	
 	public void start() {
