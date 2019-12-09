@@ -36,7 +36,7 @@ public class NPMRegistry {
 				JsonReader reader = Json.createReader(new StringReader(body.toString()));
 				JsonObject requestJson = reader.readObject();
 				boolean updated = repo.getPackage(packageName).update(requestJson);
-				Logger.info(NPMRegistry.class, "package updated:" + updated);
+				Logger.info(NPMRegistry.class, "package package:%s updated:" + updated, packageName);
 				ctx.response().end(
 						Json.createObjectBuilder()
 								.add("ok", "created new package")
