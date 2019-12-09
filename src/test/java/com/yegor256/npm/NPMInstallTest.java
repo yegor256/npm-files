@@ -11,11 +11,6 @@ public class NPMInstallTest {
 	public void npmInstallWorks() throws IOException {
 		NPMRegistry npmRegistry = new NPMRegistry(Vertx.vertx(), new NpmRepo.Simple(), 8080);
 		npmRegistry.start();
-		
-	}
-	
-	public static void main(String[] args) throws IOException {
-		NPMRegistry npmRegistry = new NPMRegistry(Vertx.vertx(), new NpmRepo.Simple(), 8080);
-		npmRegistry.start();
+		npmRegistry.stop();
 	}
 }
