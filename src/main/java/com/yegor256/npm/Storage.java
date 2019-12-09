@@ -33,7 +33,7 @@ import java.nio.file.StandardCopyOption;
 
 /**
  * The storage.
- *
+ * <p>
  * You are supposed to implement this interface the way you want. It has
  * to abstract the binary storage. You may use {@link Storage.Simple} if you
  * want to work with files. Otherwise, for S3 or something else, you have
@@ -89,7 +89,7 @@ public interface Storage {
 		 * @throws IOException If fails
 		 */
 		public Simple() throws IOException {
-			this(Files.createTempDirectory("rpm-files"));
+			this(Files.createTempDirectory("npm-files"));
 		}
 		/**
 		 * Ctor.

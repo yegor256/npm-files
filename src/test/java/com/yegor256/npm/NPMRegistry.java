@@ -2,6 +2,7 @@ package com.yegor256.npm;
 
 import com.jcabi.log.Logger;
 import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.core.buffer.Buffer;
 import io.vertx.reactivex.core.http.HttpServer;
 import io.vertx.reactivex.ext.web.Router;
 
@@ -10,6 +11,8 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 
 /**
@@ -32,17 +35,27 @@ public class NPMRegistry {
 		router.put("/:package_name").handler(ctx -> {
 			String packageName = ctx.request().getParam("package_name");
 			ctx.request().bodyHandler(body -> {
-				Logger.info(NPMRegistry.class, "Uploaded package:%s package:\n%s", packageName, body.toJsonObject().encodePrettily());
-				JsonReader reader = Json.createReader(new StringReader(body.toString()));
-				JsonObject requestJson = reader.readObject();
-				npm.publish("/" + packageName, requestJson);
-				ctx.response().end(
-						Json.createObjectBuilder()
-								.add("ok", "created new package")
-								.add("success", true)
-								.build()
-								.toString()
-				);
+				try {
+					Logger.info(NPMRegistry.class, "Uploaded package:%s package:\n%s", packageName, body.toJsonObject().encodePrettily());
+					JsonReader reader = Json.createReader(new StringReader(body.toString()));
+					JsonObject requestJson = reader.readObject();
+					Path uploadFile = Files.createTempFile("uploaded", ".json");
+					vertx.fileSystem().writeFileBlocking(uploadFile.toAbsolutePath().toString(), Buffer.buffer(requestJson.toString()));
+					String uploadedFileKey = packageName + "-uploaded";
+					storage.save(uploadedFileKey, uploadFile);
+					npm.publish("/" + packageName, uploadedFileKey);
+					ctx.response().end(
+							Json.createObjectBuilder()
+									.add("ok", "created new package")
+									.add("success", true)
+									.build()
+									.toString()
+					);
+				} catch (IOException e) {
+					Logger.error(NPMRegistry.class, "save uploaded json error");
+					e.printStackTrace();
+					ctx.response().setStatusCode(500).end();
+				}
 			});
 		});
 		// handle npm install command
