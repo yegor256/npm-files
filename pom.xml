@@ -24,6 +24,10 @@ SOFTWARE.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <properties>
+    <vertx.version>3.8.4</vertx.version>
+    <javax.json.version>1.1.4</javax.json.version>
+  </properties>
   <parent>
     <groupId>com.jcabi</groupId>
     <artifactId>parent</artifactId>
@@ -78,9 +82,37 @@ SOFTWARE.
   </distributionManagement>
   <dependencies>
     <dependency>
+      <groupId>javax.json</groupId>
+      <artifactId>javax.json-api</artifactId>
+      <version>${javax.json.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <version>${javax.json.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.jcabi</groupId>
       <artifactId>jcabi-log</artifactId>
       <version>0.18.1</version>
+    </dependency>
+
+    <!-- Test only dependencies  -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-rx-java2</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.29</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.jcabi</groupId>
