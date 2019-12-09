@@ -45,6 +45,7 @@ public class NPMRegistry {
 				);
 			});
 		});
+		// handle npm install command
 		router.get("/:package_name").handler(ctx -> {
 			String packageName = ctx.request().getParam("package_name");
 			Logger.info(NPMRegistry.class, "GET package: %s", packageName);
