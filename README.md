@@ -13,6 +13,7 @@ Similar solutions:
 
    * [Artifactory](https://www.jfrog.com/confluence/display/RTF/npm+Registry)
    * [Package cloud](https://packagecloud.io/docs#node_npm)
+   * [Verdaccio](https://github.com/verdaccio/verdaccio)
 
 References: 
 
