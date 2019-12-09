@@ -45,6 +45,11 @@ public class NPMRegistry {
 				);
 			});
 		});
+		router.get("/:package_name").handler(ctx -> {
+			String packageName = ctx.request().getParam("package_name");
+			Logger.info(NPMRegistry.class, "GET package: %s", packageName);
+			ctx.response().setStatusCode(405).end();
+		});
 		httpServer = vertx.createHttpServer().requestHandler(router);
 	}
 	
