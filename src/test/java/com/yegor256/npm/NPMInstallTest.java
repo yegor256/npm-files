@@ -17,7 +17,7 @@ public class NPMInstallTest {
 		npmRegistry.start();
 		int publishExitCode = new ProcessBuilder()
 				.directory(new File("./src/test/resources/simple-npm-project/"))
-				.command("npm", "publish", "--registry", "http://localhost:" + port)
+				.command("npm", "publish", "--registry", "http://127.0.0.1:" + port)
 				.inheritIO()
 				.start()
 				.waitFor();
