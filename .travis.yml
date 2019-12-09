@@ -19,3 +19,5 @@ env:
     - JAVA_OPTS="-Xmx256m"
 jdk:
   - openjdk8
+node_js:
+  - "13"
