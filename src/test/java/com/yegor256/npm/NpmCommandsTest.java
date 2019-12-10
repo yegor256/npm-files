@@ -43,7 +43,7 @@ public class NpmCommandsTest {
     public void npmPublishWorks() throws IOException, InterruptedException {
         final int port = 8080;
         final Storage.Simple storage = new Storage.Simple();
-        final NPMRegistry registry = new NPMRegistry(Vertx.vertx(), storage, port);
+        final NpmRegistry registry = new NpmRegistry(Vertx.vertx(), storage, port);
         registry.start();
         final int code = new ProcessBuilder()
                 .directory(new File("./src/test/resources/simple-npm-project/"))
