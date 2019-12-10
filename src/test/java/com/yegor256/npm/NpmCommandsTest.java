@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- * <p>
+ *
  * Copyright (c) 2019 Yegor Bugayenko
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,27 +24,34 @@
 package com.yegor256.npm;
 
 import io.vertx.reactivex.core.Vertx;
+import java.io.File;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
+/**
+ * Make sure the library is compatible with npm cli tools.
+ */
+public class NpmCommandsTest {
 
-public class NPMInstallTest {
-
+    /**
+     * Test that npm publish command works properly.
+     * @throws IOException if fails
+     * @throws InterruptedException if fails
+     */
     @Test
-    public void nomCommandsPublishAndInstallWorks() throws IOException, InterruptedException {
-        int port = 8080;
-        Storage.Simple storage = new Storage.Simple();
-        NPMRegistry npmRegistry = new NPMRegistry(Vertx.vertx(), storage, port);
-        npmRegistry.start();
-        int publishExitCode = new ProcessBuilder()
+    public void npmPublishWorks() throws IOException, InterruptedException {
+        final int port = 8080;
+        final Storage.Simple storage = new Storage.Simple();
+        final NPMRegistry registry = new NPMRegistry(Vertx.vertx(), storage, port);
+        registry.start();
+        final int code = new ProcessBuilder()
                 .directory(new File("./src/test/resources/simple-npm-project/"))
                 .command("npm", "publish", "--registry", "http://127.0.0.1:" + port)
                 .inheritIO()
                 .start()
                 .waitFor();
-        Assert.assertEquals(0, publishExitCode);
-        npmRegistry.stop();
+        Assert.assertEquals(0, code);
+        registry.stop();
     }
 }
