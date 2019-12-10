@@ -82,7 +82,7 @@ public class NpmRegistry {
      * @throws IOException if fails
      */
     public NpmRegistry() throws IOException {
-        this(Vertx.vertx(), new Storage.Simple(), DEFAULT_PORT);
+        this(Vertx.vertx(), new Storage.Simple(), NpmRegistry.DEFAULT_PORT);
     }
 
     /**
@@ -99,24 +99,7 @@ public class NpmRegistry {
         this.npm = new Npm(storage);
         this.port = port;
         this.storage = storage;
-        final Router router = Router.router(vertx);
-        router.put("/:package_name").handler(
-            ctx -> {
-                final String npmpackage =
-                    ctx.request().getParam("package_name");
-                this.putPackage(ctx, npmpackage);
-            }
-        );
-        router.get("/:package_name").handler(
-            ctx -> {
-                final String npmpackage =
-                    ctx.request().getParam("package_name");
-                Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
-                final int notallowed = 405;
-                ctx.response().setStatusCode(notallowed).end();
-            }
-        );
-        this.server = vertx.createHttpServer().requestHandler(router);
+        this.server = vertx.createHttpServer().requestHandler(this.routes());
     }
 
     /**
@@ -178,13 +161,40 @@ public class NpmRegistry {
                 } catch (final IOException exception) {
                     Logger.error(
                         NpmRegistry.class,
-                        "save uploaded json error"
+                        "save uploaded json error: %s",
+                        exception.getMessage()
                     );
-                    exception.printStackTrace();
                     final int internal = 500;
                     ctx.response().setStatusCode(internal).end();
                 }
             }
         );
+    }
+
+    /**
+     * The registry routes.
+     * @return The registry routes
+     */
+    private Router routes() {
+        final Router router = Router.router(this.vertx);
+        final String path = "/:package_name";
+        final String pkg = "package_name";
+        router.put(path).handler(
+            ctx -> {
+                final String npmpackage =
+                    ctx.request().getParam(pkg);
+                this.putPackage(ctx, npmpackage);
+            }
+        );
+        router.get(path).handler(
+            ctx -> {
+                final String npmpackage =
+                    ctx.request().getParam(pkg);
+                Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
+                final int notallowed = 405;
+                ctx.response().setStatusCode(notallowed).end();
+            }
+        );
+        return router;
     }
 }
