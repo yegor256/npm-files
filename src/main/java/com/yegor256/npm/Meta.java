@@ -47,6 +47,21 @@ import javax.json.JsonPatchBuilder;
 public class Meta {
 
     /**
+     * The name json filed.
+     */
+    private static final String NAME = "name";
+
+    /**
+     * The _id json filed.
+     */
+    private static final String ID = "_id";
+
+    /**
+     * The readme json field.
+     */
+    private static final String README = "readme";
+
+    /**
      * The meta.json file.
      */
     private final Path json;
@@ -69,24 +84,31 @@ public class Meta {
      */
     public Meta(final JsonObject published, final Path wheretosave)
         throws IOException {
-        final String created = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-            .format(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
-        final JsonObject meta = Json.createObjectBuilder()
-            .add("name", published.getString("name"))
-            .add("_id", published.getString("_id"))
-            .add("readme", published.getString("readme"))
-            .add(
-                "time",
-                Json.createObjectBuilder()
-                    .add("created", created)
-                    .build()
-            )
-            .add("users", Json.createObjectBuilder().build())
-            .add("_attachments", Json.createObjectBuilder().build())
-            .build();
-        this.json = Files.write(
+        this(Files.write(
             wheretosave,
-            meta.toString().getBytes(StandardCharsets.UTF_8)
+            Json.createObjectBuilder()
+                .add(Meta.NAME, published.getString(Meta.NAME))
+                .add(Meta.ID, published.getString(Meta.ID))
+                .add(Meta.README, published.getString(Meta.README))
+                .add(
+                    "time",
+                    Json.createObjectBuilder()
+                        .add(
+                            "created",
+                            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                            .format(
+                                ZonedDateTime.ofInstant(
+                                    Instant.now(),
+                                    ZoneOffset.UTC
+                                )
+                            )
+                        )
+                        .build()
+                )
+                .add("users", Json.createObjectBuilder().build())
+                .add("_attachments", Json.createObjectBuilder().build())
+                .build().toString().getBytes(StandardCharsets.UTF_8)
+            )
         );
     }
 

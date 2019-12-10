@@ -68,9 +68,10 @@ public class Npm {
      */
     public final void publish(final String prefix, final String key)
         throws IOException {
+        final String suffix = "json";
         final Path upload =
-            Files.createTempFile("upload-json", "json");
-        final Path metafile = Files.createTempFile("meta", "json");
+            Files.createTempFile("upload", suffix);
+        final Path metafile = Files.createTempFile("meta", suffix);
         this.storage.load(key, upload);
         final JsonReader reader = Json.createReader(
             new BufferedInputStream(new FileInputStream(upload.toFile()))

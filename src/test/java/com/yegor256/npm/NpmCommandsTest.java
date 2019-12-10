@@ -26,7 +26,8 @@ package com.yegor256.npm;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
-import org.junit.Assert;
+import org.hamcrest.Matchers;
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -64,7 +65,7 @@ public class NpmCommandsTest {
             .inheritIO()
             .start()
             .waitFor();
-        Assert.assertEquals(0, code);
+        Assume.assumeThat(code, Matchers.equalTo(0));
         registry.stop();
     }
 }
