@@ -44,7 +44,7 @@ import javax.json.JsonPatchBuilder;
  * @version $Id$
  * @since 0.1
  */
-public class Meta {
+final class Meta {
 
     /**
      * The name json filed.
@@ -71,7 +71,7 @@ public class Meta {
      *
      * @param json The meta.json file location on disk
      */
-    public Meta(final Path json) {
+    Meta(final Path json) {
         this.json = json;
     }
 
@@ -82,7 +82,7 @@ public class Meta {
      * @param wheretosave Where to store the meta file on disk
      * @throws IOException on save error
      */
-    public Meta(final JsonObject published, final Path wheretosave)
+    Meta(final JsonObject published, final Path wheretosave)
         throws IOException {
         this(Files.write(
             wheretosave,
@@ -119,7 +119,7 @@ public class Meta {
      * @param uploaded The json
      * @throws IOException if fails
      */
-    public final void update(final JsonObject uploaded) throws IOException {
+    public void update(final JsonObject uploaded) throws IOException {
         final JsonObject meta = Json.createReader(
             new FileInputStream(this.json.toFile())
         ).readObject();
