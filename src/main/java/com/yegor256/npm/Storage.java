@@ -24,7 +24,6 @@
 package com.yegor256.npm;
 
 import com.jcabi.log.Logger;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,7 +56,7 @@ public interface Storage {
     /**
      * Saves the file to the specified key.
      *
-     * @param key     The key (file name)
+     * @param key The key (file name)
      * @param content Where to get the content
      * @throws IOException If fails
      */
@@ -68,7 +67,7 @@ public interface Storage {
      * <p>
      * If the file is absent, this method must throw a runtime exception.
      *
-     * @param key     The key (file name)
+     * @param key The key (file name)
      * @param content Where to put the content
      * @throws IOException If fails
      */
