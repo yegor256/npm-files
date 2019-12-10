@@ -14,12 +14,12 @@ before_install:
   - sudo apt-get -y install nodejs-dev node-gyp libssl1.0-dev
   - sudo apt-get -y install npm
   - sudo apt-get -y install openjdk-8-jdk
-  - java --version
   - sudo update-alternatives --get-selections
 install:
   - gem install pdd -v 0.20.5
 script:
   - set -e
+  - JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
   - java --version
   - mvn clean install -Pqulice --errors --batch-mode
   - mvn clean
