@@ -15,6 +15,7 @@ before_install:
   - sudo apt-get -y install npm
   - sudo apt-get -y install openjdk-8-jdk
   - java --version
+  - sudo update-alternatives --get-selections
 install:
   - gem install pdd -v 0.20.5
 script:
