@@ -114,9 +114,9 @@ public interface Storage {
             target.getParent().toFile().mkdirs();
             Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING);
             Logger.info(
-                    this,
-                    "Saved %d bytes to %s: %s",
-                    Files.size(target), key, target
+                this,
+                "Saved %d bytes to %s: %s",
+                Files.size(target), key, target
             );
         }
 
@@ -125,9 +125,9 @@ public interface Storage {
             final Path source = Paths.get(this.dir.toString(), key);
             Files.copy(source, path, StandardCopyOption.REPLACE_EXISTING);
             Logger.info(
-                    this,
-                    "Loaded %d bytes of %s: %s",
-                    Files.size(source), key, source
+                this,
+                "Loaded %d bytes of %s: %s",
+                Files.size(source), key, source
             );
         }
     }

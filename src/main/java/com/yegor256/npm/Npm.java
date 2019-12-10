@@ -33,9 +33,11 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 
 /**
- * The NPM front. The main goal is to consume a json uploaded by {@code npm publish command} and:
- * 1. to generate source archives
- * 2. meta.json file
+ * The NPM front.
+ * The main goal is to consume a json uploaded by
+ * {@code npm publish command} and to:
+ *  1. to generate source archives
+ *  2. meta.json file
  *
  * @author Pavel Drankov (titantins@gmail.com)
  * @version $Id$
@@ -64,15 +66,17 @@ public class Npm {
      * @param key Where uploaded json file is stored
      * @throws IOException If fails
      */
-    public void publish(final String prefix, final String key) throws IOException {
-        final Path upload = Files.createTempFile("upload-json", "json");
+    public final void publish(final String prefix, final String key)
+        throws IOException {
+        final Path upload =
+            Files.createTempFile("upload-json", "json");
         final Path metafile = Files.createTempFile("meta", "json");
         this.storage.load(key, upload);
         final JsonReader reader = Json.createReader(
-                new BufferedInputStream(new FileInputStream(upload.toFile()))
+            new BufferedInputStream(new FileInputStream(upload.toFile()))
         );
         final JsonObject uploaded = reader.readObject();
-        final String metafilename = prefix + "/meta.json";
+        final String metafilename = String.format("%s/meta.json", prefix);
         final Meta meta;
         if (this.storage.exists(metafilename)) {
             this.storage.load(metafilename, metafile);
