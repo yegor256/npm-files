@@ -1,6 +1,8 @@
 language: java
+jdk:
+  - openjdk8
 sudo: true
-dist: bionic
+dist: xenial
 addons:
   apt:
     update: true
@@ -13,7 +15,6 @@ before_install:
   - rvm use 2.6.0
   - sudo apt-get -y install nodejs-dev node-gyp libssl1.0-dev
   - sudo apt-get -y install npm
-  - sudo apt-get -y install openjdk-8-jdk
 install:
   - gem install pdd -v 0.20.5
 script:
