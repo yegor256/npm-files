@@ -47,10 +47,9 @@ public class NpmCommandsTest {
     @Test
     public final void npmPublishWorks()
         throws IOException, InterruptedException {
-        final int port = 8080;
         final Storage.Simple storage = new Storage.Simple();
         final NpmRegistry registry =
-            new NpmRegistry(Vertx.vertx(), storage, port);
+            new NpmRegistry(Vertx.vertx(), storage);
         registry.start();
         final int code = new ProcessBuilder()
             .directory(
@@ -60,7 +59,7 @@ public class NpmCommandsTest {
                 "npm",
                 "publish",
                 "--registry",
-                String.format("http://127.0.0.1:%d", port)
+                String.format("http://127.0.0.1:%d", registry.getPort())
             )
             .inheritIO()
             .start()

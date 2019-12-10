@@ -31,6 +31,7 @@ import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.json.Json;
@@ -44,12 +45,7 @@ import javax.json.JsonObject;
  * @version $Id$
  * @since 0.1
  */
-public class NpmRegistry {
-
-    /**
-     * The default port for the registry.
-     */
-    private static final int DEFAULT_PORT = 8080;
+final class NpmRegistry {
 
     /**
      * The vertx.
@@ -81,8 +77,20 @@ public class NpmRegistry {
      *
      * @throws IOException if fails
      */
-    public NpmRegistry() throws IOException {
-        this(Vertx.vertx(), new Storage.Simple(), NpmRegistry.DEFAULT_PORT);
+    NpmRegistry() throws IOException {
+        this(Vertx.vertx(), new Storage.Simple());
+    }
+
+    /**
+     * Ctor.
+     * @param vertx The Vert.x
+     * @param storage The storage
+     * @throws IOException if fails
+     */
+    NpmRegistry(
+        final Vertx vertx,
+        final Storage storage) throws IOException {
+        this(vertx, storage, NpmRegistry.randomFreePort());
     }
 
     /**
@@ -91,7 +99,7 @@ public class NpmRegistry {
      * @param storage The storage
      * @param port The port
      */
-    public NpmRegistry(
+    NpmRegistry(
         final Vertx vertx,
         final Storage storage,
         final int port) {
@@ -105,15 +113,24 @@ public class NpmRegistry {
     /**
      * Start the registry.
      */
-    public final void start() {
+    public void start() {
         this.server.rxListen(this.port).blockingGet();
     }
 
     /**
      * Stop the registry.
      */
-    public final void stop() {
+    public void stop() {
         this.server.rxClose().blockingGet();
+    }
+
+    /**
+     * Return the port registry is listening on.
+     *
+     * @return The port
+     */
+    public int getPort() {
+        return this.port;
     }
 
     /**
@@ -196,5 +213,17 @@ public class NpmRegistry {
             }
         );
         return router;
+    }
+
+    /**
+     * Find a random free port.
+     *
+     * @return The random free port
+     * @throws IOException if fails
+     */
+    private static int randomFreePort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
     }
 }
