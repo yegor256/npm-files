@@ -31,6 +31,10 @@ import org.junit.Test;
 
 /**
  * Make sure the library is compatible with npm cli tools.
+ *
+ * @author Pavel Drankov (titantins@gmail.com)
+ * @version $Id$
+ * @since 0.1
  */
 public class NpmCommandsTest {
 
@@ -40,17 +44,26 @@ public class NpmCommandsTest {
      * @throws InterruptedException if fails
      */
     @Test
-    public void npmPublishWorks() throws IOException, InterruptedException {
+    public final void npmPublishWorks()
+        throws IOException, InterruptedException {
         final int port = 8080;
         final Storage.Simple storage = new Storage.Simple();
-        final NpmRegistry registry = new NpmRegistry(Vertx.vertx(), storage, port);
+        final NpmRegistry registry =
+            new NpmRegistry(Vertx.vertx(), storage, port);
         registry.start();
         final int code = new ProcessBuilder()
-                .directory(new File("./src/test/resources/simple-npm-project/"))
-                .command("npm", "publish", "--registry", "http://127.0.0.1:" + port)
-                .inheritIO()
-                .start()
-                .waitFor();
+            .directory(
+                new File("./src/test/resources/simple-npm-project/")
+            )
+            .command(
+                "npm",
+                "publish",
+                "--registry",
+                String.format("http://127.0.0.1:%d", port)
+            )
+            .inheritIO()
+            .start()
+            .waitFor();
         Assert.assertEquals(0, code);
         registry.stop();
     }

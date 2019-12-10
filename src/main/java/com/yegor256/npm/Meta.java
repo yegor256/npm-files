@@ -39,6 +39,10 @@ import javax.json.JsonPatchBuilder;
 
 /**
  * The meta.json file.
+ *
+ * @author Pavel Drankov (titantins@gmail.com)
+ * @version $Id$
+ * @since 0.1
  */
 public class Meta {
 
@@ -63,42 +67,56 @@ public class Meta {
      * @param wheretosave Where to store the meta file on disk
      * @throws IOException on save error
      */
-    public Meta(final JsonObject published, final Path wheretosave) throws IOException {
+    public Meta(final JsonObject published, final Path wheretosave)
+        throws IOException {
         final String created = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                .format(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
+            .format(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
         final JsonObject meta = Json.createObjectBuilder()
-                .add("name", published.getString("name"))
-                .add("_id", published.getString("_id"))
-                .add("readme", published.getString("readme"))
-                .add("time",
-                        Json.createObjectBuilder()
-                                .add("created", created)
-                                .build()
-                )
-                .add("users", Json.createObjectBuilder().build())
-                .add("_attachments", Json.createObjectBuilder().build())
-                .build();
-        this.json = Files.write(wheretosave, meta.toString().getBytes(StandardCharsets.UTF_8));
+            .add("name", published.getString("name"))
+            .add("_id", published.getString("_id"))
+            .add("readme", published.getString("readme"))
+            .add(
+                "time",
+                Json.createObjectBuilder()
+                    .add("created", created)
+                    .build()
+            )
+            .add("users", Json.createObjectBuilder().build())
+            .add("_attachments", Json.createObjectBuilder().build())
+            .build();
+        this.json = Files.write(
+            wheretosave,
+            meta.toString().getBytes(StandardCharsets.UTF_8)
+        );
     }
 
     /**
-     * Update the meta.json file by processing newly uploaded {@code npm publish} generated json.
+     * Update the meta.json file by processing newly
+     * uploaded {@code npm publish} generated json.
      *
      * @param uploaded The json
      * @throws IOException if fails
      */
-    public void update(final JsonObject uploaded) throws IOException {
+    public final void update(final JsonObject uploaded) throws IOException {
         final JsonObject meta = Json.createReader(
-                new FileInputStream(this.json.toFile())
+            new FileInputStream(this.json.toFile())
         ).readObject();
         final JsonObject versions = uploaded.getJsonObject("versions");
         final Set<String> keys = versions.keySet();
         final JsonPatchBuilder patch = Json.createPatchBuilder();
         for (final String key : keys) {
-            patch.add("/versions/" + key, versions.getJsonObject(key));
+            patch.add(
+                String.format("/versions/%s", key),
+                versions.getJsonObject(key)
+            );
         }
-        Files.write(this.json,
-                patch.build().apply(meta).toString().getBytes(StandardCharsets.UTF_8)
+        Files.write(
+            this.json,
+            patch
+            .build()
+            .apply(meta)
+            .toString()
+            .getBytes(StandardCharsets.UTF_8)
         );
     }
 }

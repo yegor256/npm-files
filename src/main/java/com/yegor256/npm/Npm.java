@@ -36,6 +36,10 @@ import javax.json.JsonReader;
  * The NPM front. The main goal is to consume a json uploaded by {@code npm publish command} and:
  * 1. to generate source archives
  * 2. meta.json file
+ *
+ * @author Pavel Drankov (titantins@gmail.com)
+ * @version $Id$
+ * @since 0.1
  */
 public class Npm {
 

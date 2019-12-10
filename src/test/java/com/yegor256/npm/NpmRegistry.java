@@ -35,11 +35,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 /**
  * A registry compatible with: {@code npm publish} and
  * {@code npm install} commands.
+ *
+ * @author Pavel Drankov (titantins@gmail.com)
+ * @version $Id$
+ * @since 0.1
  */
 public class NpmRegistry {
 
@@ -88,81 +91,100 @@ public class NpmRegistry {
      * @param storage The storage
      * @param port The port
      */
-    public NpmRegistry(final Vertx vertx,
-                       final Storage storage,
-                       final int port
-    ) {
+    public NpmRegistry(
+        final Vertx vertx,
+        final Storage storage,
+        final int port) {
         this.vertx = vertx;
         this.npm = new Npm(storage);
         this.port = port;
         this.storage = storage;
         final Router router = Router.router(vertx);
-        // handle npm publish command
-        router.put("/:package_name").handler(ctx -> {
-            final String npmpackage = ctx.request().getParam("package_name");
-            this.putPackage(ctx, npmpackage);
-        });
-        // handle npm install command
-        router.get("/:package_name").handler(ctx -> {
-            final String npmpackage = ctx.request().getParam("package_name");
-            Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
-            final int notallowed = 405;
-            ctx.response().setStatusCode(notallowed).end();
-        });
-        this.server = vertx.createHttpServer().requestHandler(router);
-    }
-
-    /**
-     * The handler for the GET /package_name endpoint.
-     * @param ctx The ctx
-     * @param npmpackage The package_name param
-     */
-    private void putPackage(final RoutingContext ctx,
-                            final String npmpackage) {
-        ctx.request().bodyHandler(body -> {
-            try {
-                Logger.info(NpmRegistry.class,
-                        "Uploaded package:%s package:\n%s",
-                        npmpackage, body.toJsonObject().encodePrettily()
-                );
-                final JsonObject request = Json.createReader(
-                        new StringReader(body.toString())
-                ).readObject();
-                final Path uploaded = Files.createTempFile("uploaded", ".json");
-                this.vertx.fileSystem()
-                        .writeFileBlocking(
-                                uploaded.toAbsolutePath().toString(),
-                                Buffer.buffer(request.toString()));
-                final String uploadkey = npmpackage + "-uploaded";
-                this.storage.save(uploadkey, uploaded);
-                this.npm.publish("/" + npmpackage, uploadkey);
-                ctx.response().end(
-                        Json.createObjectBuilder()
-                                .add("ok", "created new package")
-                                .add("success", true)
-                                .build()
-                                .toString()
-                );
-            } catch (final IOException exception) {
-                Logger.error(NpmRegistry.class, "save uploaded json error");
-                exception.printStackTrace();
-                final int internal = 500;
-                ctx.response().setStatusCode(internal).end();
+        router.put("/:package_name").handler(
+            ctx -> {
+                final String npmpackage =
+                    ctx.request().getParam("package_name");
+                this.putPackage(ctx, npmpackage);
             }
-        });
+        );
+        router.get("/:package_name").handler(
+            ctx -> {
+                final String npmpackage =
+                    ctx.request().getParam("package_name");
+                Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
+                final int notallowed = 405;
+                ctx.response().setStatusCode(notallowed).end();
+            }
+        );
+        this.server = vertx.createHttpServer().requestHandler(router);
     }
 
     /**
      * Start the registry.
      */
-    public void start() {
+    public final void start() {
         this.server.rxListen(this.port).blockingGet();
     }
 
     /**
      * Stop the registry.
      */
-    public void stop() {
+    public final void stop() {
         this.server.rxClose().blockingGet();
+    }
+
+    /**
+     * The handler for the GET /package_name endpoint for
+     * {@code npm publish} command.
+     *
+     * @param ctx The ctx
+     * @param npmpackage The package_name param
+     */
+    private void putPackage(
+        final RoutingContext ctx,
+        final String npmpackage) {
+        ctx.request().bodyHandler(
+            body -> {
+                try {
+                    Logger.info(
+                        NpmRegistry.class,
+                        "Uploaded package:%s package:\n%s",
+                        npmpackage, body.toJsonObject().encodePrettily()
+                    );
+                    final JsonObject request = Json.createReader(
+                        new StringReader(body.toString())
+                    ).readObject();
+                    final Path uploaded =
+                        Files.createTempFile("uploaded", ".json");
+                    this.vertx.fileSystem()
+                        .writeFileBlocking(
+                            uploaded.toAbsolutePath().toString(),
+                            Buffer.buffer(request.toString())
+                        );
+                    final String uploadkey =
+                        String.format("%s-uploaded", npmpackage);
+                    this.storage.save(uploadkey, uploaded);
+                    this.npm.publish(
+                        String.format("/%s", npmpackage),
+                        uploadkey
+                    );
+                    ctx.response().end(
+                        Json.createObjectBuilder()
+                            .add("ok", "created new package")
+                            .add("success", true)
+                            .build()
+                            .toString()
+                    );
+                } catch (final IOException exception) {
+                    Logger.error(
+                        NpmRegistry.class,
+                        "save uploaded json error"
+                    );
+                    exception.printStackTrace();
+                    final int internal = 500;
+                    ctx.response().setStatusCode(internal).end();
+                }
+            }
+        );
     }
 }
