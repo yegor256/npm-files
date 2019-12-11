@@ -97,10 +97,8 @@ public class NpmCommandsTest {
                 .waitFor(),
             Matchers.equalTo(0)
         );
-        new File("./src/test/resources/"
-            + "project-with-simple-dependency/node_modules").delete();
-        new File("./src/test/resources/"
-            + "project-with-simple-dependency/package-lock.json").delete();
+        new File("./src/test/resources/project-with-simple-dependency/node_modules").delete();
+        new File("./src/test/resources/project-with-simple-dependency/package-lock.json").delete();
         registry.stop();
     }
 }
