@@ -36,7 +36,7 @@ SOFTWARE.
     </parent>
     <groupId>com.yegor256</groupId>
     <artifactId>npm-files</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
     <name>npm-files</name>
     <description>Turns your files/objects into NPM artifacts</description>
