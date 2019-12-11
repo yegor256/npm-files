@@ -82,10 +82,10 @@ public class Npm {
         if (this.storage.exists(metafilename)) {
             this.storage.load(metafilename, metafile);
             meta = new Meta(metafile);
-            meta.update(uploaded);
         } else {
-            new Meta(uploaded, metafile);
+            meta = new Meta(uploaded, metafile);
         }
+        meta.update(uploaded);
         this.storage.save(metafilename, metafile);
     }
 }
