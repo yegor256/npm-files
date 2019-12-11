@@ -26,8 +26,8 @@ package com.yegor256.npm;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -63,7 +63,7 @@ public class NpmCommandsTest {
             "http://127.0.0.1:%d",
             registry.getPort()
         );
-        Assume.assumeThat(
+        MatcherAssert.assertThat(
             new ProcessBuilder()
             .directory(
                 new File("./src/test/resources/simple-npm-project/")
@@ -79,7 +79,7 @@ public class NpmCommandsTest {
             .waitFor(),
             Matchers.equalTo(0)
         );
-        Assume.assumeThat(
+        MatcherAssert.assertThat(
             new ProcessBuilder()
                 .directory(
                     new File(
