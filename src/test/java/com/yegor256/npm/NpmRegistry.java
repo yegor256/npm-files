@@ -114,6 +114,7 @@ final class NpmRegistry {
      * Start the registry.
      */
     public void start() {
+        Logger.info(this, "Listening on port: %d", this.port);
         this.server.rxListen(this.port).blockingGet();
     }
 
@@ -134,7 +135,7 @@ final class NpmRegistry {
     }
 
     /**
-     * The handler for the GET /package_name endpoint for
+     * The handler for the PUT /package_name endpoint for
      * {@code npm publish} command.
      *
      * @param ctx The ctx
@@ -198,21 +199,56 @@ final class NpmRegistry {
         final String pkg = "package_name";
         router.put(path).handler(
             ctx -> {
-                final String npmpackage =
-                    ctx.request().getParam(pkg);
+                final String npmpackage = ctx.request().getParam(pkg);
                 this.putPackage(ctx, npmpackage);
             }
         );
         router.get(path).handler(
             ctx -> {
-                final String npmpackage =
-                    ctx.request().getParam(pkg);
-                Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
-                final int notallowed = 405;
-                ctx.response().setStatusCode(notallowed).end();
+                final String npmpackage = ctx.request().getParam(pkg);
+                this.getPackage(ctx, npmpackage);
             }
         );
         return router;
+    }
+
+    /**
+     * The handler for the GET /package_name endpoint for
+     * {@code npm install} command.
+     *
+     * @param ctx The ctx
+     * @param npmpackage The package_name param
+     */
+    private void getPackage(final RoutingContext ctx, final String npmpackage) {
+        try {
+            Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
+            final String fname = String.format("%s/meta.json", npmpackage);
+            if (this.storage.exists(fname)) {
+                final Path metapath =
+                    Files.createTempFile(npmpackage, "-load-meta.json");
+                this.storage.load(fname, metapath);
+                ctx.response().end(Buffer.buffer(Files.readAllBytes(metapath)));
+            } else {
+                final int notfound = 404;
+                ctx.response()
+                    .setStatusCode(notfound)
+                    .end(
+                        Json.createObjectBuilder()
+                            .add("error", "Not found")
+                            .build()
+                            .toString()
+                    );
+            }
+        } catch (final IOException exception) {
+            Logger.error(
+                NpmRegistry.class,
+                "GET /%s error: %s",
+                npmpackage,
+                exception.getMessage()
+            );
+            final int internal = 500;
+            ctx.response().setStatusCode(internal).end();
+        }
     }
 
     /**
