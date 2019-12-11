@@ -83,7 +83,7 @@ public class Npm {
             this.storage.load(metafilename, metafile);
             meta = new Meta(metafile);
         } else {
-            meta = new Meta(uploaded, metafile);
+            meta = new NpmPublishJsonToMetaBind(uploaded).bind(metafile);
         }
         meta.update(uploaded);
         this.storage.save(metafilename, metafile);

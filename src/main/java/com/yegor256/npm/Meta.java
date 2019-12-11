@@ -47,21 +47,6 @@ import javax.json.JsonPatchBuilder;
 final class Meta {
 
     /**
-     * The name json filed.
-     */
-    private static final String NAME = "name";
-
-    /**
-     * The _id json filed.
-     */
-    private static final String ID = "_id";
-
-    /**
-     * The readme json field.
-     */
-    private static final String README = "readme";
-
-    /**
      * The meta.json file.
      */
     private final Path json;
@@ -73,43 +58,6 @@ final class Meta {
      */
     Meta(final Path json) {
         this.json = json;
-    }
-
-    /**
-     * Create meta.json file from uploaded via npm install json file.
-     *
-     * @param published Uploaded json
-     * @param wheretosave Where to store the meta file on disk
-     * @throws IOException on save error
-     */
-    Meta(final JsonObject published, final Path wheretosave)
-        throws IOException {
-        this(Files.write(
-            wheretosave,
-            Json.createObjectBuilder()
-                .add(Meta.NAME, published.getString(Meta.NAME))
-                .add(Meta.ID, published.getString(Meta.ID))
-                .add(Meta.README, published.getString(Meta.README))
-                .add(
-                    "time",
-                    Json.createObjectBuilder()
-                        .add(
-                            "created",
-                            DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                            .format(
-                                ZonedDateTime.ofInstant(
-                                    Instant.now(),
-                                    ZoneOffset.UTC
-                                )
-                            )
-                        )
-                        .build()
-                )
-                .add("users", Json.createObjectBuilder().build())
-                .add("_attachments", Json.createObjectBuilder().build())
-                .build().toString().getBytes(StandardCharsets.UTF_8)
-            )
-        );
     }
 
     /**
