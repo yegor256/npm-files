@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -33,8 +33,6 @@ import org.junit.Test;
 /**
  * Make sure the library is compatible with npm cli tools.
  *
- * @author Pavel Drankov (titantins@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 public class NpmCommandsTest {

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -41,8 +41,6 @@ import javax.json.JsonObject;
  * A registry compatible with: {@code npm publish} and
  * {@code npm install} commands.
  *
- * @author Pavel Drankov (titantins@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 final class NpmRegistry {
