@@ -46,6 +46,14 @@ import javax.json.JsonObject;
 final class NpmRegistry {
 
     /**
+     * Response for a file not found case.
+     */
+    private static final JsonObject NOT_FOUND =
+        Json.createObjectBuilder()
+            .add("error", "Not found")
+            .build();
+
+    /**
      * The vertx.
      */
     private final Vertx vertx;
@@ -207,7 +215,56 @@ final class NpmRegistry {
                 this.getPackage(ctx, npmpackage);
             }
         );
+        router.get("/:package_name/-/:archive_name").handler(
+            ctx -> {
+                final String npmpackage = ctx.request().getParam(pkg);
+                final String archivename =  ctx.request().getParam("archive_name");
+                this.getArchive(ctx, npmpackage, archivename);
+            }
+        );
         return router;
+    }
+
+    /**
+     * Get an archive with sources.
+     * @param ctx The ctx
+     * @param npmpackage The package_name param
+     * @param archivename The archive_name param
+     */
+    private void getArchive(
+        final RoutingContext ctx,
+        final String npmpackage,
+        final String archivename) {
+        try {
+            Logger.info(
+                NpmRegistry.class,
+                "GET src: /%s/-/%s",
+                npmpackage,
+                archivename
+            );
+            final String fname = String.format("%s/%s", npmpackage, archivename);
+            if (this.storage.exists(fname)) {
+                final Path path =
+                    Files.createTempFile(npmpackage, "-load-src.tgz");
+                this.storage.load(fname, path);
+                ctx.response().end(Buffer.buffer(Files.readAllBytes(path)));
+            } else {
+                final int notfound = 404;
+                ctx.response()
+                    .setStatusCode(notfound)
+                    .end(NpmRegistry.NOT_FOUND.toString());
+            }
+        } catch (final IOException exception) {
+            Logger.error(
+                NpmRegistry.class,
+                "GET /%s/-/%s error: %s",
+                npmpackage,
+                archivename,
+                exception.getMessage()
+            );
+            final int internal = 500;
+            ctx.response().setStatusCode(internal).end();
+        }
     }
 
     /**
@@ -230,12 +287,7 @@ final class NpmRegistry {
                 final int notfound = 404;
                 ctx.response()
                     .setStatusCode(notfound)
-                    .end(
-                        Json.createObjectBuilder()
-                            .add("error", "Not found")
-                            .build()
-                            .toString()
-                    );
+                    .end(NpmRegistry.NOT_FOUND.toString());
             }
         } catch (final IOException exception) {
             Logger.error(
