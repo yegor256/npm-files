@@ -18,6 +18,7 @@ install:
 script:
   - set -e
   - JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+  - gem install xcop
   - mvn clean install -Pqulice --errors --batch-mode
   - mvn clean
   - pdd -f /dev/null
