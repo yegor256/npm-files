@@ -1,8 +1,6 @@
 architects:
   - yegor256
   - Sammers21
-docker:
-  image: yegor256/java8
 assets:
   settings.xml: yegor256/home#assets/rpm-files/settings.xml
   pubring.gpg: yegor256/home#assets/pubring.gpg
