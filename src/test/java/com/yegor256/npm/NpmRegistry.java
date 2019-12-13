@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -41,11 +41,17 @@ import javax.json.JsonObject;
  * A registry compatible with: {@code npm publish} and
  * {@code npm install} commands.
  *
- * @author Pavel Drankov (titantins@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 final class NpmRegistry {
+
+    /**
+     * Response for a file not found case.
+     */
+    private static final JsonObject NOT_FOUND =
+        Json.createObjectBuilder()
+            .add("error", "Not found")
+            .build();
 
     /**
      * The vertx.
@@ -114,6 +120,7 @@ final class NpmRegistry {
      * Start the registry.
      */
     public void start() {
+        Logger.info(this, "Listening on port: %d", this.port);
         this.server.rxListen(this.port).blockingGet();
     }
 
@@ -134,7 +141,7 @@ final class NpmRegistry {
     }
 
     /**
-     * The handler for the GET /package_name endpoint for
+     * The handler for the PUT /package_name endpoint for
      * {@code npm publish} command.
      *
      * @param ctx The ctx
@@ -198,21 +205,100 @@ final class NpmRegistry {
         final String pkg = "package_name";
         router.put(path).handler(
             ctx -> {
-                final String npmpackage =
-                    ctx.request().getParam(pkg);
+                final String npmpackage = ctx.request().getParam(pkg);
                 this.putPackage(ctx, npmpackage);
             }
         );
         router.get(path).handler(
             ctx -> {
-                final String npmpackage =
-                    ctx.request().getParam(pkg);
-                Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
-                final int notallowed = 405;
-                ctx.response().setStatusCode(notallowed).end();
+                final String npmpackage = ctx.request().getParam(pkg);
+                this.getPackage(ctx, npmpackage);
+            }
+        );
+        router.get("/:package_name/-/:archive_name").handler(
+            ctx -> {
+                final String npmpackage = ctx.request().getParam(pkg);
+                final String archivename =  ctx.request().getParam("archive_name");
+                this.getArchive(ctx, npmpackage, archivename);
             }
         );
         return router;
+    }
+
+    /**
+     * Get an archive with sources.
+     * @param ctx The ctx
+     * @param npmpackage The package_name param
+     * @param archivename The archive_name param
+     */
+    private void getArchive(
+        final RoutingContext ctx,
+        final String npmpackage,
+        final String archivename) {
+        try {
+            Logger.info(
+                NpmRegistry.class,
+                "GET src: /%s/-/%s",
+                npmpackage,
+                archivename
+            );
+            final String fname = String.format("%s/%s", npmpackage, archivename);
+            if (this.storage.exists(fname)) {
+                final Path path =
+                    Files.createTempFile(npmpackage, "-load-src.tgz");
+                this.storage.load(fname, path);
+                ctx.response().end(Buffer.buffer(Files.readAllBytes(path)));
+            } else {
+                final int notfound = 404;
+                ctx.response()
+                    .setStatusCode(notfound)
+                    .end(NpmRegistry.NOT_FOUND.toString());
+            }
+        } catch (final IOException exception) {
+            Logger.error(
+                NpmRegistry.class,
+                "GET /%s/-/%s error: %s",
+                npmpackage,
+                archivename,
+                exception.getMessage()
+            );
+            final int internal = 500;
+            ctx.response().setStatusCode(internal).end();
+        }
+    }
+
+    /**
+     * The handler for the GET /package_name endpoint for
+     * {@code npm install} command.
+     *
+     * @param ctx The ctx
+     * @param npmpackage The package_name param
+     */
+    private void getPackage(final RoutingContext ctx, final String npmpackage) {
+        try {
+            Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
+            final String fname = String.format("%s/meta.json", npmpackage);
+            if (this.storage.exists(fname)) {
+                final Path metapath =
+                    Files.createTempFile(npmpackage, "-load-meta.json");
+                this.storage.load(fname, metapath);
+                ctx.response().end(Buffer.buffer(Files.readAllBytes(metapath)));
+            } else {
+                final int notfound = 404;
+                ctx.response()
+                    .setStatusCode(notfound)
+                    .end(NpmRegistry.NOT_FOUND.toString());
+            }
+        } catch (final IOException exception) {
+            Logger.error(
+                NpmRegistry.class,
+                "GET /%s error: %s",
+                npmpackage,
+                exception.getMessage()
+            );
+            final int internal = 500;
+            ctx.response().setStatusCode(internal).end();
+        }
     }
 
     /**

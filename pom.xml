@@ -31,7 +31,7 @@ SOFTWARE.
   <parent>
     <groupId>com.jcabi</groupId>
     <artifactId>parent</artifactId>
-    <version>0.49.5</version>
+    <version>0.49.8</version>
   </parent>
   <groupId>com.yegor256</groupId>
   <artifactId>npm-files</artifactId>
@@ -152,6 +152,7 @@ SOFTWARE.
           <plugin>
             <groupId>com.qulice</groupId>
             <artifactId>qulice-maven-plugin</artifactId>
+            <version>0.18.19</version>
             <configuration>
               <excludes combine.children="append">
                 <exclude>findbugs:.*</exclude>

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -26,45 +26,79 @@ package com.yegor256.npm;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assume;
 import org.junit.Test;
 
 /**
  * Make sure the library is compatible with npm cli tools.
  *
- * @author Pavel Drankov (titantins@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 public class NpmCommandsTest {
 
     /**
-     * Test that npm publish command works properly.
+     * The npm string.
+     */
+    private static final String NPM = "npm";
+
+    /**
+     * The registry string.
+     */
+    private static final String REGISTRY = "--registry";
+
+    /**
+     * Test {@code npm publish} and {@code npm install} command works properly.
      * @throws IOException if fails
      * @throws InterruptedException if fails
      */
     @Test
-    public final void npmPublishWorks()
+    public final void npmPublishAndInstallWorks()
         throws IOException, InterruptedException {
         final Storage.Simple storage = new Storage.Simple();
         final NpmRegistry registry =
             new NpmRegistry(Vertx.vertx(), storage);
         registry.start();
-        final int code = new ProcessBuilder()
+        final String url = String.format(
+            "http://127.0.0.1:%d",
+            registry.getPort()
+        );
+        MatcherAssert.assertThat(
+            new ProcessBuilder()
             .directory(
                 new File("./src/test/resources/simple-npm-project/")
             )
             .command(
-                "npm",
+                NpmCommandsTest.NPM,
                 "publish",
-                "--registry",
-                String.format("http://127.0.0.1:%d", registry.getPort())
+                NpmCommandsTest.REGISTRY,
+                url
             )
             .inheritIO()
             .start()
-            .waitFor();
-        Assume.assumeThat(code, Matchers.equalTo(0));
+            .waitFor(),
+            Matchers.equalTo(0)
+        );
+        MatcherAssert.assertThat(
+            new ProcessBuilder()
+                .directory(
+                    new File(
+                        "./src/test/resources/project-with-simple-dependency/"
+                    )
+                )
+                .command(
+                    NpmCommandsTest.NPM,
+                    "install",
+                    NpmCommandsTest.REGISTRY,
+                    url
+                )
+                .inheritIO()
+                .start()
+                .waitFor(),
+            Matchers.equalTo(0)
+        );
+        new File("./src/test/resources/project-with-simple-dependency/node_modules").delete();
+        new File("./src/test/resources/project-with-simple-dependency/package-lock.json").delete();
         registry.stop();
     }
 }

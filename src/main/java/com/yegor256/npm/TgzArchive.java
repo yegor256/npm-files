@@ -21,8 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.yegor256.npm;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 
 /**
- * Rpm files, tests.
+ * A .tgz archive.
+ *
+ * @since 0.1
  */
-package com.yegor256.npm;
+final class TgzArchive {
+
+    /**
+     * The archive representation in a form of a base64 string.
+     */
+    private final String bitstring;
+
+    /**
+     * Ctor.
+     * @param bitstring The archive.
+     */
+    TgzArchive(final String bitstring) {
+        this.bitstring = bitstring;
+    }
+
+    /**
+     * Save the archive to a file.
+     * @param path The path to save .tgz file at.
+     * @throws IOException if fails
+     */
+    public void saveToFile(final Path path) throws IOException {
+        Files.write(path, Base64.getDecoder().decode(this.bitstring));
+    }
+}

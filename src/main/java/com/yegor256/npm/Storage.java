@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -38,8 +38,6 @@ import java.nio.file.StandardCopyOption;
  * want to work with files. Otherwise, for S3 or something else, you have
  * to implement it yourself.
  *
- * @author Yegor Bugayenko (yegor256@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 public interface Storage {

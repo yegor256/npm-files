@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -23,7 +23,6 @@
  */
 package com.yegor256.npm;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,8 +35,6 @@ import javax.json.JsonPatchBuilder;
 /**
  * The meta.json file.
  *
- * @author Pavel Drankov (titantins@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 final class Meta {
@@ -65,7 +62,7 @@ final class Meta {
      */
     public void update(final JsonObject uploaded) throws IOException {
         final JsonObject meta = Json.createReader(
-            new FileInputStream(this.json.toFile())
+            Files.newInputStream(this.json)
         ).readObject();
         final JsonObject versions = uploaded.getJsonObject("versions");
         final Set<String> keys = versions.keySet();

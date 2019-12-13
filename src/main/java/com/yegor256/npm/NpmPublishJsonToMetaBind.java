@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -37,8 +37,6 @@ import javax.json.JsonObject;
 /**
  * Bind {@code npm publish} generated json to an instance on {@link Meta}.
  *
- * @author Pavel Drankov (titantins@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 final class NpmPublishJsonToMetaBind {

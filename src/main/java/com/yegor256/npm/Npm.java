@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Yegor Bugayenko
@@ -24,13 +24,11 @@
 package com.yegor256.npm;
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 /**
  * The NPM front.
@@ -39,11 +37,14 @@ import javax.json.JsonReader;
  *  1. to generate source archives
  *  2. meta.json file
  *
- * @author Pavel Drankov (titantins@gmail.com)
- * @version $Id$
  * @since 0.1
  */
 public class Npm {
+
+    /**
+     * The .json files extension.
+     */
+    private static final String JSON_EXTENSION = ".json";
 
     /**
      * The storage.
@@ -60,7 +61,7 @@ public class Npm {
     }
 
     /**
-     * Publish a new version of an npm package.
+     * Publish a new version of a npm package.
      *
      * @param prefix Path prefix for achieves and meta information storage
      * @param key Where uploaded json file is stored
@@ -68,15 +69,51 @@ public class Npm {
      */
     public final void publish(final String prefix, final String key)
         throws IOException {
-        final String suffix = "json";
         final Path upload =
-            Files.createTempFile("upload", suffix);
-        final Path metafile = Files.createTempFile("meta", suffix);
+            Files.createTempFile("upload", Npm.JSON_EXTENSION);
         this.storage.load(key, upload);
-        final JsonReader reader = Json.createReader(
-            new BufferedInputStream(new FileInputStream(upload.toFile()))
-        );
-        final JsonObject uploaded = reader.readObject();
+        final JsonObject uploaded = Json.createReader(
+            new BufferedInputStream(Files.newInputStream(upload))
+        ).readObject();
+        this.updateMetaFile(prefix, uploaded);
+        this.updateSourceArchives(prefix, uploaded);
+    }
+
+    /**
+     * Generate .tgz archives extracted from the uploaded json.
+     * @param prefix The package prefix
+     * @param uploaded The uploaded json
+     * @throws IOException if fails
+     */
+    private void updateSourceArchives(
+        final String prefix,
+        final JsonObject uploaded
+    )
+        throws IOException {
+        final JsonObject attachments = uploaded.getJsonObject("_attachments");
+        for (final String attachment : attachments.keySet()) {
+            final Path path = Files.createTempFile(attachment, ".tgz");
+            new TgzArchive(
+                attachments.getJsonObject(attachment).getString("data")
+            ).saveToFile(path);
+            this.storage.save(
+                String.format("%s/%s", prefix, attachment),
+                path
+            );
+        }
+    }
+
+    /**
+     * Update the meta.json file.
+     *
+     * @param prefix The package prefix
+     * @param uploaded The uploaded json
+     * @throws IOException If fails
+     */
+    private void updateMetaFile(final String prefix, final JsonObject uploaded)
+        throws IOException {
+        final Path metafile =
+            Files.createTempFile("meta", Npm.JSON_EXTENSION);
         final String metafilename = String.format("%s/meta.json", prefix);
         final Meta meta;
         if (this.storage.exists(metafilename)) {
