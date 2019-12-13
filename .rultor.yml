@@ -9,8 +9,8 @@ env:
   MAVEN_OPTS: -XX:MaxPermSize=256m -Xmx1g
   JAVA_OPTS: -XX:MaxPermSize=256m -Xmx1g
 install: |
-  sudo gem install --no-rdoc --no-ri pdd
-  sudo gem install --no-rdoc --no-ri xcop
+  sudo gem install pdd
+  sudo gem install xcop
 merge:
   script: |
     pdd -f /dev/null
