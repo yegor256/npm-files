@@ -23,6 +23,7 @@
  */
 package com.yegor256.npm;
 
+import com.yegor256.asto.Storage;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;

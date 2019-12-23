@@ -23,6 +23,7 @@
  */
 package com.yegor256.npm;
 
+import com.yegor256.asto.Storage;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;

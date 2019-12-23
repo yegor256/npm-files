@@ -24,6 +24,7 @@
 package com.yegor256.npm;
 
 import com.jcabi.log.Logger;
+import com.yegor256.asto.Storage;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.buffer.Buffer;
 import io.vertx.reactivex.core.http.HttpServer;
