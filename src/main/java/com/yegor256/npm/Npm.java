@@ -24,10 +24,13 @@
 package com.yegor256.npm;
 
 import com.yegor256.asto.Storage;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonObject;
 
@@ -66,42 +69,61 @@ public class Npm {
      *
      * @param prefix Path prefix for achieves and meta information storage
      * @param key Where uploaded json file is stored
-     * @throws IOException If fails
+     * @return Completion or error signal.
      */
-    public final void publish(final String prefix, final String key)
-        throws IOException {
-        final Path upload =
-            Files.createTempFile("upload", Npm.JSON_EXTENSION);
-        this.storage.load(key, upload);
-        final JsonObject uploaded = Json.createReader(
-            new BufferedInputStream(Files.newInputStream(upload))
-        ).readObject();
-        this.updateMetaFile(prefix, uploaded);
-        this.updateSourceArchives(prefix, uploaded);
+    public final Completable publish(final String prefix, final String key) {
+        return Single.fromCallable(() -> Files.createTempFile("upload", Npm.JSON_EXTENSION))
+            .flatMapCompletable(
+                upload -> this.storage.load(key, upload)
+                    .andThen(
+                        Single.fromCallable(
+                            () -> Json.createReader(
+                                new BufferedInputStream(Files.newInputStream(upload))
+                            ).readObject())
+                    )
+                    .flatMapCompletable(
+                        uploaded -> this.updateMetaFile(prefix, uploaded)
+                        .andThen(this.updateSourceArchives(prefix, uploaded))));
     }
 
     /**
      * Generate .tgz archives extracted from the uploaded json.
      * @param prefix The package prefix
      * @param uploaded The uploaded json
-     * @throws IOException if fails
+     * @return Completion or error signal.
      */
-    private void updateSourceArchives(
+    private Completable updateSourceArchives(
         final String prefix,
         final JsonObject uploaded
-    )
-        throws IOException {
-        final JsonObject attachments = uploaded.getJsonObject("_attachments");
-        for (final String attachment : attachments.keySet()) {
-            final Path path = Files.createTempFile(attachment, ".tgz");
-            new TgzArchive(
-                attachments.getJsonObject(attachment).getString("data")
-            ).saveToFile(path);
-            this.storage.save(
-                String.format("%s/%s", prefix, attachment),
-                path
+    ) {
+        return Single.fromCallable(() -> uploaded.getJsonObject("_attachments"))
+            .flatMapCompletable(
+                attachments ->
+                    Completable.concat(attachments.keySet().stream()
+                        .map(
+                            attachment -> {
+                                final Path path;
+                                try {
+                                    path = Files.createTempFile(attachment, ".tgz");
+                                } catch (final IOException exception) {
+                                    throw new IllegalStateException(
+                                        "Unable to create temp file",
+                                        exception
+                                    );
+                                }
+                                return new TgzArchive(
+                                    attachments.getJsonObject(attachment).getString("data")
+                                ).saveToFile(path)
+                                    .andThen(
+                                        this.storage.save(
+                                            String.format("%s/%s", prefix, attachment),
+                                            path
+                                        )
+                                    );
+                            }
+                        ).collect(Collectors.toList())
+                    )
             );
-        }
     }
 
     /**
@@ -109,21 +131,30 @@ public class Npm {
      *
      * @param prefix The package prefix
      * @param uploaded The uploaded json
-     * @throws IOException If fails
+     * @return Completion or error signal.
      */
-    private void updateMetaFile(final String prefix, final JsonObject uploaded)
-        throws IOException {
-        final Path metafile =
-            Files.createTempFile("meta", Npm.JSON_EXTENSION);
+    private Completable updateMetaFile(
+        final String prefix,
+        final JsonObject uploaded) {
         final String metafilename = String.format("%s/meta.json", prefix);
-        final Meta meta;
-        if (this.storage.exists(metafilename)) {
-            this.storage.load(metafilename, metafile);
-            meta = new Meta(metafile);
-        } else {
-            meta = new NpmPublishJsonToMetaBind(uploaded).bind(metafile);
-        }
-        meta.update(uploaded);
-        this.storage.save(metafilename, metafile);
+        return Single.fromCallable(() -> Files.createTempFile("meta", Npm.JSON_EXTENSION))
+            .flatMapCompletable(
+                metafile ->
+                    this.storage.exists(metafilename)
+                        .flatMap(
+                            exists -> {
+                                final Single<Meta> meta;
+                                if (exists) {
+                                    meta = this.storage.load(metafilename, metafile)
+                                        .andThen(Single.just(new Meta(metafile)));
+                                } else {
+                                    meta = Single.just(
+                                        new NpmPublishJsonToMetaBind(uploaded).bind(metafile)
+                                    );
+                                }
+                                return meta;
+                            }).flatMapCompletable(meta -> meta.update(uploaded))
+                        .andThen(this.storage.save(metafilename, metafile))
+            );
     }
 }

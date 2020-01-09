@@ -23,7 +23,7 @@
  */
 package com.yegor256.npm;
 
-import java.io.IOException;
+import io.reactivex.rxjava3.core.Completable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,28 +58,31 @@ final class Meta {
      * uploaded {@code npm publish} generated json.
      *
      * @param uploaded The json
-     * @throws IOException if fails
+     * @return Completion or error signal.
      */
-    public void update(final JsonObject uploaded) throws IOException {
-        final JsonObject meta = Json.createReader(
-            Files.newInputStream(this.json)
-        ).readObject();
-        final JsonObject versions = uploaded.getJsonObject("versions");
-        final Set<String> keys = versions.keySet();
-        final JsonPatchBuilder patch = Json.createPatchBuilder();
-        for (final String key : keys) {
-            patch.add(
-                String.format("/versions/%s", key),
-                versions.getJsonObject(key)
-            );
-        }
-        Files.write(
-            this.json,
-            patch
-            .build()
-            .apply(meta)
-            .toString()
-            .getBytes(StandardCharsets.UTF_8)
-        );
+    public Completable update(final JsonObject uploaded) {
+        return Completable.fromAction(
+            () -> {
+                final JsonObject meta = Json.createReader(
+                    Files.newInputStream(this.json)
+                ).readObject();
+                final JsonObject versions = uploaded.getJsonObject("versions");
+                final Set<String> keys = versions.keySet();
+                final JsonPatchBuilder patch = Json.createPatchBuilder();
+                for (final String key : keys) {
+                    patch.add(
+                        String.format("/versions/%s", key),
+                        versions.getJsonObject(key)
+                    );
+                }
+                Files.write(
+                    this.json,
+                    patch
+                        .build()
+                        .apply(meta)
+                        .toString()
+                        .getBytes(StandardCharsets.UTF_8)
+                );
+            });
     }
 }

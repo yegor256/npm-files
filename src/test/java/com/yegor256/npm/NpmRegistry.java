@@ -31,8 +31,8 @@ import io.vertx.reactivex.core.http.HttpServer;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.json.Json;
@@ -154,28 +154,27 @@ final class NpmRegistry {
         ctx.request().bodyHandler(
             body -> {
                 try {
+                    final String pretty = body.toJsonObject().encodePrettily();
                     Logger.info(
                         NpmRegistry.class,
                         "Uploaded package:%s package:\n%s",
-                        npmpackage, body.toJsonObject().encodePrettily()
+                        npmpackage,
+                        pretty
                     );
-                    final JsonObject request = Json.createReader(
-                        new StringReader(body.toString())
-                    ).readObject();
                     final Path uploaded =
                         Files.createTempFile("uploaded", ".json");
                     this.vertx.fileSystem()
                         .writeFileBlocking(
                             uploaded.toAbsolutePath().toString(),
-                            Buffer.buffer(request.toString())
+                            Buffer.buffer(pretty.getBytes(StandardCharsets.UTF_8))
                         );
                     final String uploadkey =
                         String.format("%s-uploaded", npmpackage);
-                    this.storage.save(uploadkey, uploaded);
+                    this.storage.save(uploadkey, uploaded).blockingAwait();
                     this.npm.publish(
                         String.format("/%s", npmpackage),
                         uploadkey
-                    );
+                    ).blockingAwait();
                     ctx.response().end(
                         Json.createObjectBuilder()
                             .add("ok", "created new package")
@@ -244,10 +243,10 @@ final class NpmRegistry {
                 archivename
             );
             final String fname = String.format("%s/%s", npmpackage, archivename);
-            if (this.storage.exists(fname)) {
+            if (this.storage.exists(fname).blockingGet()) {
                 final Path path =
                     Files.createTempFile(npmpackage, "-load-src.tgz");
-                this.storage.load(fname, path);
+                this.storage.load(fname, path).blockingAwait();
                 ctx.response().end(Buffer.buffer(Files.readAllBytes(path)));
             } else {
                 final int notfound = 404;
@@ -279,10 +278,10 @@ final class NpmRegistry {
         try {
             Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
             final String fname = String.format("%s/meta.json", npmpackage);
-            if (this.storage.exists(fname)) {
+            if (this.storage.exists(fname).blockingGet()) {
                 final Path metapath =
                     Files.createTempFile(npmpackage, "-load-meta.json");
-                this.storage.load(fname, metapath);
+                this.storage.load(fname, metapath).blockingAwait();
                 ctx.response().end(Buffer.buffer(Files.readAllBytes(metapath)));
             } else {
                 final int notfound = 404;

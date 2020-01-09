@@ -99,7 +99,12 @@ SOFTWARE.
     <dependency>
       <groupId>com.yegor256</groupId>
       <artifactId>asto</artifactId>
-      <version>0.0.1</version>
+      <version>0.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivex.rxjava3</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>3.0.0-RC6</version>
     </dependency>
     <!-- Test only dependencies  -->
     <dependency>

@@ -23,7 +23,7 @@
  */
 package com.yegor256.npm;
 
-import java.io.IOException;
+import io.reactivex.rxjava3.core.Completable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
@@ -50,10 +50,13 @@ final class TgzArchive {
 
     /**
      * Save the archive to a file.
+     *
      * @param path The path to save .tgz file at.
-     * @throws IOException if fails
+     * @return Completion or error signal.
      */
-    public void saveToFile(final Path path) throws IOException {
-        Files.write(path, Base64.getDecoder().decode(this.bitstring));
+    public Completable saveToFile(final Path path) {
+        return Completable.fromAction(
+            () -> Files.write(path, Base64.getDecoder().decode(this.bitstring))
+        );
     }
 }
