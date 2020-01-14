@@ -1,12 +1,12 @@
 [![EO principles respected here](https://www.elegantobjects.org/badge.svg)](https://www.elegantobjects.org)
-[![DevOps By Rultor.com](http://www.rultor.com/b/yegor256/npm-files)](http://www.rultor.com/p/yegor256/npm-files)
+[![DevOps By Rultor.com](http://www.rultor.com/b/artipie/npm-adapter)](http://www.rultor.com/p/artipie/npm-adapter)
 [![We recommend IntelliJ IDEA](https://www.elegantobjects.org/intellij-idea.svg)](https://www.jetbrains.com/idea/)
 
-[![Build Status](https://img.shields.io/travis/yegor256/npm-files/master.svg)](https://travis-ci.org/yegor256/npm-files)
-[![Javadoc](http://www.javadoc.io/badge/com.yegor256/npm-files.svg)](http://www.javadoc.io/doc/com.yegor256/npm-files)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/npm-files/blob/master/LICENSE.txt)
-[![Hits-of-Code](https://hitsofcode.com/github/yegor256/npm-files)](https://hitsofcode.com/view/github/yegor256/npm-files)
-[![Maven Central](https://img.shields.io/maven-central/v/com.yegor256/npm-files.svg)](https://maven-badges.herokuapp.com/maven-central/com.yegor256/npm-files)
+[![Build Status](https://img.shields.io/travis/artipie/npm-adapter/master.svg)](https://travis-ci.org/artipie/npm-adapter)
+[![Javadoc](http://www.javadoc.io/badge/com.artipie/npm-adapter.svg)](http://www.javadoc.io/doc/com.artipie/npm-adapter)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/artipie/npm-adapter/blob/master/LICENSE.txt)
+[![Hits-of-Code](https://hitsofcode.com/github/artipie/npm-adapter)](https://hitsofcode.com/view/github/artipie/npm-adapter)
+[![Maven Central](https://img.shields.io/maven-central/v/com.artipie/npm-adapter.svg)](https://maven-badges.herokuapp.com/maven-central/com.artipie/npm-adapter)
 [![PDD status](http://www.0pdd.com/svg?name=yegor256/npm-files)](http://www.0pdd.com/p?name=yegor256/npm-files)
 
 Similar solutions:
@@ -25,8 +25,8 @@ This is the dependency you need:
 
 ```xml
 <dependency>
-  <groupId>com.yegor256</groupId>
-  <artifactId>npm-files</artifactId>
+  <groupId>com.artipie</groupId>
+  <artifactId>npm-adapter</artifactId>
   <version>[...]</version>
 </dependency>
 ```

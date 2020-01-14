@@ -23,6 +23,8 @@
  */
 
 /**
- * Rpm files, tests.
+ * Npm files.
+ *
+ * @since 0.1
  */
-package com.yegor256.npm;
+package com.artipie.npm;

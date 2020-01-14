@@ -21,10 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.artipie.npm;
+
+import io.reactivex.rxjava3.core.Completable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 
 /**
- * Npm files.
+ * A .tgz archive.
  *
  * @since 0.1
  */
-package com.yegor256.npm;
+final class TgzArchive {
+
+    /**
+     * The archive representation in a form of a base64 string.
+     */
+    private final String bitstring;
+
+    /**
+     * Ctor.
+     * @param bitstring The archive.
+     */
+    TgzArchive(final String bitstring) {
+        this.bitstring = bitstring;
+    }
+
+    /**
+     * Save the archive to a file.
+     *
+     * @param path The path to save .tgz file at.
+     * @return Completion or error signal.
+     */
+    public Completable saveToFile(final Path path) {
+        return Completable.fromAction(
+            () -> Files.write(path, Base64.getDecoder().decode(this.bitstring))
+        );
+    }
+}

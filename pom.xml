@@ -33,8 +33,8 @@ SOFTWARE.
     <artifactId>parent</artifactId>
     <version>0.49.8</version>
   </parent>
-  <groupId>com.yegor256</groupId>
-  <artifactId>npm-files</artifactId>
+  <groupId>com.artipie</groupId>
+  <artifactId>npm-adapter</artifactId>
   <version>0.1</version>
   <packaging>jar</packaging>
   <name>npm-files</name>
@@ -63,12 +63,12 @@ SOFTWARE.
   </developers>
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/yegor256/npm-files/issues</url>
+    <url>https://github.com/artipie/npm-adapter</url>
   </issueManagement>
   <scm>
-    <connection>scm:git:git@github.com:yegor256/npm-files.git</connection>
-    <developerConnection>scm:git:git@github.com:yegor256/npm-files.git</developerConnection>
-    <url>https://github.com/yegor256/npm-files</url>
+    <connection>scm:git:git@github.com:artipie/npm-adapter.git</connection>
+    <developerConnection>scm:git:git@github.com:artipie/npm-adapter.git</developerConnection>
+    <url>https://github.com/artipie/npm-adapter</url>
   </scm>
   <ciManagement>
     <system>rultor</system>
@@ -77,7 +77,7 @@ SOFTWARE.
   <distributionManagement>
     <site>
       <id>github-pages</id>
-      <url>https://github.com/yegor256/npm-files</url>
+      <url>https://github.com/artipie/npm-adapter</url>
     </site>
   </distributionManagement>
   <dependencies>

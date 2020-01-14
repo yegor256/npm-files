@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.yegor256.npm;
+package com.artipie.npm;
 
 import com.jcabi.log.Logger;
 import com.yegor256.asto.Storage;
