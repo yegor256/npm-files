@@ -104,7 +104,9 @@ public class Npm {
                         .map(
                             attachment -> {
                                 final Path path;
-                                final String shortened = attachment.substring(attachment.lastIndexOf("/") + 1);
+                                final String shortened =
+                                    // @checkstyle StringLiteralsConcatenationCheck (1 line)
+                                    attachment.substring(attachment.lastIndexOf('/') + 1);
                                 try {
                                     path = Files.createTempFile(
                                         shortened,
