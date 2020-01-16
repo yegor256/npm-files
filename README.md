@@ -1,3 +1,5 @@
+<img src="https://www.artipie.com/logo.svg" width="64px" height="64px"/>
+
 [![EO principles respected here](https://www.elegantobjects.org/badge.svg)](https://www.elegantobjects.org)
 [![DevOps By Rultor.com](http://www.rultor.com/b/artipie/npm-adapter)](http://www.rultor.com/p/artipie/npm-adapter)
 [![We recommend IntelliJ IDEA](https://www.elegantobjects.org/intellij-idea.svg)](https://www.jetbrains.com/idea/)
@@ -15,7 +17,7 @@ Similar solutions:
    * [Package cloud](https://packagecloud.io/docs#node_npm)
    * [Verdaccio](https://github.com/verdaccio/verdaccio)
 
-References: 
+References:
 
    * [NPM registry internals](https://blog.packagecloud.io/eng/2018/01/24/npm-registry-internals/)
    * [CommonJS Package Registry specification](http://wiki.commonjs.org/wiki/Packages/Registry)
