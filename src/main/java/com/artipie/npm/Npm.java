@@ -104,9 +104,10 @@ public class Npm {
                         .map(
                             attachment -> {
                                 final Path path;
+                                final String shortened = attachment.substring(attachment.lastIndexOf("/") + 1);
                                 try {
                                     path = Files.createTempFile(
-                                        attachment.replace("/", ""),
+                                        shortened,
                                         ".tgz"
                                     );
                                 } catch (final IOException exception) {
