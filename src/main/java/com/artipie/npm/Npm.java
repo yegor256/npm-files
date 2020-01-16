@@ -28,6 +28,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
@@ -104,9 +105,12 @@ public class Npm {
                             attachment -> {
                                 final Path path;
                                 try {
-                                    path = Files.createTempFile(attachment, ".tgz");
+                                    path = Files.createTempFile(
+                                        attachment.replace("/", ""),
+                                        ".tgz"
+                                    );
                                 } catch (final IOException exception) {
-                                    throw new IllegalStateException(
+                                    throw new UncheckedIOException(
                                         "Unable to create temp file",
                                         exception
                                     );
