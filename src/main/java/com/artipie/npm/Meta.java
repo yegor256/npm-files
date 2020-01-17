@@ -66,13 +66,13 @@ final class Meta {
                 final JsonObject meta = Json.createReader(
                     Files.newInputStream(this.json)
                 ).readObject();
-                final JsonObject versions = uploaded.getJsonObject("versions");
-                final Set<String> keys = versions.keySet();
+                final JsonObject versionsObject = uploaded.getJsonObject("versions");
+                final Set<String> versions = versionsObject.keySet();
                 final JsonPatchBuilder patch = Json.createPatchBuilder();
-                for (final String key : keys) {
+                for (final String version : versions) {
                     patch.add(
-                        String.format("/versions/%s", key),
-                        versions.getJsonObject(key)
+                        String.format("/versions/%s", version),
+                        versionsObject.getJsonObject(version)
                     );
                 }
                 Files.write(
