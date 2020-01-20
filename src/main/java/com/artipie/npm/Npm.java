@@ -28,6 +28,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
@@ -103,10 +104,16 @@ public class Npm {
                         .map(
                             attachment -> {
                                 final Path path;
+                                final String shortened =
+                                    // @checkstyle StringLiteralsConcatenationCheck (1 line)
+                                    attachment.substring(attachment.lastIndexOf('/') + 1);
                                 try {
-                                    path = Files.createTempFile(attachment, ".tgz");
+                                    path = Files.createTempFile(
+                                        shortened,
+                                        ".tgz"
+                                    );
                                 } catch (final IOException exception) {
-                                    throw new IllegalStateException(
+                                    throw new UncheckedIOException(
                                         "Unable to create temp file",
                                         exception
                                     );

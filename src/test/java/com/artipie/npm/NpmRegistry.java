@@ -47,6 +47,16 @@ import javax.json.JsonObject;
 final class NpmRegistry {
 
     /**
+     * String format pattern for two strings concatenation.
+     */
+    private static final String SLASH_CONCAT = "%s/%s";
+
+    /**
+     * Archive name.
+     */
+    private static final String ARCHIVE_NAME = "archive_name";
+
+    /**
      * Response for a file not found case.
      */
     private static final JsonObject NOT_FOUND =
@@ -218,8 +228,23 @@ final class NpmRegistry {
         router.get("/:package_name/-/:archive_name").handler(
             ctx -> {
                 final String npmpackage = ctx.request().getParam(pkg);
-                final String archivename =  ctx.request().getParam("archive_name");
+                final String archivename = ctx.request()
+                    .getParam(NpmRegistry.ARCHIVE_NAME);
                 this.getArchive(ctx, npmpackage, archivename);
+            }
+        );
+        router.get("/:scope_pkg/:package_name/-/:scope_arch/:archive_name").handler(
+            ctx -> {
+                final String npmpackage = ctx.request().getParam(pkg);
+                final String scopepkg = ctx.request().getParam("scope_pkg");
+                final String scopearch = ctx.request().getParam("scope_arch");
+                final String archivename = ctx.request()
+                    .getParam(NpmRegistry.ARCHIVE_NAME);
+                this.getArchive(
+                    ctx,
+                    String.format(NpmRegistry.SLASH_CONCAT, scopepkg, npmpackage),
+                    String.format(NpmRegistry.SLASH_CONCAT, scopearch, archivename)
+                );
             }
         );
         return router;
@@ -242,10 +267,14 @@ final class NpmRegistry {
                 npmpackage,
                 archivename
             );
-            final String fname = String.format("%s/%s", npmpackage, archivename);
+            final String fname = String.format(
+                NpmRegistry.SLASH_CONCAT,
+                npmpackage,
+                archivename
+            );
             if (this.storage.exists(fname).blockingGet()) {
                 final Path path =
-                    Files.createTempFile(npmpackage, "-load-src.tgz");
+                    Files.createTempFile(fname.replace("/", ""), "-load-src.tgz");
                 this.storage.load(fname, path).blockingAwait();
                 ctx.response().end(Buffer.buffer(Files.readAllBytes(path)));
             } else {
@@ -280,7 +309,11 @@ final class NpmRegistry {
             final String fname = String.format("%s/meta.json", npmpackage);
             if (this.storage.exists(fname).blockingGet()) {
                 final Path metapath =
-                    Files.createTempFile(npmpackage, "-load-meta.json");
+                    Files.createTempFile(
+                        // @checkstyle StringLiteralsConcatenationCheck (1 line)
+                        npmpackage.substring(npmpackage.lastIndexOf('/') + 1),
+                        "-load-meta.json"
+                    );
                 this.storage.load(fname, metapath).blockingAwait();
                 ctx.response().end(Buffer.buffer(Files.readAllBytes(metapath)));
             } else {
