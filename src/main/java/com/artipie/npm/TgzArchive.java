@@ -59,4 +59,13 @@ final class TgzArchive {
             () -> Files.write(path, Base64.getDecoder().decode(this.bitstring))
         );
     }
+
+    /**
+     * Obtain an archive in form of byte array.
+     *
+     * @return Archive bytes
+     */
+    public byte[] bytes() {
+        return Base64.getDecoder().decode(this.bitstring);
+    }
 }

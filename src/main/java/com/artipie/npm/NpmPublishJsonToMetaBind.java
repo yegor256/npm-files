@@ -23,10 +23,6 @@
  */
 package com.artipie.npm;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -72,30 +68,26 @@ final class NpmPublishJsonToMetaBind {
 
     /**
      * Bind the npm.
-     * @param wheretosave The place for meta.json to be saved
      * @return The meta.json file
-     * @throws IOException if fails
      */
-    public Meta bind(final Path wheretosave) throws IOException {
-        Files.write(
-            wheretosave,
-            Json.createObjectBuilder()
-                .add(
-                    NpmPublishJsonToMetaBind.NAME,
-                    this.json.getString(NpmPublishJsonToMetaBind.NAME)
-                )
-                .add(
-                    NpmPublishJsonToMetaBind.ID,
-                    this.json.getString(NpmPublishJsonToMetaBind.ID)
-                )
-                .add(
-                    NpmPublishJsonToMetaBind.README,
-                    this.json.getString(NpmPublishJsonToMetaBind.README)
-                )
-                .add(
-                    "time",
-                    Json.createObjectBuilder()
-                        .add(
+    public Meta bind() {
+        return new Meta(Json.createObjectBuilder()
+            .add(
+                NpmPublishJsonToMetaBind.NAME,
+                this.json.getString(NpmPublishJsonToMetaBind.NAME)
+            )
+            .add(
+                NpmPublishJsonToMetaBind.ID,
+                this.json.getString(NpmPublishJsonToMetaBind.ID)
+            )
+            .add(
+                NpmPublishJsonToMetaBind.README,
+                this.json.getString(NpmPublishJsonToMetaBind.README)
+            )
+            .add(
+                "time",
+                Json.createObjectBuilder()
+                    .add(
                         "created",
                         DateTimeFormatter.ISO_LOCAL_DATE_TIME
                             .format(
@@ -104,15 +96,14 @@ final class NpmPublishJsonToMetaBind {
                                     ZoneOffset.UTC
                                 )
                             )
-                        )
-                            .build()
+                    )
+                    .build()
             )
-                .add("users", Json.createObjectBuilder().build())
-                .add("versions", Json.createObjectBuilder().build())
-                .add("_attachments", Json.createObjectBuilder().build())
-                .build().toString().getBytes(StandardCharsets.UTF_8)
+            .add("users", Json.createObjectBuilder().build())
+            .add("versions", Json.createObjectBuilder().build())
+            .add("_attachments", Json.createObjectBuilder().build())
+            .build()
         );
-        return new Meta(wheretosave);
     }
 
 }

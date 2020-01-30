@@ -23,10 +23,12 @@
  */
 package com.artipie.npm;
 
-import com.yegor256.asto.Storage;
+import com.artipie.asto.Storage;
+import com.artipie.asto.fs.FileStorage;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -56,9 +58,10 @@ public class NpmCommandsTest {
     @Test
     public final void npmPublishAndInstallWorks()
         throws IOException, InterruptedException {
-        final Storage.Simple storage = new Storage.Simple();
+        final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
+        final Vertx vertx = Vertx.vertx();
         final NpmRegistry registry =
-            new NpmRegistry(Vertx.vertx(), storage);
+            new NpmRegistry(vertx, storage);
         registry.start();
         final String url = String.format(
             "http://127.0.0.1:%d",
@@ -101,5 +104,6 @@ public class NpmCommandsTest {
         new File("./src/test/resources/project-with-simple-dependency/node_modules").delete();
         new File("./src/test/resources/project-with-simple-dependency/package-lock.json").delete();
         registry.stop();
+        vertx.close();
     }
 }

@@ -23,14 +23,17 @@
  */
 package com.artipie.npm;
 
-import com.yegor256.asto.Storage;
+import com.artipie.asto.ByteArray;
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
+import com.artipie.asto.rx.RxStorage;
+import com.artipie.asto.rx.RxStorageWrapper;
+import hu.akarnokd.rxjava3.jdk8interop.CompletableInterop;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.ByteArrayInputStream;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -47,14 +50,9 @@ import javax.json.JsonObject;
 public class Npm {
 
     /**
-     * The .json files extension.
-     */
-    private static final String JSON_EXTENSION = ".json";
-
-    /**
      * The storage.
      */
-    private final Storage storage;
+    private final RxStorage storage;
 
     /**
      * Constructor.
@@ -62,39 +60,45 @@ public class Npm {
      * @param storage The storage
      */
     public Npm(final Storage storage) {
-        this.storage = storage;
+        this.storage = new RxStorageWrapper(storage);
     }
 
     /**
      * Publish a new version of a npm package.
      *
      * @param prefix Path prefix for achieves and meta information storage
-     * @param key Where uploaded json file is stored
+     * @param artifact Where uploaded json file is stored
      * @return Completion or error signal.
      */
-    public final Completable publish(final String prefix, final String key) {
-        return Single.fromCallable(() -> Files.createTempFile("upload", Npm.JSON_EXTENSION))
+    public final CompletableFuture<Void> publish(final Key prefix, final Key artifact) {
+        return this.storage.value(artifact)
+            .flatMapPublisher(bytes -> bytes)
+            .toList()
+            .map(
+                bytes ->
+                    Json.createReader(
+                        new ByteArrayInputStream(
+                            new ByteArray(bytes).primitiveBytes()
+                        )
+                    ).readObject()
+            )
             .flatMapCompletable(
-                upload -> this.storage.load(key, upload)
-                    .andThen(
-                        Single.fromCallable(
-                            () -> Json.createReader(
-                                new BufferedInputStream(Files.newInputStream(upload))
-                            ).readObject())
-                    )
-                    .flatMapCompletable(
-                        uploaded -> this.updateMetaFile(prefix, uploaded)
-                        .andThen(this.updateSourceArchives(prefix, uploaded))));
+                uploaded -> this.updateMetaFile(prefix, uploaded)
+                    .andThen(this.updateSourceArchives(prefix, uploaded))
+            ).to(CompletableInterop.await())
+            .<Void>thenApply(r -> null)
+            .toCompletableFuture();
     }
 
     /**
      * Generate .tgz archives extracted from the uploaded json.
+     *
      * @param prefix The package prefix
      * @param uploaded The uploaded json
      * @return Completion or error signal.
      */
     private Completable updateSourceArchives(
-        final String prefix,
+        final Key prefix,
         final JsonObject uploaded
     ) {
         return Single.fromCallable(() -> uploaded.getJsonObject("_attachments"))
@@ -103,30 +107,15 @@ public class Npm {
                     Completable.concat(attachments.keySet().stream()
                         .map(
                             attachment -> {
-                                final Path path;
-                                final String shortened =
-                                    // @checkstyle StringLiteralsConcatenationCheck (1 line)
-                                    attachment.substring(attachment.lastIndexOf('/') + 1);
-                                try {
-                                    path = Files.createTempFile(
-                                        shortened,
-                                        ".tgz"
-                                    );
-                                } catch (final IOException exception) {
-                                    throw new UncheckedIOException(
-                                        "Unable to create temp file",
-                                        exception
-                                    );
-                                }
-                                return new TgzArchive(
+                                final byte[] bytes = new TgzArchive(
                                     attachments.getJsonObject(attachment).getString("data")
-                                ).saveToFile(path)
-                                    .andThen(
-                                        this.storage.save(
-                                            String.format("%s/%s", prefix, attachment),
-                                            path
-                                        )
-                                    );
+                                ).bytes();
+                                return this.storage.save(
+                                    new Key.From(prefix, attachment),
+                                    Flowable.fromArray(
+                                        new ByteArray(bytes).boxedBytes()
+                                    )
+                                );
                             }
                         ).collect(Collectors.toList())
                     )
@@ -141,27 +130,35 @@ public class Npm {
      * @return Completion or error signal.
      */
     private Completable updateMetaFile(
-        final String prefix,
+        final Key prefix,
         final JsonObject uploaded) {
-        final String metafilename = String.format("%s/meta.json", prefix);
-        return Single.fromCallable(() -> Files.createTempFile("meta", Npm.JSON_EXTENSION))
-            .flatMapCompletable(
-                metafile ->
-                    this.storage.exists(metafilename)
-                        .flatMap(
-                            exists -> {
-                                final Single<Meta> meta;
-                                if (exists) {
-                                    meta = this.storage.load(metafilename, metafile)
-                                        .andThen(Single.just(new Meta(metafile)));
-                                } else {
-                                    meta = Single.just(
-                                        new NpmPublishJsonToMetaBind(uploaded).bind(metafile)
-                                    );
-                                }
-                                return meta;
-                            }).flatMapCompletable(meta -> meta.update(uploaded))
-                        .andThen(this.storage.save(metafilename, metafile))
-            );
+        final Key metafilename = new Key.From(prefix, "meta.json");
+        return this.storage.exists(metafilename)
+            .flatMap(
+                exists -> {
+                    final Single<Meta> meta;
+                    if (exists) {
+                        meta = this.storage.value(metafilename)
+                            .flatMapPublisher(bytes -> bytes)
+                            .toList()
+                            .map(
+                                bytes ->
+                                    new Meta(
+                                        Json.createReader(
+                                            new ByteArrayInputStream(
+                                                new ByteArray(bytes).primitiveBytes()
+                                            )
+                                        ).readObject()
+                                    )
+                            );
+                    } else {
+                        meta = Single.just(
+                            new NpmPublishJsonToMetaBind(uploaded).bind()
+                        );
+                    }
+                    return meta;
+                })
+            .map(meta -> meta.updatedMete(uploaded))
+            .flatMapCompletable(meta -> this.storage.save(metafilename, meta.byteFlow()));
     }
 }

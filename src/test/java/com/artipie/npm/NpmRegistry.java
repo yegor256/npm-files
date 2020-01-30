@@ -23,8 +23,10 @@
  */
 package com.artipie.npm;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
 import com.jcabi.log.Logger;
-import com.yegor256.asto.Storage;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.buffer.Buffer;
 import io.vertx.reactivex.core.http.HttpServer;
@@ -33,8 +35,7 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
 import javax.json.Json;
 import javax.json.JsonObject;
 
@@ -87,16 +88,7 @@ final class NpmRegistry {
     /**
      * The storage.
      */
-    private final Storage storage;
-
-    /**
-     * Ctor.
-     *
-     * @throws IOException if fails
-     */
-    NpmRegistry() throws IOException {
-        this(Vertx.vertx(), new Storage.Simple());
-    }
+    private final BlockingStorage storage;
 
     /**
      * Ctor.
@@ -123,7 +115,7 @@ final class NpmRegistry {
         this.vertx = vertx;
         this.npm = new Npm(storage);
         this.port = port;
-        this.storage = storage;
+        this.storage = new BlockingStorage(storage);
         this.server = vertx.createHttpServer().requestHandler(this.routes());
     }
 
@@ -163,28 +155,21 @@ final class NpmRegistry {
         final String npmpackage) {
         ctx.request().bodyHandler(
             body -> {
+                final String pretty = body.toJsonObject().encodePrettily();
+                Logger.info(
+                    NpmRegistry.class,
+                    "Uploaded package:%s package:\n%s",
+                    npmpackage,
+                    pretty
+                );
+                final byte[] bytes = pretty.getBytes(StandardCharsets.UTF_8);
+                final Key uploadkey = new Key.From(String.format("%s-uploaded", npmpackage));
+                this.storage.save(uploadkey, bytes);
                 try {
-                    final String pretty = body.toJsonObject().encodePrettily();
-                    Logger.info(
-                        NpmRegistry.class,
-                        "Uploaded package:%s package:\n%s",
-                        npmpackage,
-                        pretty
-                    );
-                    final Path uploaded =
-                        Files.createTempFile("uploaded", ".json");
-                    this.vertx.fileSystem()
-                        .writeFileBlocking(
-                            uploaded.toAbsolutePath().toString(),
-                            Buffer.buffer(pretty.getBytes(StandardCharsets.UTF_8))
-                        );
-                    final String uploadkey =
-                        String.format("%s-uploaded", npmpackage);
-                    this.storage.save(uploadkey, uploaded).blockingAwait();
                     this.npm.publish(
-                        String.format("/%s", npmpackage),
+                        new Key.From(npmpackage),
                         uploadkey
-                    ).blockingAwait();
+                    ).get();
                     ctx.response().end(
                         Json.createObjectBuilder()
                             .add("ok", "created new package")
@@ -192,14 +177,10 @@ final class NpmRegistry {
                             .build()
                             .toString()
                     );
-                } catch (final IOException exception) {
-                    Logger.error(
-                        NpmRegistry.class,
-                        "save uploaded json error: %s",
-                        exception.getMessage()
-                    );
+                } catch (final ExecutionException | InterruptedException exception) {
+                    Logger.error(NpmRegistry.class, "%[exception]s", exception);
                     final int internal = 500;
-                    ctx.response().setStatusCode(internal).end();
+                    ctx.response().setStatusCode(internal).end(exception.getMessage());
                 }
             }
         );
@@ -260,39 +241,23 @@ final class NpmRegistry {
         final RoutingContext ctx,
         final String npmpackage,
         final String archivename) {
-        try {
-            Logger.info(
-                NpmRegistry.class,
-                "GET src: /%s/-/%s",
-                npmpackage,
-                archivename
-            );
-            final String fname = String.format(
-                NpmRegistry.SLASH_CONCAT,
-                npmpackage,
-                archivename
-            );
-            if (this.storage.exists(fname).blockingGet()) {
-                final Path path =
-                    Files.createTempFile(fname.replace("/", ""), "-load-src.tgz");
-                this.storage.load(fname, path).blockingAwait();
-                ctx.response().end(Buffer.buffer(Files.readAllBytes(path)));
-            } else {
-                final int notfound = 404;
-                ctx.response()
-                    .setStatusCode(notfound)
-                    .end(NpmRegistry.NOT_FOUND.toString());
-            }
-        } catch (final IOException exception) {
-            Logger.error(
-                NpmRegistry.class,
-                "GET /%s/-/%s error: %s",
-                npmpackage,
-                archivename,
-                exception.getMessage()
-            );
-            final int internal = 500;
-            ctx.response().setStatusCode(internal).end();
+        Logger.info(
+            NpmRegistry.class,
+            "GET src: /%s/-/%s",
+            npmpackage,
+            archivename
+        );
+        final Key fname = new Key.From(
+            npmpackage,
+            archivename
+        );
+        if (this.storage.exists(fname)) {
+            ctx.response().end(Buffer.buffer(this.storage.value(fname)));
+        } else {
+            final int notfound = 404;
+            ctx.response()
+                .setStatusCode(notfound)
+                .end(NpmRegistry.NOT_FOUND.toString());
         }
     }
 
@@ -304,33 +269,15 @@ final class NpmRegistry {
      * @param npmpackage The package_name param
      */
     private void getPackage(final RoutingContext ctx, final String npmpackage) {
-        try {
-            Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
-            final String fname = String.format("%s/meta.json", npmpackage);
-            if (this.storage.exists(fname).blockingGet()) {
-                final Path metapath =
-                    Files.createTempFile(
-                        // @checkstyle StringLiteralsConcatenationCheck (1 line)
-                        npmpackage.substring(npmpackage.lastIndexOf('/') + 1),
-                        "-load-meta.json"
-                    );
-                this.storage.load(fname, metapath).blockingAwait();
-                ctx.response().end(Buffer.buffer(Files.readAllBytes(metapath)));
-            } else {
-                final int notfound = 404;
-                ctx.response()
-                    .setStatusCode(notfound)
-                    .end(NpmRegistry.NOT_FOUND.toString());
-            }
-        } catch (final IOException exception) {
-            Logger.error(
-                NpmRegistry.class,
-                "GET /%s error: %s",
-                npmpackage,
-                exception.getMessage()
-            );
-            final int internal = 500;
-            ctx.response().setStatusCode(internal).end();
+        Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
+        final Key fname = new Key.From(npmpackage, "meta.json");
+        if (this.storage.exists(fname)) {
+            ctx.response().end(Buffer.buffer(this.storage.value(fname)));
+        } else {
+            final int notfound = 404;
+            ctx.response()
+                .setStatusCode(notfound)
+                .end(NpmRegistry.NOT_FOUND.toString());
         }
     }
 

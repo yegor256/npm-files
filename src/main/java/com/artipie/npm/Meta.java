@@ -23,10 +23,9 @@
  */
 package com.artipie.npm;
 
-import io.reactivex.rxjava3.core.Completable;
+import com.artipie.asto.ByteArray;
+import io.reactivex.rxjava3.core.Flowable;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -42,14 +41,14 @@ final class Meta {
     /**
      * The meta.json file.
      */
-    private final Path json;
+    private final JsonObject json;
 
     /**
      * Ctor.
      *
      * @param json The meta.json file location on disk
      */
-    Meta(final Path json) {
+    Meta(final JsonObject json) {
         this.json = json;
     }
 
@@ -60,29 +59,32 @@ final class Meta {
      * @param uploaded The json
      * @return Completion or error signal.
      */
-    public Completable update(final JsonObject uploaded) {
-        return Completable.fromAction(
-            () -> {
-                final JsonObject meta = Json.createReader(
-                    Files.newInputStream(this.json)
-                ).readObject();
-                final JsonObject versions = uploaded.getJsonObject("versions");
-                final Set<String> keys = versions.keySet();
-                final JsonPatchBuilder patch = Json.createPatchBuilder();
-                for (final String key : keys) {
-                    patch.add(
-                        String.format("/versions/%s", key),
-                        versions.getJsonObject(key)
-                    );
-                }
-                Files.write(
-                    this.json,
-                    patch
-                        .build()
-                        .apply(meta)
-                        .toString()
-                        .getBytes(StandardCharsets.UTF_8)
-                );
-            });
+    public Meta updatedMete(final JsonObject uploaded) {
+        final JsonObject versions = uploaded.getJsonObject("versions");
+        final Set<String> keys = versions.keySet();
+        final JsonPatchBuilder patch = Json.createPatchBuilder();
+        for (final String key : keys) {
+            patch.add(
+                String.format("/versions/%s", key),
+                versions.getJsonObject(key)
+            );
+        }
+        return new Meta(
+            patch
+                .build()
+                .apply(this.json)
+        );
+    }
+
+    /**
+     * Obtain a byte flow.
+     * @return The flow of bytes.
+     */
+    public Flowable<Byte> byteFlow() {
+        return Flowable.fromArray(
+            new ByteArray(
+                this.json.toString().getBytes(StandardCharsets.UTF_8)
+            ).boxedBytes()
+        );
     }
 }
