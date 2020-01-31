@@ -179,6 +179,7 @@ SOFTWARE.
                 <exclude>findbugs:.*</exclude>
                 <exclude>duplicatefinder:.*</exclude>
                 <exclude>xml:/src/it/settings.xml</exclude>
+                <exclude>dependencies:.*</exclude>
               </excludes>
             </configuration>
           </plugin>
