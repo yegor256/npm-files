@@ -158,7 +158,7 @@ public class Npm {
                     }
                     return meta;
                 })
-            .map(meta -> meta.updatedMete(uploaded))
+            .map(meta -> meta.updatedMeta(uploaded))
             .flatMapCompletable(meta -> this.storage.save(metafilename, meta.byteFlow()));
     }
 }

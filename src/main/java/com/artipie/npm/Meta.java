@@ -59,7 +59,7 @@ final class Meta {
      * @param uploaded The json
      * @return Completion or error signal.
      */
-    public Meta updatedMete(final JsonObject uploaded) {
+    public Meta updatedMeta(final JsonObject uploaded) {
         final JsonObject versions = uploaded.getJsonObject("versions");
         final Set<String> keys = versions.keySet();
         final JsonPatchBuilder patch = Json.createPatchBuilder();
