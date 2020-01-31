@@ -27,6 +27,7 @@ SOFTWARE.
   <properties>
     <vertx.version>3.8.4</vertx.version>
     <javax.json.version>1.1.4</javax.json.version>
+    <rxjava.version>3.0.0-RC6</rxjava.version>
   </properties>
   <parent>
     <groupId>com.jcabi</groupId>
@@ -97,14 +98,24 @@ SOFTWARE.
       <version>0.18.1</version>
     </dependency>
     <dependency>
-      <groupId>com.yegor256</groupId>
+      <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
-      <version>0.2.0</version>
+      <version>0.11.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.akarnokd</groupId>
+      <artifactId>rxjava3-jdk8-interop</artifactId>
+      <version>${rxjava.version}</version>
     </dependency>
     <dependency>
       <groupId>io.reactivex.rxjava3</groupId>
       <artifactId>rxjava</artifactId>
-      <version>3.0.0-RC6</version>
+      <version>${rxjava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.reactivestreams</groupId>
+      <artifactId>reactive-streams</artifactId>
+      <version>1.0.3</version>
     </dependency>
     <!-- Test only dependencies  -->
     <dependency>
@@ -148,8 +159,8 @@ SOFTWARE.
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>9</source>
+          <target>9</target>
         </configuration>
       </plugin>
     </plugins>
@@ -168,6 +179,7 @@ SOFTWARE.
                 <exclude>findbugs:.*</exclude>
                 <exclude>duplicatefinder:.*</exclude>
                 <exclude>xml:/src/it/settings.xml</exclude>
+                <exclude>dependencies:.*</exclude>
               </excludes>
             </configuration>
           </plugin>
