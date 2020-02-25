@@ -52,37 +52,11 @@ public class NpmCommandsTest {
         throws IOException, InterruptedException {
         final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
         final Vertx vertx = Vertx.vertx();
-        final NpmRegistry registry =
-            new NpmRegistry(vertx, storage);
+        final NpmRegistry registry = new NpmRegistry(vertx, storage);
         registry.start();
-        final String url = String.format(
-            "http://127.0.0.1:%d",
-            registry.getPort()
-        );
-        MatcherAssert.assertThat(
-            new ProcessBuilder()
-            .directory(
-                new File("./src/test/resources/simple-npm-project/")
-            )
-            .command("npm", "publish", "--registry", url)
-            .inheritIO()
-            .start()
-            .waitFor(),
-            Matchers.equalTo(0)
-        );
-        MatcherAssert.assertThat(
-            new ProcessBuilder()
-                .directory(
-                    new File(
-                        "./src/test/resources/project-with-simple-dependency/"
-                    )
-                )
-                .command("npm", "install", "--registry", url)
-                .inheritIO()
-                .start()
-                .waitFor(),
-            Matchers.equalTo(0)
-        );
+        final String url = String.format("http://127.0.0.1:%d", registry.getPort());
+        this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
+        this.npmExecute("install", "./src/test/resources/project-with-simple-dependency/", url);
         FileUtils.deleteDirectory(
             new File("./src/test/resources/project-with-simple-dependency/node_modules")
         );
@@ -90,5 +64,31 @@ public class NpmCommandsTest {
             .delete();
         registry.stop();
         vertx.close();
+    }
+
+    /**
+     * Execute a npm command and expect 0 is returned.
+     * @param command The npm command to execute
+     * @param project The project path
+     * @param url The registry url
+     * @throws InterruptedException If fails
+     * @throws IOException If fails
+     */
+    private void npmExecute(
+        final String command,
+        final String project,
+        final String url) throws InterruptedException, IOException {
+        MatcherAssert.assertThat(
+            String.format("'npm %s --registry %s' failed with non-zero code", command, url),
+            new ProcessBuilder()
+                .directory(
+                    new File(project)
+                )
+                .command("npm", command, "--registry", url)
+                .inheritIO()
+                .start()
+                .waitFor(),
+            Matchers.equalTo(0)
+        );
     }
 }
