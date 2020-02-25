@@ -29,6 +29,7 @@ import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -101,8 +102,11 @@ public class NpmCommandsTest {
                 .waitFor(),
             Matchers.equalTo(0)
         );
-        new File("./src/test/resources/project-with-simple-dependency/node_modules").delete();
-        new File("./src/test/resources/project-with-simple-dependency/package-lock.json").delete();
+        FileUtils.deleteDirectory(
+            new File("./src/test/resources/project-with-simple-dependency/node_modules")
+        );
+        new File("./src/test/resources/project-with-simple-dependency/package-lock.json")
+            .delete();
         registry.stop();
         vertx.close();
     }
