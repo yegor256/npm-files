@@ -42,21 +42,12 @@ import org.junit.Test;
 public class NpmCommandsTest {
 
     /**
-     * The npm string.
-     */
-    private static final String NPM = "npm";
-
-    /**
-     * The registry string.
-     */
-    private static final String REGISTRY = "--registry";
-
-    /**
      * Test {@code npm publish} and {@code npm install} command works properly.
      * @throws IOException if fails
      * @throws InterruptedException if fails
      */
     @Test
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public final void npmPublishAndInstallWorks()
         throws IOException, InterruptedException {
         final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
@@ -73,12 +64,7 @@ public class NpmCommandsTest {
             .directory(
                 new File("./src/test/resources/simple-npm-project/")
             )
-            .command(
-                NpmCommandsTest.NPM,
-                "publish",
-                NpmCommandsTest.REGISTRY,
-                url
-            )
+            .command("npm", "publish", "--registry", url)
             .inheritIO()
             .start()
             .waitFor(),
@@ -91,12 +77,7 @@ public class NpmCommandsTest {
                         "./src/test/resources/project-with-simple-dependency/"
                     )
                 )
-                .command(
-                    NpmCommandsTest.NPM,
-                    "install",
-                    NpmCommandsTest.REGISTRY,
-                    url
-                )
+                .command("npm", "install", "--registry", url)
                 .inheritIO()
                 .start()
                 .waitFor(),
