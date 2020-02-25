@@ -30,8 +30,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.IsEqual;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -40,6 +44,11 @@ import org.junit.Test;
  * @since 0.1
  */
 public class NpmCommandsTest {
+
+    @Before
+    public void before() {
+        Assume.assumeThat(SystemUtils.IS_OS_WINDOWS, new IsEqual<>(false));
+    }
 
     /**
      * Test {@code npm publish} and {@code npm install} command works properly.
