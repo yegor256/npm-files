@@ -63,6 +63,7 @@ final class Meta {
         final JsonObject versions = uploaded.getJsonObject("versions");
         final Set<String> keys = versions.keySet();
         final JsonPatchBuilder patch = Json.createPatchBuilder();
+        patch.add("/dist-tags", uploaded.getJsonObject("dist-tags"));
         for (final String key : keys) {
             patch.add(
                 String.format("/versions/%s", key),
