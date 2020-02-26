@@ -56,7 +56,6 @@ public class NpmCommandsTest {
      * @throws InterruptedException if fails
      */
     @Test
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public final void npmPublishAndInstallWorks()
         throws IOException, InterruptedException {
         final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
