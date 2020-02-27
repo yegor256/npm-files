@@ -23,17 +23,22 @@
  */
 package com.artipie.npm;
 
-import com.artipie.asto.ByteArray;
 import com.artipie.asto.Key;
+import com.artipie.asto.Remaining;
 import com.artipie.asto.Storage;
 import com.artipie.asto.rx.RxStorage;
 import com.artipie.asto.rx.RxStorageWrapper;
-import hu.akarnokd.rxjava3.jdk8interop.CompletableInterop;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Single;
+import hu.akarnokd.rxjava2.interop.CompletableInterop;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Single;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -46,8 +51,14 @@ import javax.json.JsonObject;
  *  2. meta.json file
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines).
  */
 public class Npm {
+
+    /**
+     * Logger.
+     */
+    private static final  Logger LOGGER = Logger.getLogger(Npm.class.getName());
 
     /**
      * The storage.
@@ -78,7 +89,7 @@ public class Npm {
                 bytes ->
                     Json.createReader(
                         new ByteArrayInputStream(
-                            new ByteArray(bytes).primitiveBytes()
+                            bytesFromListOfByteBuffers(bytes)
                         )
                     ).readObject()
             )
@@ -113,7 +124,7 @@ public class Npm {
                                 return this.storage.save(
                                     new Key.From(prefix, attachment),
                                     Flowable.fromArray(
-                                        new ByteArray(bytes).boxedBytes()
+                                        ByteBuffer.wrap(bytes)
                                     )
                                 );
                             }
@@ -146,7 +157,7 @@ public class Npm {
                                     new Meta(
                                         Json.createReader(
                                             new ByteArrayInputStream(
-                                                new ByteArray(bytes).primitiveBytes()
+                                                bytesFromListOfByteBuffers(bytes)
                                             )
                                         ).readObject()
                                     )
@@ -160,5 +171,24 @@ public class Npm {
                 })
             .map(meta -> meta.updatedMeta(uploaded))
             .flatMapCompletable(meta -> this.storage.save(metafilename, meta.byteFlow()));
+    }
+
+    /**
+     * Get bytes from list of byte buffers.
+     *
+     * @param buffers List of byte buffers.
+     * @return Bytes from list of buffers.
+     */
+    private static byte[] bytesFromListOfByteBuffers(final List<ByteBuffer> buffers) {
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        buffers.forEach(
+            buffer -> {
+                try {
+                    output.write(new Remaining(buffer).bytes());
+                } catch (final IOException exp) {
+                    LOGGER.info(exp.getMessage());
+                }
+            });
+        return output.toByteArray();
     }
 }
