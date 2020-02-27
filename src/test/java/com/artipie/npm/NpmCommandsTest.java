@@ -29,8 +29,13 @@ import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.IsEqual;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -40,15 +45,10 @@ import org.junit.Test;
  */
 public class NpmCommandsTest {
 
-    /**
-     * The npm string.
-     */
-    private static final String NPM = "npm";
-
-    /**
-     * The registry string.
-     */
-    private static final String REGISTRY = "--registry";
+    @Before
+    public void before() {
+        Assume.assumeThat(SystemUtils.IS_OS_WINDOWS, new IsEqual<>(false));
+    }
 
     /**
      * Test {@code npm publish} and {@code npm install} command works properly.
@@ -60,50 +60,43 @@ public class NpmCommandsTest {
         throws IOException, InterruptedException {
         final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
         final Vertx vertx = Vertx.vertx();
-        final NpmRegistry registry =
-            new NpmRegistry(vertx, storage);
+        final NpmRegistry registry = new NpmRegistry(vertx, storage);
         registry.start();
-        final String url = String.format(
-            "http://127.0.0.1:%d",
-            registry.getPort()
+        final String url = String.format("http://127.0.0.1:%d", registry.getPort());
+        this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
+        this.npmExecute("install", "./src/test/resources/project-with-simple-dependency/", url);
+        FileUtils.deleteDirectory(
+            new File("./src/test/resources/project-with-simple-dependency/node_modules")
         );
+        new File("./src/test/resources/project-with-simple-dependency/package-lock.json")
+            .delete();
+        registry.stop();
+        vertx.close();
+    }
+
+    /**
+     * Execute a npm command and expect 0 is returned.
+     * @param command The npm command to execute
+     * @param project The project path
+     * @param url The registry url
+     * @throws InterruptedException If fails
+     * @throws IOException If fails
+     */
+    private void npmExecute(
+        final String command,
+        final String project,
+        final String url) throws InterruptedException, IOException {
         MatcherAssert.assertThat(
-            new ProcessBuilder()
-            .directory(
-                new File("./src/test/resources/simple-npm-project/")
-            )
-            .command(
-                NpmCommandsTest.NPM,
-                "publish",
-                NpmCommandsTest.REGISTRY,
-                url
-            )
-            .inheritIO()
-            .start()
-            .waitFor(),
-            Matchers.equalTo(0)
-        );
-        MatcherAssert.assertThat(
+            String.format("'npm %s --registry %s' failed with non-zero code", command, url),
             new ProcessBuilder()
                 .directory(
-                    new File(
-                        "./src/test/resources/project-with-simple-dependency/"
-                    )
+                    new File(project)
                 )
-                .command(
-                    NpmCommandsTest.NPM,
-                    "install",
-                    NpmCommandsTest.REGISTRY,
-                    url
-                )
+                .command("npm", command, "--registry", url)
                 .inheritIO()
                 .start()
                 .waitFor(),
             Matchers.equalTo(0)
         );
-        new File("./src/test/resources/project-with-simple-dependency/node_modules").delete();
-        new File("./src/test/resources/project-with-simple-dependency/package-lock.json").delete();
-        registry.stop();
-        vertx.close();
     }
 }

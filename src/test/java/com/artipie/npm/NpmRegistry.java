@@ -272,7 +272,12 @@ final class NpmRegistry {
         Logger.info(NpmRegistry.class, "GET package: %s", npmpackage);
         final Key fname = new Key.From(npmpackage, "meta.json");
         if (this.storage.exists(fname)) {
-            ctx.response().end(Buffer.buffer(this.storage.value(fname)));
+            final byte[] value = this.storage.value(fname);
+            final io.vertx.core.json.JsonObject json =
+                new io.vertx.core.json.JsonObject(new String(value));
+            final String prettily = json.encodePrettily();
+            Logger.info(NpmRegistry.class, "Responsing with JSON:\n%s", prettily);
+            ctx.response().end(prettily);
         } else {
             final int notfound = 404;
             ctx.response()
