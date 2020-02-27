@@ -23,17 +23,23 @@
  */
 package com.artipie.npm;
 
+import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
+import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.StringStartsWith;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +48,9 @@ import org.junit.Test;
  * Make sure the library is compatible with npm cli tools.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class NpmCommandsTest {
 
     @Before
@@ -65,6 +73,48 @@ public class NpmCommandsTest {
         final String url = String.format("http://127.0.0.1:%d", registry.getPort());
         this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
         this.npmExecute("install", "./src/test/resources/project-with-simple-dependency/", url);
+        FileUtils.deleteDirectory(
+            new File("./src/test/resources/project-with-simple-dependency/node_modules")
+        );
+        new File("./src/test/resources/project-with-simple-dependency/package-lock.json")
+            .delete();
+        registry.stop();
+        vertx.close();
+    }
+
+    /**
+     * Test {@code npm publish} and {@code npm install} command works properly.
+     * @throws IOException if fails
+     * @throws InterruptedException if fails
+     */
+    @Test
+    public final void npmInstallWithFilePrefixWorks()
+        throws IOException, InterruptedException {
+        final Path temp = Files.createTempDirectory("temp");
+        final Storage storage = new FileStorage(temp);
+        final Vertx vertx = Vertx.vertx();
+        final String prefix = String.format("file://%s/", temp.toAbsolutePath());
+        final NpmRegistry registry = new NpmRegistry(
+            vertx,
+            storage,
+            Optional.of(prefix)
+        );
+        registry.start();
+        final String url = String.format("http://127.0.0.1:%d", registry.getPort());
+        this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
+        MatcherAssert.assertThat(
+            new JsonObject(
+                new String(
+                    new BlockingStorage(storage).value(
+                        new Key.From("@hello", "simple-npm-project", "meta.json")
+                    )
+                )
+            ).getJsonObject("versions")
+                .getJsonObject("1.0.1")
+                .getJsonObject("dist")
+                .getString("tarball"),
+            new StringStartsWith(prefix)
+        );
         FileUtils.deleteDirectory(
             new File("./src/test/resources/project-with-simple-dependency/node_modules")
         );

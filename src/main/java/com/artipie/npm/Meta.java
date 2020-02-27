@@ -26,7 +26,10 @@ package com.artipie.npm;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonPatchBuilder;
@@ -44,12 +47,19 @@ final class Meta {
     private final JsonObject json;
 
     /**
+     * The path prefix. Use default if not specified.
+     */
+    private final Optional<String> pathpref;
+
+    /**
      * Ctor.
      *
-     * @param json The meta.json file location on disk
+     * @param json The meta.json file location on disk.
+     * @param pathpref The path prefix. Use default if not specified.
      */
-    Meta(final JsonObject json) {
+    Meta(final JsonObject json, final Optional<String> pathpref) {
         this.json = json;
+        this.pathpref = pathpref;
     }
 
     /**
@@ -65,15 +75,27 @@ final class Meta {
         final JsonPatchBuilder patch = Json.createPatchBuilder();
         patch.add("/dist-tags", uploaded.getJsonObject("dist-tags"));
         for (final String key : keys) {
+            final JsonObject version = versions.getJsonObject(key);
             patch.add(
                 String.format("/versions/%s", key),
-                versions.getJsonObject(key)
+                version
+            );
+            this.pathpref.ifPresent(
+                prefix -> patch.add(
+                    String.format("/versions/%s/dist/tarball", key),
+                    String.format(
+                        "%s%s",
+                        prefix,
+                        Meta.nonRelativePart(version.getJsonObject("dist").getString("tarball"))
+                    )
+                )
             );
         }
         return new Meta(
             patch
                 .build()
-                .apply(this.json)
+                .apply(this.json),
+            this.pathpref
         );
     }
 
@@ -87,5 +109,17 @@ final class Meta {
                 this.json.toString().getBytes(StandardCharsets.UTF_8)
             )
         );
+    }
+
+    /**
+     * Extract non relative path.
+     * @param tarball The tarball filed.
+     * @return Non a relative path.
+     */
+    private static String nonRelativePart(final String tarball) {
+        final Pattern pattern = Pattern.compile("(@[\\w-_]+/[\\w_-]+/-/@[\\w-_]+/[\\w.-]+)");
+        final Matcher matcher = pattern.matcher(tarball);
+        matcher.find();
+        return matcher.group(1);
     }
 }

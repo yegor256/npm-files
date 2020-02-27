@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -61,12 +62,26 @@ public class Npm {
     private final RxStorage storage;
 
     /**
-     * Constructor.
-     *
-     * @param storage The storage
+     * The archive path prefix. The default one is used if empty.
+     */
+    private final Optional<String> pathpref;
+
+    /**
+     * Ctor.
+     * @param storage The storage.
      */
     public Npm(final Storage storage) {
+        this(storage, Optional.empty());
+    }
+
+    /**
+     * Constructor.
+     * @param storage The storage.
+     * @param pathpref The sources archive pathpref. Example: http://localhost:8080.
+     */
+    public Npm(final Storage storage, final Optional<String> pathpref) {
         this.storage = new RxStorageWrapper(storage);
+        this.pathpref = pathpref;
     }
 
     /**
@@ -154,12 +169,16 @@ public class Npm {
                                             new ByteArrayInputStream(
                                                 bytesFromListOfByteBuffers(bytes)
                                             )
-                                        ).readObject()
+                                        ).readObject(),
+                                        this.pathpref
                                     )
                             );
                     } else {
                         meta = Single.just(
-                            new NpmPublishJsonToMetaBind(uploaded).bind()
+                            new Meta(
+                                new NpmPublishJsonToMetaSkelethon(uploaded).skeleton(),
+                                this.pathpref
+                            )
                         );
                     }
                     return meta;
