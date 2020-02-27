@@ -35,10 +35,10 @@ import io.reactivex.Single;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -181,7 +181,7 @@ public class Npm {
                 try {
                     output.write(new Remaining(buffer).bytes());
                 } catch (final IOException exp) {
-                    throw new OutputStreamWriteException(exp.getMessage());
+                    throw new UncheckedIOException(exp);
                 }
             });
         return output.toByteArray();
