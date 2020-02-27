@@ -35,6 +35,7 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -94,27 +95,28 @@ final class NpmRegistry {
      * Ctor.
      * @param vertx The Vert.x
      * @param storage The storage
-     * @throws IOException if fails
+     * @throws IOException If fails
      */
     NpmRegistry(
         final Vertx vertx,
         final Storage storage) throws IOException {
-        this(vertx, storage, NpmRegistry.randomFreePort());
+        this(vertx, storage, Optional.empty());
     }
 
     /**
      * Ctor.
      * @param vertx The Vert.x
      * @param storage The storage
-     * @param port The port
+     * @param prefix The path prefix for files.
+     * @throws IOException If fails
      */
     NpmRegistry(
         final Vertx vertx,
         final Storage storage,
-        final int port) {
+        final Optional<String> prefix) throws IOException {
         this.vertx = vertx;
-        this.npm = new Npm(storage);
-        this.port = port;
+        this.npm = new Npm(storage, prefix);
+        this.port = NpmRegistry.randomFreePort();
         this.storage = new BlockingStorage(storage);
         this.server = vertx.createHttpServer().requestHandler(this.routes());
     }

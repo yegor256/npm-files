@@ -35,7 +35,7 @@ import javax.json.JsonObject;
  *
  * @since 0.1
  */
-final class NpmPublishJsonToMetaBind {
+final class NpmPublishJsonToMetaSkelethon {
 
     /**
      * The name json filed.
@@ -62,27 +62,27 @@ final class NpmPublishJsonToMetaBind {
      *
      * @param json The json to bind.
      */
-    NpmPublishJsonToMetaBind(final JsonObject json) {
+    NpmPublishJsonToMetaSkelethon(final JsonObject json) {
         this.json = json;
     }
 
     /**
      * Bind the npm.
-     * @return The meta.json file
+     * @return The skeleton for meta.json file
      */
-    public Meta bind() {
-        return new Meta(Json.createObjectBuilder()
+    public JsonObject skeleton() {
+        return Json.createObjectBuilder()
             .add(
-                NpmPublishJsonToMetaBind.NAME,
-                this.json.getString(NpmPublishJsonToMetaBind.NAME)
+                NpmPublishJsonToMetaSkelethon.NAME,
+                this.json.getString(NpmPublishJsonToMetaSkelethon.NAME)
             )
             .add(
-                NpmPublishJsonToMetaBind.ID,
-                this.json.getString(NpmPublishJsonToMetaBind.ID)
+                NpmPublishJsonToMetaSkelethon.ID,
+                this.json.getString(NpmPublishJsonToMetaSkelethon.ID)
             )
             .add(
-                NpmPublishJsonToMetaBind.README,
-                this.json.getString(NpmPublishJsonToMetaBind.README)
+                NpmPublishJsonToMetaSkelethon.README,
+                this.json.getString(NpmPublishJsonToMetaSkelethon.README)
             )
             .add(
                 "time",
@@ -102,8 +102,7 @@ final class NpmPublishJsonToMetaBind {
             .add("users", Json.createObjectBuilder().build())
             .add("versions", Json.createObjectBuilder().build())
             .add("_attachments", Json.createObjectBuilder().build())
-            .build()
-        );
+            .build();
     }
 
 }
