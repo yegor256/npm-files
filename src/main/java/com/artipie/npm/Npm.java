@@ -56,11 +56,6 @@ import javax.json.JsonObject;
 public class Npm {
 
     /**
-     * Logger.
-     */
-    private static final  Logger LOGGER = Logger.getLogger(Npm.class.getName());
-
-    /**
      * The storage.
      */
     private final RxStorage storage;
@@ -186,7 +181,7 @@ public class Npm {
                 try {
                     output.write(new Remaining(buffer).bytes());
                 } catch (final IOException exp) {
-                    LOGGER.info(exp.getMessage());
+                    throw new OutputStreamWriteException(exp.getMessage());
                 }
             });
         return output.toByteArray();
