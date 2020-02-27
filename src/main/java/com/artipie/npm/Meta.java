@@ -23,8 +23,8 @@
  */
 package com.artipie.npm;
 
-import com.artipie.asto.ByteArray;
-import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.Flowable;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Set;
@@ -103,11 +103,11 @@ final class Meta {
      * Obtain a byte flow.
      * @return The flow of bytes.
      */
-    public Flowable<Byte> byteFlow() {
+    public Flowable<ByteBuffer> byteFlow() {
         return Flowable.fromArray(
-            new ByteArray(
+            ByteBuffer.wrap(
                 this.json.toString().getBytes(StandardCharsets.UTF_8)
-            ).boxedBytes()
+            )
         );
     }
 

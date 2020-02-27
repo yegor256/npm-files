@@ -23,7 +23,7 @@
  */
 package com.artipie.npm;
 
-import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.Completable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
