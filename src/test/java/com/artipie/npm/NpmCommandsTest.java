@@ -35,13 +35,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.StringStartsWith;
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -52,11 +48,6 @@ import org.junit.Test;
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class NpmCommandsTest {
-
-    @Before
-    public void before() {
-        Assume.assumeThat(SystemUtils.IS_OS_WINDOWS, new IsEqual<>(false));
-    }
 
     /**
      * Test {@code npm publish} and {@code npm install} command works properly.
