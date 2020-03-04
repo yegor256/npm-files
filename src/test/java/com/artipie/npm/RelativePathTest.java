@@ -33,7 +33,7 @@ import org.junit.Test;
  * @since 0.1
  * @checkstyle LineLengthCheck (500 lines)
  */
-public class ReativePathTest {
+public class RelativePathTest {
 
     @Test
     public void npmClientWithScopeIdentifiedCorrectly() {
