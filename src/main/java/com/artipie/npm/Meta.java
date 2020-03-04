@@ -28,8 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonPatchBuilder;
@@ -86,7 +84,9 @@ final class Meta {
                     String.format(
                         "%s%s",
                         prefix,
-                        Meta.nonRelativePart(version.getJsonObject("dist").getString("tarball"))
+                        new TgzRelativePath(
+                            version.getJsonObject("dist").getString("tarball")
+                        ).relative()
                     )
                 )
             );
@@ -109,17 +109,5 @@ final class Meta {
                 this.json.toString().getBytes(StandardCharsets.UTF_8)
             )
         );
-    }
-
-    /**
-     * Extract non relative path.
-     * @param tarball The tarball filed.
-     * @return Non a relative path.
-     */
-    private static String nonRelativePart(final String tarball) {
-        final Pattern pattern = Pattern.compile("(@[\\w-_]+/[\\w_-]+/-/@[\\w-_]+/[\\w.-]+)");
-        final Matcher matcher = pattern.matcher(tarball);
-        matcher.find();
-        return matcher.group(1);
     }
 }
