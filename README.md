@@ -53,20 +53,20 @@ npm publish --registry=http://localhost:8080
 By invoking such command npm sends following http request:
 
 ```json
-method: 'PUT'
-url: '/@hello%2fsimple-npm-project'
+method: "PUT"
+url: "/@hello%2fsimple-npm-project"
 headers: { 
-  'connection': 'keep-alive',
-  'user-agent': 'npm/6.13.6 node/v10.15.1 darwin x64',
-  'npm-in-ci': 'false',
-  'npm-scope': '@hello',
-  'npm-session': '52b4a33613bae565',
-  'referer': 'publish',
-  'content-type': 'application/json',
-  'accept': '*/*',
-  'content-length': '1331',
-  'accept-encoding': 'gzip,deflate',
-  'host': 'localhost:8080'
+  "connection": "keep-alive",
+  "user-agent": "npm/6.13.6 node/v10.15.1 darwin x64",
+  "npm-in-ci": "false",
+  "npm-scope": "@hello",
+  "npm-session": "52b4a33613bae565",
+  "referer": "publish",
+  "content-type": "application/json",
+  "accept": "*/*",
+  "content-length": "1331",
+  "accept-encoding": "gzip,deflate",
+  "host": "localhost:8080"
 } 
 ```
 
@@ -82,21 +82,21 @@ npm install --registry=http://localhost:8080  @hello/simple-npm-project
 First NPM sends following request to get the meta data:
 
 ```json
-method: 'GET'
-url: '/@hello%2fsimple-npm-project'
+method: "GET"
+url: "/@hello%2fsimple-npm-project"
 headers: { 
-  'connection': 'keep-alive',
-  'user-agent': 'npm/6.13.6 node/v10.15.1 darwin x64',
-  'npm-in-ci': 'false',
-  'npm-scope': '@hello',
-  'npm-session': 'ee324ef71224a7ee',
-  'referer': 'install [REDACTED]',
-  'pacote-req-type': 'packument',
-  'pacote-pkg-id': 'registry:@hello/simple-npm-project',
-  'accept':
-   'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*',
-  'accept-encoding': 'gzip,deflate',
-  'host'': 'localhost:8080'
+  "connection": "keep-alive",
+  "user-agent": "npm/6.13.6 node/v10.15.1 darwin x64",
+  "npm-in-ci": "false",
+  "npm-scope": "@hello",
+  "npm-session": "ee324ef71224a7ee",
+  "referer": "install [REDACTED]",
+  "pacote-req-type": "packument",
+  "pacote-pkg-id": "registry:@hello/simple-npm-project",
+  "accept":
+   "application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*",
+  "accept-encoding": "gzip,deflate",
+  "host": "localhost:8080"
 } 
 ```
 
@@ -146,19 +146,19 @@ and expect following response body with meta info from asto like:
 Then NPM using such meta info sends another request to get a package:
 
 ```json
-method: 'GET'
-url: '/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz'
+method: "GET"
+url: "/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
 headers: {
-  'connection': 'keep-alive',
-  'user-agent': 'npm/6.13.6 node/v10.15.1 darwin x64',
-  'npm-in-ci': 'false',
-  'npm-scope': '@hello',
-  'npm-session': 'ee324ef71224a7ee',
-  'referer': 'install [REDACTED]',
-  'pacote-req-type': 'tarball',
-  'pacote-pkg-id': 'registry:@hello/simple-npm-project@http://127.0.0.1:8080/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz',
-  'accept': '*/*',
-  'host': '127.0.0.1:8080' 
+  "connection": "keep-alive",
+  "user-agent": "npm/6.13.6 node/v10.15.1 darwin x64",
+  "npm-in-ci": "false",
+  "npm-scope": "@hello",
+  "npm-session": "ee324ef71224a7ee",
+  "referer": "install [REDACTED]",
+  "pacote-req-type": "tarball",
+  "pacote-pkg-id": "registry:@hello/simple-npm-project@http://127.0.0.1:8080/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz",
+  "accept": "*/*",
+  "host": "127.0.0.1:8080" 
 }
 ```
 
