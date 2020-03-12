@@ -71,7 +71,7 @@ headers: {
 ```
 
 With request body which contains `data` field which contains `base64` content of the package. 
-Then we generate the meta data and `.tar` package and save it to asto.
+Then we generate the meta data and `.tar` package and save it into asto.
 
 2. Let's say now we want to install our package via command:
 
