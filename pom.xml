@@ -107,6 +107,11 @@ SOFTWARE.
       <artifactId>reactive-streams</artifactId>
       <version>1.0.3</version>
     </dependency>
+    <dependency>
+      <groupId>com.artipie</groupId>
+      <artifactId>http</artifactId>
+      <version>0.6.1</version>
+    </dependency>
     <!-- Test only dependencies  -->
     <dependency>
       <groupId>io.vertx</groupId>
