@@ -36,11 +36,11 @@ import java.util.Map;
 import org.reactivestreams.Publisher;
 
 /**
- * NpmSlice.
+ * ScNpm.
  *
  * @since 0.3
  */
-public final class NpmSlice implements Slice {
+public final class ScNpm implements Slice {
 
     /**
      * Npm front.
@@ -58,7 +58,7 @@ public final class NpmSlice implements Slice {
      * @param npm Npm front
      * @param storage Storage for package
      */
-    public NpmSlice(final Npm npm, final Storage storage) {
+    public ScNpm(final Npm npm, final Storage storage) {
         this.npm = npm;
         this.storage = storage;
     }
@@ -68,12 +68,11 @@ public final class NpmSlice implements Slice {
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        new SliceRoute(
+        return new SliceRoute(
             new SliceRoute.Path(
                 new RtRule.ByMethod(RqMethod.PUT.value()),
                 new UploadSlice(this.npm, this.storage)
             )
-        );
-        return null;
+        ).response(line, headers, body);
     }
 }
