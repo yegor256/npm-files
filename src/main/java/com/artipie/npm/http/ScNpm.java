@@ -27,20 +27,24 @@ package com.artipie.npm.http;
 import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
+import com.artipie.http.rq.RequestLine;
+import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.SliceRoute;
+import com.artipie.http.slice.SliceDownload;
 import com.artipie.npm.Npm;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import org.reactivestreams.Publisher;
 
 /**
- * NpmSlice.
+ * ScNpm.
  *
  * @since 0.3
  */
-public final class NpmSlice implements Slice {
+public final class ScNpm implements Slice {
 
     /**
      * Npm front.
@@ -58,7 +62,7 @@ public final class NpmSlice implements Slice {
      * @param npm Npm front
      * @param storage Storage for package
      */
-    public NpmSlice(final Npm npm, final Storage storage) {
+    public ScNpm(final Npm npm, final Storage storage) {
         this.npm = npm;
         this.storage = storage;
     }
@@ -68,12 +72,15 @@ public final class NpmSlice implements Slice {
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        new SliceRoute(
+        return new SliceRoute(
             new SliceRoute.Path(
                 new RtRule.ByMethod(RqMethod.PUT.value()),
                 new UploadSlice(this.npm, this.storage)
+            ),
+            new SliceRoute.Path(
+                new RtRule.ByMethod(RqMethod.GET.value()),
+                new SliceDownload(this.storage)
             )
-        );
-        return null;
+        ).response(line, headers, body);
     }
 }
