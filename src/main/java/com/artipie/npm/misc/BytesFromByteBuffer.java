@@ -24,61 +24,42 @@
 
 package com.artipie.npm.misc;
 
-import io.reactivex.Flowable;
-import io.reactivex.Single;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import javax.json.Json;
-import javax.json.JsonObject;
-import org.reactivestreams.Publisher;
 
 /**
- * JsonFromPublisher.
+ * BytesFromByteBuffer.
  *
  * @since 0.1
  */
-public final class JsonFromPublisher {
+public final class BytesFromByteBuffer {
 
     /**
-     * Publisher of ByteBuffer.
+     * Buffer.
      */
-    private final Publisher<ByteBuffer> bytes;
+    private final ByteBuffer buffer;
 
     /**
      * Ctor.
      *
-     * @param bytes Publisher of byte buffer
+     * @param buffer Buffer
      */
-    public JsonFromPublisher(final Publisher<ByteBuffer> bytes) {
-        this.bytes = bytes;
+    public BytesFromByteBuffer(final ByteBuffer buffer) {
+        this.buffer = buffer;
     }
 
     /**
-     * Gets json from publisher.
+     * Gets bytes from buffer.
      *
-     * @return Json
+     * @return Bytes
      */
-    public Single<JsonObject> json() {
-        final ByteArrayOutputStream content = new ByteArrayOutputStream();
-        return Flowable
-            .fromPublisher(this.bytes)
-            .reduce(
-                content,
-                (stream, buffer) -> {
-                    stream.write(
-                        new BytesFromByteBuffer(buffer).value()
-                    );
-                    return stream;
-                })
-            .flatMap(
-                stream -> Single.just(
-                    Json.createReader(
-                        new ByteArrayInputStream(
-                            stream.toByteArray()
-                        )
-                    ).readObject()
-                )
-            );
+    public byte[] value() {
+        final byte[] bytes;
+        if (this.buffer.hasArray()) {
+            bytes = this.buffer.array();
+        } else {
+            bytes = new byte[this.buffer.remaining()];
+            this.buffer.get(bytes);
+        }
+        return bytes;
     }
 }

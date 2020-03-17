@@ -36,7 +36,7 @@ import java.util.Map;
 import org.reactivestreams.Publisher;
 
 /**
- * ScNpm.
+ * ScNpm is a http layer in npm adapter.
  *
  * @since 0.3
  */

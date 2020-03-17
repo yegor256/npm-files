@@ -36,6 +36,7 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.Npm;
+import com.artipie.npm.misc.DescSortedVersions;
 import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.npm.misc.LastVersion;
 import io.reactivex.Completable;
@@ -86,12 +87,13 @@ public final class UploadSlice implements Slice {
                 () -> new JsonFromPublisher(publisher).json().flatMapCompletable(
                     json -> {
                         final String lastver = new LastVersion(
-                            json.getJsonObject("versions")
+                            new DescSortedVersions(
+                                json.getJsonObject("versions")
+                            ).value()
                         ).value();
-                        final String format = "%s/-/%s-%s.tgz";
                         final Key metakey = new KeyFromPath(path);
                         final Key artifactkey = new KeyFromPath(
-                            String.format(format, path, path, lastver)
+                            String.format("%s/-/%s-%s.tgz", path, path, lastver)
                         );
                         return this.rxsto.save(
                             artifactkey,
