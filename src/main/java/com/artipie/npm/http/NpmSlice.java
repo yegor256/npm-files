@@ -43,16 +43,6 @@ import org.reactivestreams.Publisher;
 public final class NpmSlice implements Slice {
 
     /**
-     * Npm front.
-     */
-    private final Npm npm;
-
-    /**
-     * Storage for packages.
-     */
-    private final Storage storage;
-
-    /**
      * Route.
      */
     private final SliceRoute route;
@@ -64,12 +54,10 @@ public final class NpmSlice implements Slice {
      * @param storage Storage for package
      */
     public NpmSlice(final Npm npm, final Storage storage) {
-        this.npm = npm;
-        this.storage = storage;
         this.route = new SliceRoute(
             new SliceRoute.Path(
                 new RtRule.ByMethod(RqMethod.PUT.value()),
-                new UploadSlice(this.npm, this.storage)
+                new UploadSlice(npm, storage)
             )
         );
     }

@@ -41,12 +41,10 @@ import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.npm.misc.LastVersion;
 import hu.akarnokd.rxjava2.interop.CompletableInterop;
 import hu.akarnokd.rxjava2.interop.SingleInterop;
-import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 
 /**
@@ -89,10 +87,13 @@ public final class UploadSlice implements Slice {
             new JsonFromPublisher(publisher).json().flatMapCompletable(
                 json -> this.rxsto.save(
                     new KeyFromPath(
-                        String.format("%s/-/%s-%s.tgz", path, path, new LastVersion(
-                            new DescSortedVersions(
-                                json.getJsonObject("versions")
-                            ).value())
+                        String.format(
+                            "%s/-/%s-%s.tgz", path, path,
+                            new LastVersion(
+                                new DescSortedVersions(
+                                    json.getJsonObject("versions")
+                                ).value()
+                            )
                         )
                     ),
                     Flowable.fromPublisher(publisher)
