@@ -55,7 +55,7 @@ public final class DescSortedVersions {
     }
 
     /**
-     * Gets that last version.
+     * Get desc sorted versions.
      *
      * @return Sorted versions
      */

@@ -36,11 +36,11 @@ import java.util.Map;
 import org.reactivestreams.Publisher;
 
 /**
- * ScNpm is a http layer in npm adapter.
+ * NpmSlice is a http layer in npm adapter.
  *
  * @since 0.3
  */
-public final class ScNpm implements Slice {
+public final class NpmSlice implements Slice {
 
     /**
      * Npm front.
@@ -53,14 +53,25 @@ public final class ScNpm implements Slice {
     private final Storage storage;
 
     /**
+     * Route.
+     */
+    private final SliceRoute route;
+
+    /**
      * Ctor.
      *
      * @param npm Npm front
      * @param storage Storage for package
      */
-    public ScNpm(final Npm npm, final Storage storage) {
+    public NpmSlice(final Npm npm, final Storage storage) {
         this.npm = npm;
         this.storage = storage;
+        this.route = new SliceRoute(
+            new SliceRoute.Path(
+                new RtRule.ByMethod(RqMethod.PUT.value()),
+                new UploadSlice(this.npm, this.storage)
+            )
+        );
     }
 
     @Override
@@ -68,11 +79,6 @@ public final class ScNpm implements Slice {
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        return new SliceRoute(
-            new SliceRoute.Path(
-                new RtRule.ByMethod(RqMethod.PUT.value()),
-                new UploadSlice(this.npm, this.storage)
-            )
-        ).response(line, headers, body);
+        return this.route.response(line, headers, body);
     }
 }
