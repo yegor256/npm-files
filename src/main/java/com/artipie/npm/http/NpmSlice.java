@@ -30,6 +30,7 @@ import com.artipie.http.Slice;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.SliceRoute;
+import com.artipie.http.slice.SliceDownload;
 import com.artipie.npm.Npm;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -58,6 +59,10 @@ public final class NpmSlice implements Slice {
             new SliceRoute.Path(
                 new RtRule.ByMethod(RqMethod.PUT.value()),
                 new UploadSlice(npm, storage)
+            ),
+            new SliceRoute.Path(
+                new RtRule.ByMethod(RqMethod.GET.value()),
+                new SliceDownload(storage)
             )
         );
     }
