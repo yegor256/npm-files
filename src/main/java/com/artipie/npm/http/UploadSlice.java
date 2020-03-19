@@ -36,13 +36,15 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.Npm;
+import com.artipie.npm.misc.DescSortedVersions;
 import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.npm.misc.LastVersion;
-import io.reactivex.Completable;
+import hu.akarnokd.rxjava2.interop.CompletableInterop;
+import hu.akarnokd.rxjava2.interop.SingleInterop;
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 
 /**
@@ -82,30 +84,32 @@ public final class UploadSlice implements Slice {
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
         return new AsyncResponse(
-            CompletableFuture.supplyAsync(
-                () -> new JsonFromPublisher(publisher).json().flatMapCompletable(
-                    json -> {
-                        final String lastver = new LastVersion(
-                            json.getJsonObject("versions")
-                        ).value();
-                        final String format = "%s/-/%s-%s.tgz";
-                        final Key metakey = new KeyFromPath(path);
-                        final Key artifactkey = new KeyFromPath(
-                            String.format(format, path, path, lastver)
-                        );
-                        return this.rxsto.save(
-                            artifactkey,
-                            Flowable.fromPublisher(publisher)
-                        ).andThen(
-                            Completable.fromAction(
-                                () -> this.npm.publish(
-                                    new Key.From(metakey),
-                                    metakey
-                                )
+            new JsonFromPublisher(publisher).json().flatMapCompletable(
+                json -> this.rxsto.save(
+                    new KeyFromPath(
+                        String.format(
+                            "%s/-/%s-%s.tgz", path, path,
+                            new LastVersion(
+                                new DescSortedVersions(
+                                    json.getJsonObject("versions")
+                                ).value()
                             )
-                        );
-                    })
-                ).thenApply(rsp -> new RsWithStatus(RsStatus.OK))
-            );
+                        )
+                    ),
+                    Flowable.fromPublisher(publisher)
+                )
+            ).andThen(
+                CompletableInterop.fromFuture(
+                    this.npm.publish(
+                        new Key.From(new KeyFromPath(path)),
+                        new KeyFromPath(path)
+                    )
+                )
+            ).andThen(
+                Single.<Response>just(
+                    new RsWithStatus(RsStatus.OK)
+                )
+            ).to(SingleInterop.get())
+        );
     }
 }

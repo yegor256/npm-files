@@ -24,6 +24,7 @@
 
 package com.artipie.npm.misc;
 
+import com.artipie.asto.Remaining;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.io.ByteArrayInputStream;
@@ -66,7 +67,9 @@ public final class JsonFromPublisher {
             .reduce(
                 content,
                 (stream, buffer) -> {
-                    stream.write(bytesFromByteBuffer(buffer));
+                    stream.write(
+                        new Remaining(buffer).bytes()
+                    );
                     return stream;
                 })
             .flatMap(
@@ -78,22 +81,5 @@ public final class JsonFromPublisher {
                     ).readObject()
                 )
             );
-    }
-
-    /**
-     * Gets byte[] from ByteBuffer.
-     *
-     * @param buffer Buffer
-     * @return Bytes from ByteBuffer
-     */
-    private static byte[] bytesFromByteBuffer(final ByteBuffer buffer) {
-        final byte[] bytes;
-        if (buffer.hasArray()) {
-            bytes = buffer.array();
-        } else {
-            bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-        }
-        return bytes;
     }
 }

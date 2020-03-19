@@ -24,33 +24,26 @@
 
 package com.artipie.npm.misc;
 
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import javax.json.JsonObject;
+import java.util.List;
 
 /**
  * LastVersion.
  *
  * @since 0.3
- * @checkstyle IllegalTokenCheck (500 lines)
- * @checkstyle ParameterNameCheck (500 lines)
- * @checkstyle LocalFinalVariableNameCheck (500 lines)
- * @checkstyle FinalLocalVariableCheck (500 lines)
- * @checkstyle AvoidDuplicateLiterals (500 lines)
  */
 public final class LastVersion {
 
     /**
      * Versions.
      */
-    private final JsonObject versions;
+    private final List<String> versions;
 
     /**
      * Ctor.
      *
      * @param versions Versions.
      */
-    public LastVersion(final JsonObject versions) {
+    public LastVersion(final List<String> versions) {
         this.versions = versions;
     }
 
@@ -60,36 +53,6 @@ public final class LastVersion {
      * @return Last version
      */
     public String value() {
-        return new ArrayList<>(
-            this.versions.keySet()
-        ).stream()
-            .sorted((v1, v2) -> -1 * compareVersions(v1, v2))
-            .collect(Collectors.toList()).get(0);
-    }
-
-    /**
-     * Compares two versions.
-     *
-     * @param v1 Version 1
-     * @param v2 Version 2
-     * @return Value {@code 0} if {@code v1 == v2};
-     *  a value less than {@code 0} if {@code v1 < v2}; and
-     *  a value greater than {@code 0} if {@code v1 > v2}
-     */
-    private static int compareVersions(final String v1, final String v2) {
-        final String delimiter = "\\.";
-        final String[] component1 = v1.split(delimiter);
-        final String[] component2 = v2.split(delimiter);
-        final int length = Math.min(component1.length, component2.length);
-        int result;
-        for (int index = 0; index < length; index++) {
-            result = Integer.valueOf(component1[index])
-                .compareTo(Integer.parseInt(component2[index]));
-            if (result != 0) {
-                break;
-            }
-        }
-        result = Integer.compare(component1.length, component2.length);
-        return result;
+        return this.versions.get(0);
     }
 }
