@@ -28,6 +28,7 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.memory.InMemoryStorage;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
@@ -58,7 +59,7 @@ public final class NpmTest {
 
     @Test
     @Disabled
-    public void updatesMetadataFromSourceArchive() {
+    public void updatesMetadataFromSourceArchive() throws InterruptedException, ExecutionException {
         final Storage storage = new InMemoryStorage();
         final Npm npm = new Npm(storage);
         final Key key = new Key.From("key");
@@ -85,13 +86,18 @@ public final class NpmTest {
         );
         npm.updateMetaFile(key, new TgzArchive(metadata.toString()));
         MatcherAssert.assertThat(
-            storage.value(key),
+            Flowable
+                .fromPublisher(storage.value(key).get())
+                .concatMap(
+                    buffer -> Flowable.just(buffer.array())
+                ).reduce(
+                    (arr1, arr2) ->
+                        ByteBuffer.wrap(
+                            new byte[arr1.length + arr2.length]
+                        ).put(arr1).put(arr2).array()
+            ).blockingGet(),
             new IsEqual<>(
-                Flowable.fromArray(
-                    ByteBuffer.wrap(
-                        new TgzArchive(metadata.toString()).bytes()
-                    )
-                )
+                new TgzArchive(metadata.toString()).bytes()
             )
         );
     }
