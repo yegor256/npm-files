@@ -112,6 +112,22 @@ public class Npm {
     }
 
     /**
+     * Updates the meta.json file based on tgz package file.
+     * @param prefix Package prefix.
+     * @param file Tgz archive file.
+     * @return Completion or error signal.
+     * @todo #27:30min Implement metadata update by using tgz package file.
+     *  In addition to interacting with the NPM client, the artifactory repo
+     *  also support upload NPM .tgz file manually by upload request. It mean
+     *  that all the information we can give you is the .tgz filestream. If
+     *  you Unzip the .tgz file， you could get the project package.json. Then,
+     *  you could get the metadata information from the package.json
+     */
+    public Completable updateMetaFile(final Key prefix, final TgzArchive file) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Generate .tgz archives extracted from the uploaded json.
      *
      * @param prefix The package prefix
