@@ -26,17 +26,20 @@ package com.artipie.npm;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonPatchBuilder;
+import javax.json.JsonValue;
 
 /**
  * The meta.json file.
  *
  * @since 0.1
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 final class Meta {
 
     /**
@@ -71,7 +74,13 @@ final class Meta {
         final JsonObject versions = uploaded.getJsonObject("versions");
         final Set<String> keys = versions.keySet();
         final JsonPatchBuilder patch = Json.createPatchBuilder();
-        patch.add("/dist-tags", uploaded.getJsonObject("dist-tags"));
+        if (!this.json.containsKey("dist-tags")) {
+            patch.add("/dist-tags", Json.createObjectBuilder().build());
+        }
+        for (final Map.Entry<String, JsonValue> tag
+            : uploaded.getJsonObject("dist-tags").entrySet()) {
+            patch.add(String.format("/dist-tags/%s", tag.getKey()), tag.getValue());
+        }
         for (final String key : keys) {
             final JsonObject version = versions.getJsonObject(key);
             patch.add(
