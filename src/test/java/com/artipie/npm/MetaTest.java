@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests for {@link Meta}.
  *
- * @since 0.1
+ * @since 0.4.2
  */
 public final class MetaTest {
 
