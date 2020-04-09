@@ -24,22 +24,14 @@
 package com.artipie.npm;
 
 import io.reactivex.Flowable;
-
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.JsonValue;
-
-import org.cactoos.list.ListOf;
-import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.hamcrest.core.AllOf;
-import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
-import wtf.g4s8.hamcrest.json.JsonContains;
 import wtf.g4s8.hamcrest.json.JsonHas;
 import wtf.g4s8.hamcrest.json.JsonValueIs;
 
@@ -60,72 +52,86 @@ public final class MetaTest {
      */
     private static final String VERSIONS = "versions";
 
+    /**
+     * Latest tag name.
+     */
+    private static final String LATEST = "latest";
+
+    /**
+     * Alpha tag name.
+     */
+    private static final String ALPHA = "alpha";
+
     @Test
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public void canUpdateMetaDistTags() {
         MatcherAssert.assertThat(
-            Json.createReader(new ByteArrayInputStream(
-                new Meta(
-                    Json.createObjectBuilder()
-                        .add(
-                            MetaTest.DISTTAGS,
-                            Json.createObjectBuilder().add("latest", "1.0.0")
-                        )
-                        .add(
-                            MetaTest.VERSIONS,
-                            Json.createObjectBuilder().add(
-                                "1.0.0",
-                                Json.createObjectBuilder()
+            Json.createReader(
+                new ByteArrayInputStream(
+                    new Meta(
+                        Json.createObjectBuilder()
+                            .add(
+                                MetaTest.DISTTAGS,
+                                Json.createObjectBuilder().add(
+                                    MetaTest.LATEST,
+                                    "1.0.0"
+                                )
                             )
-                        ).build(),
-                    Optional.empty()
-                ).updatedMeta(
-                    Json.createObjectBuilder()
-                        .add("name", "package")
-                        .add("version", "1.0.1")
-                        .add(
-                            MetaTest.DISTTAGS,
-                            Json.createObjectBuilder().add("alpha", "1.0.1")
-                        )
-                        .add(
-                            MetaTest.VERSIONS,
-                            Json.createObjectBuilder().add(
-                                "1.0.1",
-                                Json.createObjectBuilder()
+                            .add(
+                                MetaTest.VERSIONS,
+                                Json.createObjectBuilder().add(
+                                    "1.0.0",
+                                    Json.createObjectBuilder()
+                                )
+                            ).build(),
+                        Optional.empty()
+                    ).updatedMeta(
+                        Json.createObjectBuilder()
+                            .add("name", "package")
+                            .add("version", "1.0.1")
+                            .add(
+                                MetaTest.DISTTAGS,
+                                Json.createObjectBuilder().add(
+                                    MetaTest.ALPHA,
+                                    "1.0.1"
+                                )
                             )
-                        )
-                        .build()
+                            .add(
+                                MetaTest.VERSIONS,
+                                Json.createObjectBuilder().add(
+                                    "1.0.1",
+                                    Json.createObjectBuilder()
+                                )
+                            )
+                            .build()
+                    )
+                    .byteFlow()
+                    .concatMap(
+                        buffer -> Flowable.just(buffer.array())
+                    ).reduce(
+                        (arr1, arr2) ->
+                            ByteBuffer.wrap(
+                                new byte[arr1.length + arr2.length]
+                            ).put(arr1).put(arr2).array()
+                    ).blockingGet()
                 )
-                .byteFlow()
-                .concatMap(
-                    buffer -> Flowable.just(buffer.array())
-                ).reduce(
-                (arr1, arr2) ->
-                    ByteBuffer.wrap(
-                        new byte[arr1.length + arr2.length]
-                    ).put(arr1).put(arr2).array()
-                ).blockingGet()
-            )
             ).readObject().asJsonObject(),
-
             Matchers.allOf(
-
-                    new JsonHas(
-                        "dist-tags",
-                        Matchers.allOf(
-                            new JsonHas("latest", new JsonValueIs("1.0.0")),
-                            new JsonHas("alpha", new JsonValueIs("1.0.1"))
-                        )
-                    ),
-                    new JsonHas(
-                        "versions",
-                        Matchers.allOf(
-                            new JsonHas("1.0.1", new JsonValueIs("")),
-                            new JsonHas("1.0.0",new JsonValueIs(""))
-                        )
+                new JsonHas(
+                    MetaTest.DISTTAGS,
+                    Matchers.allOf(
+                        new JsonHas(MetaTest.LATEST, new JsonValueIs("1.0.0")),
+                        new JsonHas(MetaTest.ALPHA, new JsonValueIs("1.0.1"))
+                    )
+                ),
+                new JsonHas(
+                    MetaTest.VERSIONS,
+                    Matchers.allOf(
+                        new JsonHas("1.0.1", Matchers.any(JsonValue.class)),
+                        new JsonHas("1.0.0", Matchers.any(JsonValue.class))
                     )
                 )
-
+            )
         );
     }
 }
