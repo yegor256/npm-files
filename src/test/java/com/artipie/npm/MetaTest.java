@@ -24,13 +24,21 @@
 package com.artipie.npm;
 
 import io.reactivex.Flowable;
+
+import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Optional;
 import javax.json.Json;
+import javax.json.JsonObject;
+
+import org.cactoos.list.ListOf;
+import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.Test;
+import wtf.g4s8.hamcrest.json.JsonContains;
+import wtf.g4s8.hamcrest.json.JsonHas;
+import wtf.g4s8.hamcrest.json.JsonValueIs;
 
 /**
  * Tests for {@link Meta}.
@@ -53,25 +61,29 @@ public final class MetaTest {
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public void canUpdateMetaDistTags() {
         MatcherAssert.assertThat(
-            new String(
+            Json.createReader(new ByteArrayInputStream(
                 new Meta(
                     Json.createObjectBuilder()
-                    .add(
-                        MetaTest.DISTTAGS,
-                        Json.createObjectBuilder().add("latest", "1.0.0")
-                    )
-                    .add(
-                        MetaTest.VERSIONS,
-                        Json.createObjectBuilder().add(
-                            "1.0.0",
-                            Json.createObjectBuilder()
+                        .add(
+                            MetaTest.DISTTAGS,
+                            Json.createObjectBuilder().add("latest", "1.0.0")
                         )
-                    ).build(),
+                        .add(
+                            MetaTest.VERSIONS,
+                            Json.createObjectBuilder().add(
+                                "1.0.0",
+                                Json.createObjectBuilder()
+                            )
+                        ).build(),
                     Optional.empty()
                 ).updatedMeta(
                     Json.createObjectBuilder()
                         .add("name", "package")
                         .add("version", "1.0.1")
+                        .add(
+                            MetaTest.DISTTAGS,
+                            Json.createObjectBuilder().add("alpha", "1.0.1")
+                        )
                         .add(
                             MetaTest.VERSIONS,
                             Json.createObjectBuilder().add(
@@ -79,26 +91,37 @@ public final class MetaTest {
                                 Json.createObjectBuilder()
                             )
                         )
-                        .add(
-                            MetaTest.DISTTAGS,
-                            Json.createObjectBuilder().add("alpha", "1.0.1")
-                            )
                         .build()
                 )
                 .byteFlow()
                 .concatMap(
                     buffer -> Flowable.just(buffer.array())
                 ).reduce(
-                    (arr1, arr2) ->
-                        ByteBuffer.wrap(
-                            new byte[arr1.length + arr2.length]
-                        ).put(arr1).put(arr2).array()
-                ).blockingGet(),
-                Charset.defaultCharset()
-            ),
-            new IsEqual<>(
-                //@checkstyle LineLengthCheck (1 line)
-                "{\"dist-tags\":{\"latest\":\"1.0.0\",\"alpha\":\"1.0.1\"},\"versions\":{\"1.0.0\":{},\"1.0.1\":{}}}"
+                (arr1, arr2) ->
+                    ByteBuffer.wrap(
+                        new byte[arr1.length + arr2.length]
+                    ).put(arr1).put(arr2).array()
+                ).blockingGet()
+            )
+            ).readObject().asJsonObject(),
+
+            new AllOf<>(
+                new ListOf<>(
+                    new JsonHas(
+                        "dist-tags",
+                        new JsonContains(
+                            new JsonHas("latest", new JsonValueIs("1.0.0")),
+                            new JsonHas("alpha", new JsonValueIs("1.0.1"))
+                        )
+                    ),
+                    new JsonHas(
+                        "versions",
+                        new JsonContains(
+                            new JsonHas("1.0.1", new JsonValueIs("")),
+                            new JsonHas("1.0.0", new JsonValueIs(""))
+                        )
+                    )
+                )
             )
         );
     }
