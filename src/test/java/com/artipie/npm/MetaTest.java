@@ -30,11 +30,14 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 
 import org.cactoos.list.ListOf;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 import wtf.g4s8.hamcrest.json.JsonContains;
 import wtf.g4s8.hamcrest.json.JsonHas;
@@ -105,24 +108,24 @@ public final class MetaTest {
             )
             ).readObject().asJsonObject(),
 
-            new AllOf<>(
-                new ListOf<>(
+            Matchers.allOf(
+
                     new JsonHas(
                         "dist-tags",
-                        new JsonContains(
+                        Matchers.allOf(
                             new JsonHas("latest", new JsonValueIs("1.0.0")),
                             new JsonHas("alpha", new JsonValueIs("1.0.1"))
                         )
                     ),
                     new JsonHas(
                         "versions",
-                        new JsonContains(
+                        Matchers.allOf(
                             new JsonHas("1.0.1", new JsonValueIs("")),
-                            new JsonHas("1.0.0", new JsonValueIs(""))
+                            new JsonHas("1.0.0",new JsonValueIs(""))
                         )
                     )
                 )
-            )
+
         );
     }
 }
