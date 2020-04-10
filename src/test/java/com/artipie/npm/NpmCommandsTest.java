@@ -38,7 +38,7 @@ import org.apache.commons.io.FileUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.StringStartsWith;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Make sure the library is compatible with npm cli tools.

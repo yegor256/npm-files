@@ -25,7 +25,7 @@ package com.artipie.npm;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Make sure the library is compatible with npm cli tools.
