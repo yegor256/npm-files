@@ -38,7 +38,10 @@ import org.apache.commons.io.FileUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.StringStartsWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Make sure the library is compatible with npm cli tools.
@@ -47,7 +50,24 @@ import org.junit.jupiter.api.Test;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public class NpmCommandsTest {
+public final class NpmCommandsTest {
+
+    /**
+     * Vert.x used to create tested FileStorage.
+     */
+    private Vertx vertx;
+
+    @BeforeEach
+    void setUp() {
+        this.vertx = Vertx.vertx();
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (this.vertx != null) {
+            this.vertx.rxClose().blockingAwait();
+        }
+    }
 
     /**
      * Test {@code npm publish} and {@code npm install} command works properly.
@@ -55,11 +75,14 @@ public class NpmCommandsTest {
      * @throws InterruptedException if fails
      */
     @Test
-    public final void npmPublishAndInstallWorks()
+    void npmPublishAndInstallWorks()
         throws IOException, InterruptedException {
-        final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
-        final Vertx vertx = Vertx.vertx();
-        final NpmRegistry registry = new NpmRegistry(vertx, storage);
+        final Storage storage = new FileStorage(
+            Files.createTempDirectory("temp"),
+            this.vertx.fileSystem()
+        );
+        final Vertx local = Vertx.vertx();
+        final NpmRegistry registry = new NpmRegistry(local, storage);
         registry.start();
         final String url = String.format("http://127.0.0.1:%d", registry.getPort());
         this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
@@ -70,7 +93,7 @@ public class NpmCommandsTest {
         new File("./src/test/resources/project-with-simple-dependency/package-lock.json")
             .delete();
         registry.stop();
-        vertx.close();
+        local.close();
     }
 
     /**
@@ -79,14 +102,14 @@ public class NpmCommandsTest {
      * @throws InterruptedException if fails
      */
     @Test
-    public final void npmInstallWithFilePrefixWorks()
+    void npmInstallWithFilePrefixWorks()
         throws IOException, InterruptedException {
         final Path temp = Files.createTempDirectory("temp");
-        final Storage storage = new FileStorage(temp);
-        final Vertx vertx = Vertx.vertx();
+        final Storage storage = new FileStorage(temp, this.vertx.fileSystem());
+        final Vertx local = Vertx.vertx();
         final String prefix = String.format("file://%s/", temp.toAbsolutePath());
         final NpmRegistry registry = new NpmRegistry(
-            vertx,
+            local,
             storage,
             Optional.of(prefix)
         );
@@ -112,7 +135,7 @@ public class NpmCommandsTest {
         new File("./src/test/resources/project-with-simple-dependency/package-lock.json")
             .delete();
         registry.stop();
-        vertx.close();
+        local.close();
     }
 
     /**

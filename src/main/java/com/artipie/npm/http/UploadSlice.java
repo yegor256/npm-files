@@ -24,6 +24,7 @@
 
 package com.artipie.npm.http;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.rx.RxStorage;
@@ -96,7 +97,9 @@ public final class UploadSlice implements Slice {
                             )
                         )
                     ),
-                    Flowable.fromPublisher(publisher)
+                    new Content.From(
+                        Flowable.fromPublisher(publisher)
+                    )
                 )
             ).andThen(
                 CompletableInterop.fromFuture(

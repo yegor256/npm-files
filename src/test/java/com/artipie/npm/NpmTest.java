@@ -23,6 +23,7 @@
  */
 package com.artipie.npm;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.memory.InMemoryStorage;
@@ -71,16 +72,18 @@ public final class NpmTest {
             .build();
         storage.save(
             key,
-            Flowable.fromArray(
-                ByteBuffer.wrap(
-                    new TgzArchive(
-                        Json.createObjectBuilder()
-                        .add(NpmTest.NAME, "sample project")
-                        .add(NpmTest.VERSION, "1.0.0")
-                        .add(NpmTest.DESCRIPTION, "A sample project")
-                        .build()
-                        .toString()
-                    ).bytes()
+            new Content.From(
+                Flowable.fromArray(
+                    ByteBuffer.wrap(
+                        new TgzArchive(
+                            Json.createObjectBuilder()
+                                .add(NpmTest.NAME, "sample project")
+                                .add(NpmTest.VERSION, "1.0.0")
+                                .add(NpmTest.DESCRIPTION, "A sample project")
+                                .build()
+                                .toString()
+                        ).bytes()
+                    )
                 )
             )
         );

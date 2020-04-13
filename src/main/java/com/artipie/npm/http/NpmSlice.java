@@ -57,11 +57,11 @@ public final class NpmSlice implements Slice {
     public NpmSlice(final Npm npm, final Storage storage) {
         this.route = new SliceRoute(
             new SliceRoute.Path(
-                new RtRule.ByMethod(RqMethod.PUT.value()),
+                new RtRule.ByMethod(RqMethod.PUT),
                 new UploadSlice(npm, storage)
             ),
             new SliceRoute.Path(
-                new RtRule.ByMethod(RqMethod.GET.value()),
+                new RtRule.ByMethod(RqMethod.GET),
                 new SliceDownload(storage)
             )
         );
