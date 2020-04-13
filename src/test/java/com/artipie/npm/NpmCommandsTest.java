@@ -41,7 +41,6 @@ import org.hamcrest.core.StringStartsWith;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Make sure the library is compatible with npm cli tools.
