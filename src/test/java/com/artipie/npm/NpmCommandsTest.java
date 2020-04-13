@@ -40,6 +40,7 @@ import org.hamcrest.Matchers;
 import org.hamcrest.core.StringStartsWith;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -74,6 +75,7 @@ public final class NpmCommandsTest {
      * @throws InterruptedException if fails
      */
     @Test
+    @Disabled
     void npmPublishAndInstallWorks()
         throws IOException, InterruptedException {
         final Storage storage = new FileStorage(
@@ -101,6 +103,7 @@ public final class NpmCommandsTest {
      * @throws InterruptedException if fails
      */
     @Test
+    @Disabled
     void npmInstallWithFilePrefixWorks()
         throws IOException, InterruptedException {
         final Path temp = Files.createTempDirectory("temp");
