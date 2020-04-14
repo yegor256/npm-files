@@ -64,9 +64,7 @@ public final class NpmCommandsTest {
 
     @AfterEach
     void tearDown() {
-        if (this.vertx != null) {
-            this.vertx.rxClose().blockingAwait();
-        }
+        this.vertx.rxClose().blockingAwait();
     }
 
     /**

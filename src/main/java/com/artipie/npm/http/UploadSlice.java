@@ -42,7 +42,6 @@ import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.npm.misc.LastVersion;
 import hu.akarnokd.rxjava2.interop.CompletableInterop;
 import hu.akarnokd.rxjava2.interop.SingleInterop;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -97,9 +96,7 @@ public final class UploadSlice implements Slice {
                             )
                         )
                     ),
-                    new Content.From(
-                        Flowable.fromPublisher(publisher)
-                    )
+                    new Content.From(publisher)
                 )
             ).andThen(
                 CompletableInterop.fromFuture(
