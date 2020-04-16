@@ -127,7 +127,7 @@ SOFTWARE.
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <artifactId>vertx-web-client</artifactId>
       <version>${vertx.version}</version>
       <scope>test</scope>
     </dependency>
@@ -158,6 +158,12 @@ SOFTWARE.
       <groupId>wtf.g4s8</groupId>
       <artifactId>matchers-json</artifactId>
       <version>1.0.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.artipie</groupId>
+      <artifactId>vertx-server</artifactId>
+      <version>0.2.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
