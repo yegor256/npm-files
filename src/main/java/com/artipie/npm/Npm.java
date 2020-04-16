@@ -23,6 +23,7 @@
  */
 package com.artipie.npm;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Remaining;
 import com.artipie.asto.Storage;
@@ -149,8 +150,10 @@ public class Npm {
                                 ).bytes();
                                 return this.storage.save(
                                     new Key.From(prefix, attachment),
-                                    Flowable.fromArray(
-                                        ByteBuffer.wrap(bytes)
+                                    new Content.From(
+                                        Flowable.fromArray(
+                                            ByteBuffer.wrap(bytes)
+                                        )
                                     )
                                 );
                             }
@@ -200,7 +203,13 @@ public class Npm {
                     return meta;
                 })
             .map(meta -> meta.updatedMeta(uploaded))
-            .flatMapCompletable(meta -> this.storage.save(metafilename, meta.byteFlow()));
+            .flatMapCompletable(
+                meta -> this.storage.save(
+                    metafilename, new Content.From(
+                        meta.byteFlow()
+                    )
+                )
+            );
     }
 
     /**

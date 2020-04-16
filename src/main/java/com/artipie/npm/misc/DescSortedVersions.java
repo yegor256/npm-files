@@ -39,6 +39,7 @@ import javax.json.JsonObject;
  * @checkstyle FinalLocalVariableCheck (500 lines)
  * @checkstyle AvoidDuplicateLiterals (500 lines)
  */
+@SuppressWarnings("PMD.OnlyOneReturn")
 public final class DescSortedVersions {
     /**
      * Versions.
@@ -75,6 +76,7 @@ public final class DescSortedVersions {
      * @return Value {@code 0} if {@code v1 == v2};
      *  a value less than {@code 0} if {@code v1 < v2}; and
      *  a value greater than {@code 0} if {@code v1 > v2}
+     * @checkstyle ReturnCountCheck (20 lines)
      */
     private static int compareVersions(final String v1, final String v2) {
         final String delimiter = "\\.";
@@ -86,7 +88,7 @@ public final class DescSortedVersions {
             result = Integer.valueOf(component1[index])
                 .compareTo(Integer.parseInt(component2[index]));
             if (result != 0) {
-                break;
+                return result;
             }
         }
         result = Integer.compare(component1.length, component2.length);
