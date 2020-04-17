@@ -36,7 +36,7 @@ SOFTWARE.
   </parent>
   <groupId>com.artipie</groupId>
   <artifactId>npm-adapter</artifactId>
-  <version>0.1</version>
+  <version>0.5</version>
   <packaging>jar</packaging>
   <name>npm-files</name>
   <description>Turns your files/objects into NPM artifacts</description>
