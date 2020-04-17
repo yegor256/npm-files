@@ -47,8 +47,6 @@ import org.reactivestreams.Publisher;
  * UploadSlice.
  *
  * @since 0.1
- * @todo #46:30min Refactor the code of Npm class for {@code response()} method
- *  so we can include path param in the chain of CompletableFuture operations
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class UploadSlice implements Slice {
@@ -82,7 +80,7 @@ public final class UploadSlice implements Slice {
         final String path = new RequestLineFrom(line).uri().getPath();
         return new AsyncResponse(
             CompletableFuture
-                .supplyAsync(() -> path)
+                .completedFuture(path)
                 .thenComposeAsync(url -> new JsonFromPublisher(body).json())
                 .thenApplyAsync(
                     json -> new KeyFromPath(

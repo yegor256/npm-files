@@ -28,14 +28,15 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
+import com.artipie.npm.misc.NextSafeAvailablePort;
 import com.artipie.vertx.VertxSliceServer;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.buffer.Buffer;
 import io.vertx.reactivex.ext.web.client.WebClient;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.util.concurrent.ExecutionException;
+import javax.json.Json;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
@@ -57,12 +58,11 @@ public final class UploadSliceTest {
     void uploadWorksProperly()
         throws IOException, InterruptedException, ExecutionException {
         final Vertx vertx = Vertx.vertx();
-        final int port = this.randomPort();
+        final int port = new NextSafeAvailablePort().value();
         final Storage storage = new FileStorage(
             Files.createTempDirectory("temp"),
             vertx.fileSystem()
         );
-        final String reqbody = "{ \"versions\":  {\"1.0.1\": {}, \"1.0.4\": {}, \"1.0.2\": {}} }";
         final VertxSliceServer server = new VertxSliceServer(
             vertx,
             new NpmSlice(
@@ -78,7 +78,13 @@ public final class UploadSliceTest {
                     .put(port, "localhost", "/package")
                     .rxSendBuffer(
                         Buffer.buffer(
-                            reqbody
+                            Json.createObjectBuilder().add(
+                                "versions", Json
+                                    .createObjectBuilder()
+                                    .add("1.0.1", Json.createObjectBuilder().build())
+                                    .add("1.0.4", Json.createObjectBuilder().build())
+                                    .add("1.0.2", Json.createObjectBuilder().build())
+                            ).build().toString()
                         )
                     )
                     .blockingGet()
@@ -95,16 +101,5 @@ public final class UploadSliceTest {
         web.close();
         server.close();
         vertx.close();
-    }
-
-    /**
-     * Find a random port.
-     * @return A random port.
-     * @throws IOException if fails.
-     */
-    private int randomPort() throws IOException {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        }
     }
 }

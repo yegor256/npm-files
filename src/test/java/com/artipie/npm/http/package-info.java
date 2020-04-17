@@ -23,7 +23,7 @@
  */
 
 /**
- * Pypi files.
+ * Npm files.
  *
  * @since 0.5
  */
