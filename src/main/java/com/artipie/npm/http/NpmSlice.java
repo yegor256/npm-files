@@ -51,6 +51,15 @@ public final class NpmSlice implements Slice {
     /**
      * Ctor.
      *
+     * @param storage Storage for package
+     */
+    public NpmSlice(final Storage storage) {
+        this(new Npm(storage), storage);
+    }
+
+    /**
+     * Ctor.
+     *
      * @param npm Npm front
      * @param storage Storage for package
      */

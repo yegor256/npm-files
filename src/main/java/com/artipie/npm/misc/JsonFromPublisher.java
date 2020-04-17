@@ -25,11 +25,13 @@
 package com.artipie.npm.misc;
 
 import com.artipie.asto.Remaining;
+import hu.akarnokd.rxjava2.interop.SingleInterop;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.reactivestreams.Publisher;
@@ -60,7 +62,7 @@ public final class JsonFromPublisher {
      *
      * @return Json
      */
-    public Single<JsonObject> json() {
+    public CompletableFuture<JsonObject> json() {
         final ByteArrayOutputStream content = new ByteArrayOutputStream();
         return Flowable
             .fromPublisher(this.bytes)
@@ -80,6 +82,8 @@ public final class JsonFromPublisher {
                         )
                     ).readObject()
                 )
-            );
+            )
+            .to(SingleInterop.get())
+            .toCompletableFuture();
     }
 }
