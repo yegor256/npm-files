@@ -24,8 +24,10 @@
 
 package com.artipie.npm.http;
 
+import com.artipie.asto.Concatenation;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
+import com.artipie.asto.Remaining;
 import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
@@ -36,11 +38,14 @@ import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.Npm;
 import com.artipie.npm.misc.DescSortedVersions;
-import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.npm.misc.LastVersion;
+import hu.akarnokd.rxjava2.interop.SingleInterop;
+import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import javax.json.Json;
+import javax.json.JsonObject;
 import org.reactivestreams.Publisher;
 
 /**
@@ -79,23 +84,11 @@ public final class UploadSlice implements Slice {
         final Publisher<ByteBuffer> body) {
         final String path = new RequestLineFrom(line).uri().getPath();
         return new AsyncResponse(
-            CompletableFuture
-                .completedFuture(path)
-                .thenComposeAsync(url -> new JsonFromPublisher(body).json())
-                .thenApplyAsync(
-                    json -> new KeyFromPath(
-                        String.format(
-                            "%s/-%s-%s.tgz",
-                            path, path,
-                            new LastVersion(
-                                new DescSortedVersions(
-                                    json.getJsonObject("versions")
-                                ).value()
-                            ).value()
-                        )
-                    )
-                )
-                .thenApplyAsync(key -> this.storage.save(key, new Content.From(body)))
+            new Concatenation(body).single()
+                .map(Remaining::new)
+                .map(Remaining::bytes)
+                .to(SingleInterop.get())
+                .thenCompose(bytes -> this.upload(path, bytes))
                 .thenRunAsync(
                     () -> this.npm.publish(
                         new KeyFromPath(path),
@@ -104,5 +97,26 @@ public final class UploadSlice implements Slice {
                 )
                 .thenApplyAsync(rsp -> new RsWithStatus(RsStatus.OK))
         );
+    }
+
+    /**
+     * Uploads body for path.
+     *
+     * @param path Path
+     * @param bytes Body bytes
+     * @return Stage of upload is completion.
+     */
+    private CompletionStage<Void> upload(final String path, final byte[] bytes) {
+        final JsonObject json = Json.createReader(new ByteArrayInputStream(bytes)).readObject();
+        final Key key = new KeyFromPath(
+            String.format(
+                "%s/-%s-%s.tgz",
+                path, path,
+                new LastVersion(
+                    new DescSortedVersions(json.getJsonObject("versions")).value()
+                ).value()
+            )
+        );
+        return this.storage.save(key, new Content.From(bytes));
     }
 }

@@ -24,6 +24,8 @@
 
 package com.artipie.npm.http;
 
+import com.artipie.asto.Concatenation;
+import com.artipie.asto.Remaining;
 import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
 import com.artipie.http.rs.RsStatus;
@@ -45,6 +47,7 @@ import org.junit.jupiter.api.Test;
  * UploadSliceTest.
  *
  * @since 0.5
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class UploadSliceTest {
 
@@ -72,31 +75,33 @@ public final class UploadSliceTest {
         );
         server.start();
         final WebClient web = WebClient.create(vertx);
+        final String json = Json.createObjectBuilder().add(
+            "versions", Json
+                .createObjectBuilder()
+                .add("1.0.1", Json.createObjectBuilder().build())
+                .add("1.0.4", Json.createObjectBuilder().build())
+                .add("1.0.2", Json.createObjectBuilder().build())
+        ).build().toString();
         MatcherAssert.assertThat(
             Integer.toString(
                 web
                     .put(port, "localhost", "/package")
-                    .rxSendBuffer(
-                        Buffer.buffer(
-                            Json.createObjectBuilder().add(
-                                "versions", Json
-                                    .createObjectBuilder()
-                                    .add("1.0.1", Json.createObjectBuilder().build())
-                                    .add("1.0.4", Json.createObjectBuilder().build())
-                                    .add("1.0.2", Json.createObjectBuilder().build())
-                            ).build().toString()
-                        )
-                    )
+                    .rxSendBuffer(Buffer.buffer(json))
                     .blockingGet()
                     .statusCode()
             ),
             new IsEqual<>(RsStatus.OK.code())
         );
+        final KeyFromPath key = new KeyFromPath("/package/-/package-1.0.4.tgz");
         MatcherAssert.assertThat(
-            storage.exists(
-                new KeyFromPath("/package/-/package-1.0.4.tgz")
-            ).get(),
+            storage.exists(key).get(),
             new IsEqual<>(true)
+        );
+        MatcherAssert.assertThat(
+            new Remaining(
+                new Concatenation(storage.value(key).get()).single().blockingGet(), true
+            ).bytes(),
+            new IsEqual<>(json.getBytes())
         );
         web.close();
         server.close();
