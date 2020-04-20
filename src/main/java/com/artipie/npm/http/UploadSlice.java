@@ -43,6 +43,7 @@ import hu.akarnokd.rxjava2.interop.SingleInterop;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.reactivestreams.Publisher;
@@ -87,25 +88,7 @@ public final class UploadSlice implements Slice {
                 .map(Remaining::new)
                 .map(Remaining::bytes)
                 .to(SingleInterop.get())
-                .thenCompose(
-                    bytes -> {
-                        final JsonObject json = Json.createReader(
-                            new ByteArrayInputStream(bytes)
-                        ).readObject();
-                        final Key key = new KeyFromPath(
-                            String.format(
-                                "%s/-%s-%s.tgz",
-                                path, path,
-                                new LastVersion(
-                                    new DescSortedVersions(
-                                        json.getJsonObject("versions")
-                                    ).value()
-                                ).value()
-                            )
-                        );
-                        return this.storage.save(key, new Content.From(bytes));
-                    }
-                )
+                .thenCompose(bytes -> this.upload(path, bytes))
                 .thenRunAsync(
                     () -> this.npm.publish(
                         new KeyFromPath(path),
@@ -114,5 +97,26 @@ public final class UploadSlice implements Slice {
                 )
                 .thenApplyAsync(rsp -> new RsWithStatus(RsStatus.OK))
         );
+    }
+
+    /**
+     * Uploads body for path.
+     *
+     * @param path Path
+     * @param bytes Body bytes
+     * @return Stage of upload is completion.
+     */
+    private CompletionStage<Void> upload(final String path, final byte[] bytes) {
+        final JsonObject json = Json.createReader(new ByteArrayInputStream(bytes)).readObject();
+        final Key key = new KeyFromPath(
+            String.format(
+                "%s/-%s-%s.tgz",
+                path, path,
+                new LastVersion(
+                    new DescSortedVersions(json.getJsonObject("versions")).value()
+                ).value()
+            )
+        );
+        return this.storage.save(key, new Content.From(bytes));
     }
 }
