@@ -58,7 +58,7 @@ public final class UploadSliceTest {
      * @throws ExecutionException if fails
      */
     @Test
-    void uploadWorksProperly()
+    void testUploadsFileToRemote()
         throws IOException, InterruptedException, ExecutionException {
         final Vertx vertx = Vertx.vertx();
         final int port = new NextSafeAvailablePort().value();

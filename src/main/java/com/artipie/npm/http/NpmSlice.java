@@ -27,6 +27,12 @@ package com.artipie.npm.http;
 import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
+import com.artipie.http.auth.Authentication;
+import com.artipie.http.auth.BasicIdentities;
+import com.artipie.http.auth.Identities;
+import com.artipie.http.auth.Permission;
+import com.artipie.http.auth.Permissions;
+import com.artipie.http.auth.SliceAuth;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.SliceRoute;
@@ -40,6 +46,7 @@ import org.reactivestreams.Publisher;
  * NpmSlice is a http layer in npm adapter.
  *
  * @since 0.3
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class NpmSlice implements Slice {
 
@@ -50,28 +57,51 @@ public final class NpmSlice implements Slice {
 
     /**
      * Ctor.
-     *
-     * @param storage Storage for package
+     * @param storage The storage. And default parameters for free access.
      */
     public NpmSlice(final Storage storage) {
-        this(new Npm(storage), storage);
+        this(new Npm(storage), storage, Permissions.FREE, Identities.ANONYMOUS);
+    }
+
+    /**
+     * Ctor used by Artipie server which knows `Authentication` implementation.
+     * @param storage The storage.
+     * @param perms Permissions.
+     * @param auth Authentication details.
+     */
+    public NpmSlice(final Storage storage, final Permissions perms, final Authentication auth) {
+        this(new Npm(storage), storage, perms, new BasicIdentities(auth));
     }
 
     /**
      * Ctor.
      *
-     * @param npm Npm front
-     * @param storage Storage for package
+     * @param npm Npm front.
+     * @param storage Storage for package.
+     * @param perms Access permissions.
+     * @param users User identities.
+     * @checkstyle ParameterNumberCheck (5 lines)
      */
-    public NpmSlice(final Npm npm, final Storage storage) {
+    public NpmSlice(final Npm npm,
+        final Storage storage,
+        final Permissions perms,
+        final Identities users) {
         this.route = new SliceRoute(
             new SliceRoute.Path(
                 new RtRule.ByMethod(RqMethod.PUT),
-                new UploadSlice(npm, storage)
+                    new SliceAuth(
+                        new UploadSlice(npm, storage),
+                        new Permission.ByName("upload", perms),
+                        users
+                    )
             ),
             new SliceRoute.Path(
                 new RtRule.ByMethod(RqMethod.GET),
-                new SliceDownload(storage)
+                    new SliceAuth(
+                        new SliceDownload(storage),
+                        new Permission.ByName("download", perms),
+                        users
+                    )
             )
         );
     }
