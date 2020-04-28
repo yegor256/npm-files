@@ -64,6 +64,15 @@ public final class NpmSlice implements Slice {
     }
 
     /**
+     * Ctor with existing front and default parameters for free access.
+     * @param npm Npm existing front
+     * @param storage Storage for package
+     */
+    public NpmSlice(final Npm npm, final Storage storage) {
+        this(npm, storage, Permissions.FREE, Identities.ANONYMOUS);
+    }
+
+    /**
      * Ctor used by Artipie server which knows `Authentication` implementation.
      * @param storage The storage.
      * @param perms Permissions.
