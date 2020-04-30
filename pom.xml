@@ -110,7 +110,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>0.7.1</version>
+      <version>0.8.4</version>
     </dependency>
     <!-- Test only dependencies  -->
     <dependency>
@@ -163,7 +163,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>vertx-server</artifactId>
-      <version>0.2.2</version>
+      <version>0.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
