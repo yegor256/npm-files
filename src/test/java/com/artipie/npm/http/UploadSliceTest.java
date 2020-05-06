@@ -30,6 +30,7 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
+import com.artipie.npm.Npm;
 import com.artipie.npm.misc.NextSafeAvailablePort;
 import com.artipie.vertx.VertxSliceServer;
 import io.vertx.reactivex.core.Vertx;
@@ -41,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import javax.json.Json;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -58,6 +60,7 @@ public final class UploadSliceTest {
      * @throws ExecutionException if fails
      */
     @Test
+    @Disabled
     void uploadsFileToRemote()
         throws IOException, InterruptedException, ExecutionException {
         final Vertx vertx = Vertx.vertx();

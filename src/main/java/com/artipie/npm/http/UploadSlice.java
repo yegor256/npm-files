@@ -35,17 +35,10 @@ import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.Npm;
-import com.artipie.npm.misc.DescSortedVersions;
-import com.artipie.npm.misc.LastVersion;
 import hu.akarnokd.rxjava2.interop.SingleInterop;
-import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
-import javax.json.Json;
-import javax.json.JsonObject;
 import org.reactivestreams.Publisher;
 
 /**
@@ -55,6 +48,11 @@ import org.reactivestreams.Publisher;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class UploadSlice implements Slice {
+
+    /**
+     * NPM repo path.
+     */
+    private final String path;
 
     /**
      * The npm front.
@@ -69,10 +67,12 @@ public final class UploadSlice implements Slice {
     /**
      * Ctor.
      *
+     * @param path NPM repo path ("" if NPM should handle ROOT context path)
      * @param npm Npm front
      * @param storage Abstract storage
      */
-    public UploadSlice(final Npm npm, final Storage storage) {
+    public UploadSlice(final String path, final Npm npm, final Storage storage) {
+        this.path = path;
         this.npm = npm;
         this.storage = storage;
     }
@@ -82,41 +82,41 @@ public final class UploadSlice implements Slice {
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        final String path = new RequestLineFrom(line).uri().getPath();
+        final String pkg = this.packageName(line);
+        final Key uploaded = new Key.From(String.format("%s-uploaded", pkg));
         return new AsyncResponse(
             new Concatenation(body).single()
                 .map(Remaining::new)
                 .map(Remaining::bytes)
                 .to(SingleInterop.get())
-                .thenCompose(bytes -> this.upload(path, bytes))
+                .thenCompose(bytes -> this.storage.save(uploaded, new Content.From(bytes)))
                 .thenRunAsync(
-                    () -> this.npm.publish(
-                        new KeyFromPath(path),
-                        new Key.From(String.format("%s-uploaded", path))
-                    )
+                    () -> this.npm.publish(new Key.From(pkg), uploaded)
+                )
+                .thenRunAsync(
+                    () -> this.storage.delete(uploaded)
                 )
                 .thenApplyAsync(rsp -> new RsWithStatus(RsStatus.OK))
         );
     }
 
     /**
-     * Uploads body for path.
-     *
-     * @param path Path
-     * @param bytes Body bytes
-     * @return Stage of upload is completion.
+     * Get package name from request line (remove all prefixes).
+     * @param line Request line
+     * @return Package name
      */
-    private CompletionStage<Void> upload(final String path, final byte[] bytes) {
-        final JsonObject json = Json.createReader(new ByteArrayInputStream(bytes)).readObject();
-        final Key key = new KeyFromPath(
-            String.format(
-                "%s/-%s-%s.tgz",
-                path, path,
-                new LastVersion(
-                    new DescSortedVersions(json.getJsonObject("versions")).value()
-                ).value()
-            )
-        );
-        return this.storage.save(key, new Content.From(bytes));
+    private String packageName(final String line) {
+        final String abspath = new RequestLineFrom(line).uri().getPath();
+        if (abspath.startsWith(String.format("/%s", this.path))) {
+            return abspath.substring(this.path.length() + 1);
+        } else {
+            throw new IllegalArgumentException(
+                String.format(
+                    "Path is expected to start with %s but was %s",
+                    this.path,
+                    abspath
+                )
+            );
+        }
     }
 }

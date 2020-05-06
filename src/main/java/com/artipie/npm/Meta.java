@@ -27,7 +27,6 @@ import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -41,6 +40,10 @@ import javax.json.JsonValue;
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 final class Meta {
+    /**
+     * Placeholder for asset links base URL.
+     */
+    private static final String PLACEHOLDER = "${artipie.registry}";
 
     /**
      * The meta.json file.
@@ -48,19 +51,12 @@ final class Meta {
     private final JsonObject json;
 
     /**
-     * The path prefix. Use default if not specified.
-     */
-    private final Optional<String> pathpref;
-
-    /**
      * Ctor.
      *
      * @param json The meta.json file location on disk.
-     * @param pathpref The path prefix. Use default if not specified.
      */
-    Meta(final JsonObject json, final Optional<String> pathpref) {
+    Meta(final JsonObject json) {
         this.json = json;
-        this.pathpref = pathpref;
     }
 
     /**
@@ -87,24 +83,20 @@ final class Meta {
                 String.format("/versions/%s", key),
                 version
             );
-            this.pathpref.ifPresent(
-                prefix -> patch.add(
-                    String.format("/versions/%s/dist/tarball", key),
-                    String.format(
-                        "%s%s",
-                        prefix,
-                        new TgzRelativePath(
-                            version.getJsonObject("dist").getString("tarball")
-                        ).relative()
-                    )
+            patch.add(
+                String.format("/versions/%s/dist/tarball", key),
+                String.format(
+                    "%s/%s/-/%s",
+                    Meta.PLACEHOLDER,
+                    uploaded.getString("name"),
+                    Meta.tarball(version.getJsonObject("dist").getString("tarball"))
                 )
             );
         }
         return new Meta(
             patch
                 .build()
-                .apply(this.json),
-            this.pathpref
+                .apply(this.json)
         );
     }
 
@@ -118,5 +110,15 @@ final class Meta {
                 this.json.toString().getBytes(StandardCharsets.UTF_8)
             )
         );
+    }
+
+    /**
+     * Get version tarball path.
+     * @param pathref Attachment reference in metadata JSON
+     * @return Path to version's binary
+     */
+    private static String tarball(final String pathref) {
+        final String[] parts = pathref.split("/");
+        return parts[parts.length - 1];
     }
 }

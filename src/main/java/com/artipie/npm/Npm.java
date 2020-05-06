@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -63,26 +62,11 @@ public class Npm {
     private final RxStorage storage;
 
     /**
-     * The archive path prefix. The default one is used if empty.
-     */
-    private final Optional<String> pathpref;
-
-    /**
-     * Ctor.
+     * Constructor.
      * @param storage The storage.
      */
     public Npm(final Storage storage) {
-        this(storage, Optional.empty());
-    }
-
-    /**
-     * Constructor.
-     * @param storage The storage.
-     * @param pathpref The sources archive pathpref. Example: http://localhost:8080.
-     */
-    public Npm(final Storage storage, final Optional<String> pathpref) {
         this.storage = new RxStorageWrapper(storage);
-        this.pathpref = pathpref;
     }
 
     /**
@@ -149,7 +133,7 @@ public class Npm {
                                     attachments.getJsonObject(attachment).getString("data")
                                 ).bytes();
                                 return this.storage.save(
-                                    new Key.From(prefix, attachment),
+                                    new Key.From(prefix, "-", Npm.tarball(attachment)),
                                     new Content.From(
                                         Flowable.fromArray(
                                             ByteBuffer.wrap(bytes)
@@ -188,15 +172,13 @@ public class Npm {
                                             new ByteArrayInputStream(
                                                 bytesFromListOfByteBuffers(bytes)
                                             )
-                                        ).readObject(),
-                                        this.pathpref
+                                        ).readObject()
                                     )
                             );
                     } else {
                         meta = Single.just(
                             new Meta(
-                                new NpmPublishJsonToMetaSkelethon(uploaded).skeleton(),
-                                this.pathpref
+                                new NpmPublishJsonToMetaSkelethon(uploaded).skeleton()
                             )
                         );
                     }
@@ -229,5 +211,15 @@ public class Npm {
                 }
             });
         return output.toByteArray();
+    }
+
+    /**
+     * Get version tarball path.
+     * @param attachment Attachment reference in metadata JSON
+     * @return Path to version's binary
+     */
+    private static String tarball(final String attachment) {
+        final String[] parts = attachment.split("/");
+        return parts[parts.length - 1];
     }
 }

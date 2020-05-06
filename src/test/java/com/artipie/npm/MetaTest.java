@@ -26,7 +26,6 @@ package com.artipie.npm;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonValue;
 import org.hamcrest.MatcherAssert;
@@ -83,8 +82,7 @@ public final class MetaTest {
                                     "1.0.0",
                                     Json.createObjectBuilder()
                                 )
-                            ).build(),
-                        Optional.empty()
+                            ).build()
                     ).updatedMeta(
                         Json.createObjectBuilder()
                             .add("name", "package")
@@ -101,6 +99,11 @@ public final class MetaTest {
                                 Json.createObjectBuilder().add(
                                     "1.0.1",
                                     Json.createObjectBuilder()
+                                        .add(
+                                            "dist",
+                                            Json.createObjectBuilder()
+                                                .add("tarball", "package-1.0.1.tgz")
+                                        )
                                 )
                             )
                             .build()
