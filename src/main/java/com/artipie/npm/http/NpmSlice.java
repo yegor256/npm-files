@@ -59,6 +59,7 @@ public final class NpmSlice implements Slice {
     public NpmSlice(final Storage storage) {
         this(new Npm(storage), storage);
     }
+
     /**
      * Ctor with existing front and default parameters for free access.
      * @param npm Npm existing front
@@ -77,7 +78,6 @@ public final class NpmSlice implements Slice {
     public NpmSlice(final String path, final Npm npm, final Storage storage) {
         this(path, npm, storage, Permissions.FREE, Identities.ANONYMOUS);
     }
-
 
     /**
      * Ctor.

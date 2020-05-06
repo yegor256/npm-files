@@ -30,7 +30,6 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
-import com.artipie.npm.Npm;
 import com.artipie.npm.misc.NextSafeAvailablePort;
 import com.artipie.vertx.VertxSliceServer;
 import io.vertx.reactivex.core.Vertx;
@@ -44,6 +43,8 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 /**
  * UploadSliceTest.
@@ -51,6 +52,7 @@ import org.junit.jupiter.api.Test;
  * @since 0.5
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@DisabledOnOs(OS.WINDOWS)
 public final class UploadSliceTest {
 
     /**
