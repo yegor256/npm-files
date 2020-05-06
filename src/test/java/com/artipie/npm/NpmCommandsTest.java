@@ -46,6 +46,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 /**
  * Make sure the library is compatible with npm cli tools.
@@ -54,6 +56,7 @@ import org.junit.jupiter.api.Test;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@DisabledOnOs(OS.WINDOWS)
 public final class NpmCommandsTest {
 
     /**
