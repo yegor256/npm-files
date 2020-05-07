@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -67,6 +68,18 @@ public class Npm {
      */
     public Npm(final Storage storage) {
         this.storage = new RxStorageWrapper(storage);
+    }
+
+    /**
+     * Constructor.
+     * @param storage The storage.
+     * @param pathref The sources archive pathpref. Example: http://localhost:8080. Unused.
+     * @deprecated Use {@link #Npm(Storage)} instead
+     */
+    @Deprecated
+    @SuppressWarnings("PMD.UnusedFormalParameter")
+    public Npm(final Storage storage, final Optional<String> pathref) {
+        this(storage);
     }
 
     /**
