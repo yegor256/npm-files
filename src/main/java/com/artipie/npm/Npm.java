@@ -73,7 +73,7 @@ public class Npm {
     /**
      * Constructor.
      * @param storage The storage.
-     * @param pathref The sources archive pathpref. Example: http://localhost:8080. Unused.
+     * @param pathref The sources archive pathpref. Example: http://host:8080. Unused since 0.6
      * @deprecated Use {@link #Npm(Storage)} instead
      */
     @Deprecated
@@ -103,7 +103,7 @@ public class Npm {
             )
             .flatMapCompletable(
                 uploaded -> this.updateMetaFile(prefix, uploaded)
-                    .andThen(this.updateSourceArchives(prefix, uploaded))
+                    .andThen(this.updateSourceArchives(uploaded))
             ).to(CompletableInterop.await())
             .<Void>thenApply(r -> null)
             .toCompletableFuture();
@@ -128,12 +128,10 @@ public class Npm {
     /**
      * Generate .tgz archives extracted from the uploaded json.
      *
-     * @param prefix The package prefix
      * @param uploaded The uploaded json
      * @return Completion or error signal.
      */
     private Completable updateSourceArchives(
-        final Key prefix,
         final JsonObject uploaded
     ) {
         return Single.fromCallable(() -> uploaded.getJsonObject("_attachments"))
@@ -146,7 +144,11 @@ public class Npm {
                                     attachments.getJsonObject(attachment).getString("data")
                                 ).bytes();
                                 return this.storage.save(
-                                    new Key.From(prefix, "-", Npm.tarball(attachment)),
+                                    new Key.From(
+                                        uploaded.getString("name"),
+                                        "-",
+                                        attachment
+                                    ),
                                     new Content.From(
                                         Flowable.fromArray(
                                             ByteBuffer.wrap(bytes)
@@ -224,15 +226,5 @@ public class Npm {
                 }
             });
         return output.toByteArray();
-    }
-
-    /**
-     * Get version tarball path.
-     * @param attachment Attachment reference in metadata JSON
-     * @return Path to version's binary
-     */
-    private static String tarball(final String attachment) {
-        final String[] parts = attachment.split("/");
-        return parts[parts.length - 1];
     }
 }

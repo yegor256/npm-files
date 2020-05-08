@@ -66,12 +66,12 @@ public final class NpmSlice implements Slice {
      * @param storage Storage for package
      */
     public NpmSlice(final Npm npm, final Storage storage) {
-        this("", npm, storage);
+        this("/", npm, storage);
     }
 
     /**
      * Ctor with existing front and default parameters for free access.
-     * @param path NPM repo path ("" if NPM should handle ROOT context path)
+     * @param path NPM repo path ("/" if NPM should handle ROOT context path)
      * @param npm Npm existing front
      * @param storage Storage for package
      */
@@ -82,7 +82,7 @@ public final class NpmSlice implements Slice {
     /**
      * Ctor.
      *
-     * @param path NPM repo path ("" if NPM should handle ROOT context path).
+     * @param path NPM repo path ("/" if NPM should handle ROOT context path).
      * @param npm Npm front.
      * @param storage Storage for package.
      * @param perms Access permissions.

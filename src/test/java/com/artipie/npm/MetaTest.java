@@ -102,7 +102,7 @@ public final class MetaTest {
                                         .add(
                                             "dist",
                                             Json.createObjectBuilder()
-                                                .add("tarball", "package-1.0.1.tgz")
+                                                .add("tarball", "package/-/package-1.0.1.tgz")
                                         )
                                 )
                             )

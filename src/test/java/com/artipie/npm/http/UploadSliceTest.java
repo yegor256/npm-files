@@ -60,6 +60,7 @@ public final class UploadSliceTest {
      * @throws IOException if fails
      * @throws InterruptedException if fails
      * @throws ExecutionException if fails
+     * @todo #53:45m Rewrite test method to be able to enabled
      */
     @Test
     @Disabled

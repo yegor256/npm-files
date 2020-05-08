@@ -41,11 +41,6 @@ import javax.json.JsonValue;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 final class Meta {
     /**
-     * Placeholder for asset links base URL.
-     */
-    private static final String PLACEHOLDER = "${artipie.registry}";
-
-    /**
      * The meta.json file.
      */
     private final JsonObject json;
@@ -86,10 +81,9 @@ final class Meta {
             patch.add(
                 String.format("/versions/%s/dist/tarball", key),
                 String.format(
-                    "%s/%s/-/%s",
-                    Meta.PLACEHOLDER,
-                    uploaded.getString("name"),
-                    Meta.tarball(version.getJsonObject("dist").getString("tarball"))
+                    "/%s",
+                    new TgzRelativePath(version.getJsonObject("dist").getString("tarball"))
+                        .relative()
                 )
             );
         }
@@ -110,15 +104,5 @@ final class Meta {
                 this.json.toString().getBytes(StandardCharsets.UTF_8)
             )
         );
-    }
-
-    /**
-     * Get version tarball path.
-     * @param pathref Attachment reference in metadata JSON
-     * @return Path to version's binary
-     */
-    private static String tarball(final String pathref) {
-        final String[] parts = pathref.split("/");
-        return parts[parts.length - 1];
     }
 }

@@ -105,13 +105,13 @@ public final class NpmCommandsTest {
                 .getJsonObject("dist")
                 .getString("tarball"),
             new IsEqual<>(
-                "${artipie.registry}/@hello/simple-npm-project/-/simple-npm-project-1.0.1.tgz"
+                "/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
             )
         );
         MatcherAssert.assertThat(
             "Asset is not found",
             storage.exists(
-                new KeyFromPath("/@hello/simple-npm-project/-/simple-npm-project-1.0.1.tgz")
+                new KeyFromPath("/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz")
             ).get()
         );
         registry.stop();

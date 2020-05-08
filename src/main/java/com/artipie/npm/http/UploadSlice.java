@@ -32,10 +32,10 @@ import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.async.AsyncResponse;
-import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.npm.Npm;
+import com.artipie.npm.PackageNameFromUrl;
 import hu.akarnokd.rxjava2.interop.SingleInterop;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -67,7 +67,7 @@ public final class UploadSlice implements Slice {
     /**
      * Ctor.
      *
-     * @param path NPM repo path ("" if NPM should handle ROOT context path)
+     * @param path NPM repo path ("/" if NPM should handle ROOT context path)
      * @param npm Npm front
      * @param storage Abstract storage
      */
@@ -82,7 +82,7 @@ public final class UploadSlice implements Slice {
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        final String pkg = this.packageName(line);
+        final String pkg = new PackageNameFromUrl(this.path, line).value();
         final Key uploaded = new Key.From(String.format("%s-uploaded", pkg));
         return new AsyncResponse(
             new Concatenation(body).single()
@@ -98,25 +98,5 @@ public final class UploadSlice implements Slice {
                 )
                 .thenApplyAsync(rsp -> new RsWithStatus(RsStatus.OK))
         );
-    }
-
-    /**
-     * Get package name from request line (remove all prefixes).
-     * @param line Request line
-     * @return Package name
-     */
-    private String packageName(final String line) {
-        final String abspath = new RequestLineFrom(line).uri().getPath();
-        if (abspath.startsWith(String.format("/%s", this.path))) {
-            return abspath.substring(this.path.length() + 1);
-        } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "Path is expected to start with %s but was %s",
-                    this.path,
-                    abspath
-                )
-            );
-        }
     }
 }
