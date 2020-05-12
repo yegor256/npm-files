@@ -27,4 +27,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-jdk-${{ matrix.java }}-maven-
       - name: Build it with Maven
-        run: mvn -B verify -Pqulice
+        run: mvn -B verify -Pqulice -Pjacoco
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.java == 11
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./target/site/jacoco/jacoco.xml
+          fail_ci_if_error: true
