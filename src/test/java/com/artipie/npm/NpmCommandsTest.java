@@ -23,25 +23,31 @@
  */
 package com.artipie.npm;
 
+import com.artipie.asto.Concatenation;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
+import com.artipie.http.slice.KeyFromPath;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.StringStartsWith;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 /**
  * Make sure the library is compatible with npm cli tools.
@@ -50,6 +56,7 @@ import org.junit.jupiter.api.Test;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@DisabledOnOs(OS.WINDOWS)
 public final class NpmCommandsTest {
 
     /**
@@ -68,16 +75,15 @@ public final class NpmCommandsTest {
     }
 
     /**
-     * Test {@code npm publish} and {@code npm install} command works properly.
+     * Test {@code npm publish} command works properly.
      * @throws IOException if fails
      * @throws InterruptedException if fails
      */
     @Test
-    @Disabled
-    void npmPublishAndInstallWorks()
-        throws IOException, InterruptedException {
+    void npmPublishWorks() throws IOException, InterruptedException, ExecutionException {
+        final Path temp = Files.createTempDirectory("temp");
         final Storage storage = new FileStorage(
-            Files.createTempDirectory("temp"),
+            temp,
             this.vertx.fileSystem()
         );
         final Vertx local = Vertx.vertx();
@@ -85,14 +91,43 @@ public final class NpmCommandsTest {
         registry.start();
         final String url = String.format("http://127.0.0.1:%d", registry.getPort());
         this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
-        this.npmExecute("install", "./src/test/resources/project-with-simple-dependency/", url);
-        FileUtils.deleteDirectory(
-            new File("./src/test/resources/project-with-simple-dependency/node_modules")
+        final JsonObject meta = new JsonObject(
+            new String(
+                new Concatenation(
+                    storage.value(new Key.From("@hello/simple-npm-project/meta.json")).get()
+                ).single().blockingGet().array(),
+                StandardCharsets.UTF_8
+            )
         );
-        new File("./src/test/resources/project-with-simple-dependency/package-lock.json")
-            .delete();
+        MatcherAssert.assertThat(
+            meta.getJsonObject("versions")
+                .getJsonObject("1.0.1")
+                .getJsonObject("dist")
+                .getString("tarball"),
+            new IsEqual<>(
+                "/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
+            )
+        );
+        MatcherAssert.assertThat(
+            "Asset is not found",
+            storage.exists(
+                new KeyFromPath("/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz")
+            ).get()
+        );
         registry.stop();
         local.close();
+        FileUtils.deleteDirectory(temp.toFile());
+    }
+
+    /**
+     * Test {@code npm install} command works properly.
+     * @throws IOException if fails
+     * @throws InterruptedException if fails
+     */
+    @Test
+    @Disabled
+    void npmInstallWorks() {
+        throw new UnsupportedOperationException("Test is not implemented yet");
     }
 
     /**
@@ -107,11 +142,9 @@ public final class NpmCommandsTest {
         final Path temp = Files.createTempDirectory("temp");
         final Storage storage = new FileStorage(temp, this.vertx.fileSystem());
         final Vertx local = Vertx.vertx();
-        final String prefix = String.format("file://%s/", temp.toAbsolutePath());
         final NpmRegistry registry = new NpmRegistry(
             local,
-            storage,
-            Optional.of(prefix)
+            storage
         );
         registry.start();
         final String url = String.format("http://127.0.0.1:%d", registry.getPort());
@@ -127,7 +160,7 @@ public final class NpmCommandsTest {
                 .getJsonObject("1.0.1")
                 .getJsonObject("dist")
                 .getString("tarball"),
-            new StringStartsWith(prefix)
+            new StringStartsWith("prefix")
         );
         FileUtils.deleteDirectory(
             new File("./src/test/resources/project-with-simple-dependency/node_modules")

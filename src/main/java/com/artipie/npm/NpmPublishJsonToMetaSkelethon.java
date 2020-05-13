@@ -101,7 +101,6 @@ final class NpmPublishJsonToMetaSkelethon {
             )
             .add("users", Json.createObjectBuilder().build())
             .add("versions", Json.createObjectBuilder().build())
-            .add("_attachments", Json.createObjectBuilder().build())
             .build();
     }
 

@@ -27,8 +27,6 @@ package com.artipie.npm.http;
 import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
-import com.artipie.http.auth.Authentication;
-import com.artipie.http.auth.BasicIdentities;
 import com.artipie.http.auth.Identities;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
@@ -36,7 +34,6 @@ import com.artipie.http.auth.SliceAuth;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.SliceRoute;
-import com.artipie.http.slice.SliceDownload;
 import com.artipie.npm.Npm;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -56,11 +53,11 @@ public final class NpmSlice implements Slice {
     private final SliceRoute route;
 
     /**
-     * Ctor.
-     * @param storage The storage. And default parameters for free access.
+     * Ctor with existing front and default parameters for free access.
+     * @param storage Storage for package
      */
     public NpmSlice(final Storage storage) {
-        this(new Npm(storage), storage, Permissions.FREE, Identities.ANONYMOUS);
+        this(new Npm(storage), storage);
     }
 
     /**
@@ -69,29 +66,31 @@ public final class NpmSlice implements Slice {
      * @param storage Storage for package
      */
     public NpmSlice(final Npm npm, final Storage storage) {
-        this(npm, storage, Permissions.FREE, Identities.ANONYMOUS);
+        this("/", npm, storage);
     }
 
     /**
-     * Ctor used by Artipie server which knows `Authentication` implementation.
-     * @param storage The storage.
-     * @param perms Permissions.
-     * @param auth Authentication details.
+     * Ctor with existing front and default parameters for free access.
+     * @param path NPM repo path ("/" if NPM should handle ROOT context path)
+     * @param npm Npm existing front
+     * @param storage Storage for package
      */
-    public NpmSlice(final Storage storage, final Permissions perms, final Authentication auth) {
-        this(new Npm(storage), storage, perms, new BasicIdentities(auth));
+    public NpmSlice(final String path, final Npm npm, final Storage storage) {
+        this(path, npm, storage, Permissions.FREE, Identities.ANONYMOUS);
     }
 
     /**
      * Ctor.
      *
+     * @param path NPM repo path ("/" if NPM should handle ROOT context path).
      * @param npm Npm front.
      * @param storage Storage for package.
      * @param perms Access permissions.
      * @param users User identities.
      * @checkstyle ParameterNumberCheck (5 lines)
      */
-    public NpmSlice(final Npm npm,
+    public NpmSlice(final String path,
+        final Npm npm,
         final Storage storage,
         final Permissions perms,
         final Identities users) {
@@ -99,16 +98,8 @@ public final class NpmSlice implements Slice {
             new SliceRoute.Path(
                 new RtRule.ByMethod(RqMethod.PUT),
                     new SliceAuth(
-                        new UploadSlice(npm, storage),
+                        new UploadSlice(path, npm, storage),
                         new Permission.ByName("upload", perms),
-                        users
-                    )
-            ),
-            new SliceRoute.Path(
-                new RtRule.ByMethod(RqMethod.GET),
-                    new SliceAuth(
-                        new SliceDownload(storage),
-                        new Permission.ByName("download", perms),
                         users
                     )
             )

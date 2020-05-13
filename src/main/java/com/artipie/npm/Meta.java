@@ -27,7 +27,6 @@ import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -41,26 +40,18 @@ import javax.json.JsonValue;
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 final class Meta {
-
     /**
      * The meta.json file.
      */
     private final JsonObject json;
 
     /**
-     * The path prefix. Use default if not specified.
-     */
-    private final Optional<String> pathpref;
-
-    /**
      * Ctor.
      *
      * @param json The meta.json file location on disk.
-     * @param pathpref The path prefix. Use default if not specified.
      */
-    Meta(final JsonObject json, final Optional<String> pathpref) {
+    Meta(final JsonObject json) {
         this.json = json;
-        this.pathpref = pathpref;
     }
 
     /**
@@ -87,24 +78,19 @@ final class Meta {
                 String.format("/versions/%s", key),
                 version
             );
-            this.pathpref.ifPresent(
-                prefix -> patch.add(
-                    String.format("/versions/%s/dist/tarball", key),
-                    String.format(
-                        "%s%s",
-                        prefix,
-                        new TgzRelativePath(
-                            version.getJsonObject("dist").getString("tarball")
-                        ).relative()
-                    )
+            patch.add(
+                String.format("/versions/%s/dist/tarball", key),
+                String.format(
+                    "/%s",
+                    new TgzRelativePath(version.getJsonObject("dist").getString("tarball"))
+                        .relative()
                 )
             );
         }
         return new Meta(
             patch
                 .build()
-                .apply(this.json),
-            this.pathpref
+                .apply(this.json)
         );
     }
 
