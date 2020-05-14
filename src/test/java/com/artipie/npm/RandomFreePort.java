@@ -21,55 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package com.artipie.npm;
 
-import com.artipie.http.rq.RequestLineFrom;
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.net.ServerSocket;
 
 /**
- * Get package name (can be scoped) from request url.
+ * Provides random free port to use in tests.
  * @since 0.6
  */
-public class PackageNameFromUrl {
+@SuppressWarnings("PMD.ConstructorOnlyInitializesOrCallOtherConstructors")
+public final class RandomFreePort {
     /**
-     * Base path handled by adapter.
+     * Random free port.
      */
-    private final String path;
-
-    /**
-     * Request url.
-     */
-    private final String url;
+    private final int port;
 
     /**
      * Ctor.
-     * @param path Base path handled by adapter
-     * @param url Request url
+     * @throws IOException if fails to open port
      */
-    public PackageNameFromUrl(final String path, final String url) {
-        this.path = path;
-        this.url = url;
+    public RandomFreePort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            this.port = socket.getLocalPort();
+        }
     }
 
     /**
-     * Gets package name from url.
-     * @return Package name
+     * Returns free port.
+     * @return Free port
      */
-    public String value() {
-        final String abspath = new RequestLineFrom(this.url).uri().getPath();
-        if (abspath.startsWith(this.path)) {
-            return abspath.replaceFirst(
-                String.format("%s/?", Pattern.quote(this.path)),
-                ""
-            );
-        } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "Path is expected to start with %s but was %s",
-                    this.path,
-                    abspath
-                )
-            );
-        }
+    public int value() {
+        return this.port;
     }
 }
