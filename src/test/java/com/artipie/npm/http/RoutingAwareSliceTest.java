@@ -41,7 +41,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @since 0.6
  */
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class RoutingAwareSliceTest {
 
     /**
@@ -57,10 +56,11 @@ public class RoutingAwareSliceTest {
             this.underlying.response(path.capture(), Mockito.any(), Mockito.any())
         ).thenReturn(null);
         final RoutingAwareSlice slice = new RoutingAwareSlice("/", this.underlying);
-        slice.response("/some-path", Collections.emptyList(), sub -> ByteBuffer.allocate(0));
+        final String expected = "/some-path";
+        slice.response(expected, Collections.emptyList(), sub -> ByteBuffer.allocate(0));
         MatcherAssert.assertThat(
             path.getValue(),
-            new IsEqual<>("/some-path")
+            new IsEqual<>(expected)
         );
     }
 
@@ -75,13 +75,13 @@ public class RoutingAwareSliceTest {
             this.underlying
         );
         slice.response(
-            "/compound/ctx/path/some-path",
+            "/compound/ctx/path/abc-def",
             Collections.emptyList(),
             sub -> ByteBuffer.allocate(0)
         );
         MatcherAssert.assertThat(
             path.getValue(),
-            new IsEqual<>("/some-path")
+            new IsEqual<>("/abc-def")
         );
     }
 }
