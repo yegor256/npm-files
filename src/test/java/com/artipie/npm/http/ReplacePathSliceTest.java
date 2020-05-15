@@ -37,11 +37,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Tests RoutingAwareSlice.
+ * Tests ReplacePathSlice.
  * @since 0.6
  */
 @ExtendWith(MockitoExtension.class)
-public class RoutingAwareSliceTest {
+public class ReplacePathSliceTest {
 
     /**
      * Underlying slice mock.
@@ -55,8 +55,8 @@ public class RoutingAwareSliceTest {
         Mockito.when(
             this.underlying.response(path.capture(), Mockito.any(), Mockito.any())
         ).thenReturn(null);
-        final RoutingAwareSlice slice = new RoutingAwareSlice("/", this.underlying);
-        final String expected = "/some-path";
+        final ReplacePathSlice slice = new ReplacePathSlice("/", this.underlying);
+        final String expected = "GET /some-path HTTP/1.1\r\n";
         slice.response(expected, Collections.emptyList(), sub -> ByteBuffer.allocate(0));
         MatcherAssert.assertThat(
             path.getValue(),
@@ -70,18 +70,18 @@ public class RoutingAwareSliceTest {
         Mockito.when(
             this.underlying.response(path.capture(), Mockito.any(), Mockito.any())
         ).thenReturn(null);
-        final RoutingAwareSlice slice = new RoutingAwareSlice(
+        final ReplacePathSlice slice = new ReplacePathSlice(
             "/compound/ctx/path",
             this.underlying
         );
         slice.response(
-            "/compound/ctx/path/abc-def",
+            "GET /compound/ctx/path/abc-def HTTP/1.1\r\n",
             Collections.emptyList(),
             sub -> ByteBuffer.allocate(0)
         );
         MatcherAssert.assertThat(
             path.getValue(),
-            new IsEqual<>("/abc-def")
+            new IsEqual<>("GET /abc-def HTTP/1.1\r\n")
         );
     }
 }
