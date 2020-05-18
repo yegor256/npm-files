@@ -34,6 +34,7 @@ import com.artipie.http.auth.SliceAuth;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.SliceRoute;
+import com.artipie.http.slice.SliceDownload;
 import com.artipie.npm.Npm;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -45,6 +46,7 @@ import org.reactivestreams.Publisher;
  * @since 0.3
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class NpmSlice implements Slice {
 
     /**
@@ -102,6 +104,28 @@ public final class NpmSlice implements Slice {
                         new Permission.ByName("upload", perms),
                         users
                     )
+            ),
+            new SliceRoute.Path(
+                new RtRule.Multiple(
+                    new RtRule.ByMethod(RqMethod.GET),
+                    new RtRule.ByPath(".*(?<!\\.tgz)$")
+                ),
+                new SliceAuth(
+                    new DownloadPackageSlice(path, storage),
+                    new Permission.ByName("download", perms),
+                    users
+                )
+            ),
+            new SliceRoute.Path(
+                new RtRule.Multiple(
+                    new RtRule.ByMethod(RqMethod.GET),
+                    new RtRule.ByPath(".*\\.tgz$")
+                ),
+                new SliceAuth(
+                    new ReplacePathSlice(path, new SliceDownload(storage)),
+                    new Permission.ByName("download", perms),
+                    users
+                )
             )
         );
     }
