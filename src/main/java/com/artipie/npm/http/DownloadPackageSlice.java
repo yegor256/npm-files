@@ -95,8 +95,8 @@ public final class DownloadPackageSlice implements Slice {
                             .thenApply(
                                 content -> new RsFull(
                                     RsStatus.OK,
-                                    new IterableOf<>(
-                                        new MapEntry<String, String>(
+                                    new IterableOf<Map.Entry<String, String>>(
+                                        new MapEntry<>(
                                             "Content-Type", "application/json"
                                         )
                                     ),
