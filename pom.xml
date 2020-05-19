@@ -36,14 +36,14 @@ SOFTWARE.
   <artifactId>npm-adapter</artifactId>
   <version>0.1</version>
   <packaging>jar</packaging>
-  <name>npm-files</name>
+  <name>npm-adapter</name>
   <description>Turns your files/objects into NPM artifacts</description>
-  <url>https://github.com/yegor256/npm-files</url>
+  <url>https://github.com/artipie/npm-adapter</url>
   <inceptionYear>2019</inceptionYear>
   <licenses>
     <license>
       <name>MIT</name>
-      <url>https://github.com/yegor256/npm-files/blob/master/LICENSE.txt</url>
+      <url>https://github.com/artipie/npm-adapter/blob/master/LICENSE.txt</url>
     </license>
   </licenses>
   <developers>
