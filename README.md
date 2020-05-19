@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/artipie/npm-adapter/blob/master/LICENSE.txt)
 [![Hits-of-Code](https://hitsofcode.com/github/artipie/npm-adapter)](https://hitsofcode.com/view/github/artipie/npm-adapter)
 [![Maven Central](https://img.shields.io/maven-central/v/com.artipie/npm-adapter.svg)](https://maven-badges.herokuapp.com/maven-central/com.artipie/npm-adapter)
-[![PDD status](http://www.0pdd.com/svg?name=yegor256/npm-files)](http://www.0pdd.com/p?name=yegor256/npm-files)
+[![PDD status](http://www.0pdd.com/svg?name=artipie/npm-adapter)](http://www.0pdd.com/p?name=artipie/npm-adapter)
 
 Similar solutions:
 
