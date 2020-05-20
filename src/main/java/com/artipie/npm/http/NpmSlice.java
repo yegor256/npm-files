@@ -46,8 +46,16 @@ import org.reactivestreams.Publisher;
  * @since 0.3
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class NpmSlice implements Slice {
+    /**
+     * Permission name to download files.
+     */
+    private static final String PERM_DOWNLOAD = "download";
+
+    /**
+     * Permission name to upload files.
+     */
+    private static final String PERM_UPLOAD = "upload";
 
     /**
      * Route.
@@ -101,7 +109,7 @@ public final class NpmSlice implements Slice {
                 new RtRule.ByMethod(RqMethod.PUT),
                     new SliceAuth(
                         new UploadSlice(path, npm, storage),
-                        new Permission.ByName("upload", perms),
+                        new Permission.ByName(NpmSlice.PERM_UPLOAD, perms),
                         users
                     )
             ),
@@ -112,7 +120,7 @@ public final class NpmSlice implements Slice {
                 ),
                 new SliceAuth(
                     new DownloadPackageSlice(path, storage),
-                    new Permission.ByName("download", perms),
+                    new Permission.ByName(NpmSlice.PERM_DOWNLOAD, perms),
                     users
                 )
             ),
@@ -123,7 +131,7 @@ public final class NpmSlice implements Slice {
                 ),
                 new SliceAuth(
                     new ReplacePathSlice(path, new SliceDownload(storage)),
-                    new Permission.ByName("download", perms),
+                    new Permission.ByName(NpmSlice.PERM_DOWNLOAD, perms),
                     users
                 )
             )

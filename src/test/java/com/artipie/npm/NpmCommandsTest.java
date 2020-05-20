@@ -34,14 +34,12 @@ import com.artipie.vertx.VertxSliceServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.MatcherAssert;
@@ -80,12 +78,10 @@ public final class NpmCommandsTest {
 
     /**
      * Test {@code npm publish} command works properly.
-     * @throws IOException if fails
-     * @throws ExecutionException if fails
-     * @throws InterruptedException if fails
+     * @throws Exception if fails
      */
     @Test
-    void npmPublishWorks() throws IOException, InterruptedException, ExecutionException {
+    void npmPublishWorks() throws Exception {
         final Storage storage = new InMemoryStorage();
         final int port = new RandomFreePort().value();
         final VertxSliceServer server = new VertxSliceServer(
@@ -130,12 +126,10 @@ public final class NpmCommandsTest {
 
     /**
      * Test {@code npm install} command works properly.
-     * @throws IOException if fails
-     * @throws ExecutionException if fails
-     * @throws InterruptedException if fails
+     * @throws Exception if fails
      */
     @Test
-    void npmInstallWorks() throws IOException, ExecutionException, InterruptedException {
+    void npmInstallWorks() throws Exception {
         final Storage storage = new InMemoryStorage();
         storage.save(
             new Key.From("@hello", "simple-npm-project", "meta.json"),
@@ -174,13 +168,12 @@ public final class NpmCommandsTest {
      * @param command The npm command to execute
      * @param project The project path
      * @param url The registry url
-     * @throws InterruptedException If fails
-     * @throws IOException If fails
+     * @throws Exception If fails
      */
     private void npmExecute(
         final String command,
         final String project,
-        final String url) throws InterruptedException, IOException {
+        final String url) throws Exception {
         final List<String> cmd = new ArrayList<>(5);
         cmd.add("npm");
         cmd.addAll(Arrays.asList(command.split(" ")));
