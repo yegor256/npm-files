@@ -35,13 +35,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.cactoos.io.BytesOf;
+import org.cactoos.io.ResourceOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
@@ -50,6 +49,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Make sure the library is compatible with npm cli tools.
@@ -126,23 +126,28 @@ public final class NpmCommandsTest {
 
     /**
      * Test {@code npm install} command works properly.
+     * @param temp Temporary working directory for npm client
      * @throws Exception if fails
      */
     @Test
-    void npmInstallWorks() throws Exception {
+    void npmInstallWorks(final @TempDir Path temp) throws Exception {
         final Storage storage = new InMemoryStorage();
         storage.save(
             new Key.From("@hello", "simple-npm-project", "meta.json"),
             new Content.From(
-                IOUtils.resourceToByteArray("/storage/@hello/simple-npm-project/meta.json")
+                new BytesOf(
+                    new ResourceOf("storage/@hello/simple-npm-project/meta.json")
+                ).asBytes()
             )
         ).get();
         storage.save(
             new Key.From("@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"),
             new Content.From(
-                IOUtils.resourceToByteArray(
-                    "/storage/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
-                )
+                new BytesOf(
+                    new ResourceOf(
+                        "storage/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
+                    )
+                ).asBytes()
             )
         ).get();
         final int port = new RandomFreePort().value();
@@ -155,12 +160,10 @@ public final class NpmCommandsTest {
         final String url = String.format("http://127.0.0.1:%d", port);
         this.npmExecute(
             "install @hello/simple-npm-project",
-            "./src/test/resources",
+            temp.toAbsolutePath().toString(),
             url
         );
         server.stop();
-        Files.delete(Paths.get("src", "test", "resources", "package-lock.json"));
-        FileUtils.deleteDirectory(Paths.get("src", "test", "resources", "node_modules").toFile());
     }
 
     /**
@@ -169,6 +172,10 @@ public final class NpmCommandsTest {
      * @param project The project path
      * @param url The registry url
      * @throws Exception If fails
+     * @todo #64:90m transform method into NpmClient class
+     *  - takes the registry address in the constructor
+     *  - exposes one method to publish a Path
+     *  - exposes one method to install a package (denoted by a String) to a Path
      */
     private void npmExecute(
         final String command,
