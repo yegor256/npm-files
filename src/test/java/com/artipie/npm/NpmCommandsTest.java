@@ -79,6 +79,9 @@ public final class NpmCommandsTest {
     /**
      * Test {@code npm publish} command works properly.
      * @throws Exception if fails
+     * @todo #64:60m remove the loop with Thread.sleep call:
+     *  either find the other way to do this or move it to Test NPM Client
+     *  (see the related task for npmExecute method)
      */
     @Test
     void npmPublishWorks() throws Exception {
