@@ -1,1 +1,1 @@
---exclude src/test/resources/storage/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz
+--exclude src/test/resources/**/*

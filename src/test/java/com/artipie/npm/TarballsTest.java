@@ -34,38 +34,28 @@ import javax.json.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * Tests tarballs processing.
  * @since 0.6
  */
 public class TarballsTest {
-    @Test
-    public void rootPathWorks() throws IOException {
-        this.tarballProcessing(
-            "http://example.com/",
-            // @checkstyle LineLengthCheck (1 line)
-            "http://example.com/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
-        );
-    }
-
-    @Test
-    public void contextPathWorks() throws IOException {
-        this.tarballProcessing(
-            "http://example.com/context/path",
-            // @checkstyle LineLengthCheck (1 line)
-            "http://example.com/context/path/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
-        );
-    }
-
     /**
      * Do actual tests with processing data.
      * @param prefix Tarball prefix
      * @param expected Expected absolute tarball link
      * @throws IOException
+     * @checkstyle LineLengthCheck (5 lines)
      */
-    private void tarballProcessing(final String prefix, final String expected) throws IOException {
+    @ParameterizedTest
+    @CsvSource({
+        "http://example.com/, http://example.com/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz",
+        "http://example.com/context/path, http://example.com/context/path/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
+    })
+    public void tarballsProcessingWorks(final String prefix, final String expected)
+        throws IOException {
         final byte[] data = IOUtils.resourceToByteArray(
             "/storage/@hello/simple-npm-project/meta.json"
         );
