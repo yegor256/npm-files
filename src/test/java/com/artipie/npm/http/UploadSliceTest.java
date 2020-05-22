@@ -68,10 +68,7 @@ public final class UploadSliceTest {
         throws IOException, InterruptedException, ExecutionException {
         final Vertx vertx = Vertx.vertx();
         final int port = new NextSafeAvailablePort().value();
-        final Storage storage = new FileStorage(
-            Files.createTempDirectory("temp"),
-            vertx.fileSystem()
-        );
+        final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
         final VertxSliceServer server = new VertxSliceServer(
             vertx,
             new NpmSlice(
