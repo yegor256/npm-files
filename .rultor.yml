@@ -11,6 +11,7 @@ install: |
   export LANG=en_US.UTF-8
   export LANGUAGE=en_US.UTF-8
   sudo apk install npm
+  pdd -f /dev/null
 merge:
   script: |
     echo We don't merge via Rultor
@@ -23,7 +24,6 @@ release:
   sensitive:
     - settings.xml
   script: |-
-    pdd -f /dev/null
     gpg --import /home/r/pubring.gpg
     gpg --allow-secret-key-import --no-tty --batch --import /home/r/secring.gpg
     mvn versions:set "-DnewVersion=${tag}" --settings ../settings.xml
@@ -32,4 +32,3 @@ release:
 architect:
   - g4s8
   - yegor256
-
