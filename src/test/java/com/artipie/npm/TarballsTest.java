@@ -34,21 +34,34 @@ import javax.json.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * Tests tarballs processing.
  * @since 0.6
  */
 public class TarballsTest {
-    @Test
-    public void tarballsProcessingWorks() throws IOException {
+    /**
+     * Do actual tests with processing data.
+     * @param prefix Tarball prefix
+     * @param expected Expected absolute tarball link
+     * @throws IOException
+     * @checkstyle LineLengthCheck (5 lines)
+     */
+    @ParameterizedTest
+    @CsvSource({
+        "http://example.com/, http://example.com/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz",
+        "http://example.com/context/path, http://example.com/context/path/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
+    })
+    public void tarballsProcessingWorks(final String prefix, final String expected)
+        throws IOException {
         final byte[] data = IOUtils.resourceToByteArray(
             "/storage/@hello/simple-npm-project/meta.json"
         );
         final Tarballs tarballs = new Tarballs(
             new Content.From(data),
-            "http://example.com/context/path"
+            prefix
         );
         final Content modified = tarballs.value();
         final JsonObject json = new Concatenation(modified)
@@ -61,10 +74,7 @@ public class TarballsTest {
         MatcherAssert.assertThat(
             json.getJsonObject("versions").getJsonObject("1.0.1")
                 .getJsonObject("dist").getString("tarball"),
-            new IsEqual<>(
-                // @checkstyle LineLengthCheck (1 line)
-                "http://example.com/context/path/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
-            )
+            new IsEqual<>(expected)
         );
     }
 }

@@ -34,6 +34,7 @@ import com.artipie.http.auth.SliceAuth;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.SliceRoute;
+import com.artipie.http.slice.SliceDownload;
 import com.artipie.npm.Npm;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -46,6 +47,15 @@ import org.reactivestreams.Publisher;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class NpmSlice implements Slice {
+    /**
+     * Permission name to download files.
+     */
+    private static final String PERM_DOWNLOAD = "download";
+
+    /**
+     * Permission name to upload files.
+     */
+    private static final String PERM_UPLOAD = "upload";
 
     /**
      * Route.
@@ -99,9 +109,31 @@ public final class NpmSlice implements Slice {
                 new RtRule.ByMethod(RqMethod.PUT),
                     new SliceAuth(
                         new UploadSlice(path, npm, storage),
-                        new Permission.ByName("upload", perms),
+                        new Permission.ByName(NpmSlice.PERM_UPLOAD, perms),
                         users
                     )
+            ),
+            new SliceRoute.Path(
+                new RtRule.Multiple(
+                    new RtRule.ByMethod(RqMethod.GET),
+                    new RtRule.ByPath(".*(?<!\\.tgz)$")
+                ),
+                new SliceAuth(
+                    new DownloadPackageSlice(path, storage),
+                    new Permission.ByName(NpmSlice.PERM_DOWNLOAD, perms),
+                    users
+                )
+            ),
+            new SliceRoute.Path(
+                new RtRule.Multiple(
+                    new RtRule.ByMethod(RqMethod.GET),
+                    new RtRule.ByPath(".*\\.tgz$")
+                ),
+                new SliceAuth(
+                    new ReplacePathSlice(path, new SliceDownload(storage)),
+                    new Permission.ByName(NpmSlice.PERM_DOWNLOAD, perms),
+                    users
+                )
             )
         );
     }

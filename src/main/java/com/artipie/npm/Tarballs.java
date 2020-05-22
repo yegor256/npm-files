@@ -100,7 +100,7 @@ public final class Tarballs {
                 String.format("/versions/%s/dist/tarball", version),
                 String.join(
                     "",
-                    prefix,
+                    prefix.replaceAll("/$", ""),
                     original.getJsonObject("versions").getJsonObject(version)
                         .getJsonObject("dist").getString("tarball")
                 )

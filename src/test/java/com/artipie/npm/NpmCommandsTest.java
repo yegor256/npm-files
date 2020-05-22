@@ -24,30 +24,32 @@
 package com.artipie.npm;
 
 import com.artipie.asto.Concatenation;
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.slice.KeyFromPath;
+import com.artipie.npm.http.NpmSlice;
+import com.artipie.vertx.VertxSliceServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
-import org.apache.commons.io.FileUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.cactoos.io.BytesOf;
+import org.cactoos.io.ResourceOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
-import org.hamcrest.core.StringStartsWith;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Make sure the library is compatible with npm cli tools.
@@ -76,26 +78,34 @@ public final class NpmCommandsTest {
 
     /**
      * Test {@code npm publish} command works properly.
-     * @throws IOException if fails
-     * @throws InterruptedException if fails
+     * @throws Exception if fails
+     * @todo #64:60m remove the loop with Thread.sleep call:
+     *  either find the other way to do this or move it to Test NPM Client
+     *  (see the related task for npmExecute method)
      */
     @Test
-    void npmPublishWorks() throws IOException, InterruptedException, ExecutionException {
-        final Path temp = Files.createTempDirectory("temp");
-        final Storage storage = new FileStorage(
-            temp,
-            this.vertx.fileSystem()
+    void npmPublishWorks() throws Exception {
+        final Storage storage = new InMemoryStorage();
+        final int port = new RandomFreePort().value();
+        final VertxSliceServer server = new VertxSliceServer(
+            this.vertx,
+            new NpmSlice(storage),
+            port
         );
-        final Vertx local = Vertx.vertx();
-        final NpmRegistry registry = new NpmRegistry(local, storage);
-        registry.start();
-        final String url = String.format("http://127.0.0.1:%d", registry.getPort());
+        server.start();
+        final String url = String.format("http://127.0.0.1:%d", port);
         this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
+        final Key mkey = new Key.From("@hello/simple-npm-project/meta.json");
+        // @checkstyle MagicNumberCheck (5 lines)
+        for (int iter = 0; iter < 10; iter += 1) {
+            if (storage.exists(mkey).get()) {
+                break;
+            }
+            Thread.sleep(100);
+        }
         final JsonObject meta = new JsonObject(
             new String(
-                new Concatenation(
-                    storage.value(new Key.From("@hello/simple-npm-project/meta.json")).get()
-                ).single().blockingGet().array(),
+                new Concatenation(storage.value(mkey).get()).single().blockingGet().array(),
                 StandardCharsets.UTF_8
             )
         );
@@ -114,61 +124,49 @@ public final class NpmCommandsTest {
                 new KeyFromPath("/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz")
             ).get()
         );
-        registry.stop();
-        local.close();
-        FileUtils.deleteDirectory(temp.toFile());
+        server.stop();
     }
 
     /**
      * Test {@code npm install} command works properly.
-     * @throws IOException if fails
-     * @throws InterruptedException if fails
+     * @param temp Temporary working directory for npm client
+     * @throws Exception if fails
      */
     @Test
-    @Disabled
-    void npmInstallWorks() {
-        throw new UnsupportedOperationException("Test is not implemented yet");
-    }
-
-    /**
-     * Test {@code npm publish} and {@code npm install} command works properly.
-     * @throws IOException if fails
-     * @throws InterruptedException if fails
-     */
-    @Test
-    @Disabled
-    void npmInstallWithFilePrefixWorks()
-        throws IOException, InterruptedException {
-        final Path temp = Files.createTempDirectory("temp");
-        final Storage storage = new FileStorage(temp, this.vertx.fileSystem());
-        final Vertx local = Vertx.vertx();
-        final NpmRegistry registry = new NpmRegistry(
-            local,
-            storage
-        );
-        registry.start();
-        final String url = String.format("http://127.0.0.1:%d", registry.getPort());
-        this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
-        MatcherAssert.assertThat(
-            new JsonObject(
-                new String(
-                    new BlockingStorage(storage).value(
-                        new Key.From("@hello", "simple-npm-project", "meta.json")
+    void npmInstallWorks(final @TempDir Path temp) throws Exception {
+        final Storage storage = new InMemoryStorage();
+        storage.save(
+            new Key.From("@hello", "simple-npm-project", "meta.json"),
+            new Content.From(
+                new BytesOf(
+                    new ResourceOf("storage/@hello/simple-npm-project/meta.json")
+                ).asBytes()
+            )
+        ).get();
+        storage.save(
+            new Key.From("@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"),
+            new Content.From(
+                new BytesOf(
+                    new ResourceOf(
+                        "storage/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
                     )
-                )
-            ).getJsonObject("versions")
-                .getJsonObject("1.0.1")
-                .getJsonObject("dist")
-                .getString("tarball"),
-            new StringStartsWith("prefix")
+                ).asBytes()
+            )
+        ).get();
+        final int port = new RandomFreePort().value();
+        final VertxSliceServer server = new VertxSliceServer(
+            this.vertx,
+            new NpmSlice(storage),
+            port
         );
-        FileUtils.deleteDirectory(
-            new File("./src/test/resources/project-with-simple-dependency/node_modules")
+        server.start();
+        final String url = String.format("http://127.0.0.1:%d", port);
+        this.npmExecute(
+            "install @hello/simple-npm-project",
+            temp.toAbsolutePath().toString(),
+            url
         );
-        new File("./src/test/resources/project-with-simple-dependency/package-lock.json")
-            .delete();
-        registry.stop();
-        local.close();
+        server.stop();
     }
 
     /**
@@ -176,20 +174,28 @@ public final class NpmCommandsTest {
      * @param command The npm command to execute
      * @param project The project path
      * @param url The registry url
-     * @throws InterruptedException If fails
-     * @throws IOException If fails
+     * @throws Exception If fails
+     * @todo #64:90m transform method into NpmClient class
+     *  - takes the registry address in the constructor
+     *  - exposes one method to publish a Path
+     *  - exposes one method to install a package (denoted by a String) to a Path
      */
     private void npmExecute(
         final String command,
         final String project,
-        final String url) throws InterruptedException, IOException {
+        final String url) throws Exception {
+        final List<String> cmd = new ArrayList<>(5);
+        cmd.add("npm");
+        cmd.addAll(Arrays.asList(command.split(" ")));
+        cmd.add("--registry");
+        cmd.add(url);
         MatcherAssert.assertThat(
             String.format("'npm %s --registry %s' failed with non-zero code", command, url),
             new ProcessBuilder()
                 .directory(
                     new File(project)
                 )
-                .command("npm", command, "--registry", url)
+                .command(cmd.toArray(new String[0]))
                 .inheritIO()
                 .start()
                 .waitFor(),
