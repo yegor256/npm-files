@@ -10,7 +10,7 @@ install: |
   export LC_ALL=en_US.UTF-8
   export LANG=en_US.UTF-8
   export LANGUAGE=en_US.UTF-8
-  sudo apk install npm
+  sudo apk add npm
   pdd -f /dev/null
 merge:
   script: |
