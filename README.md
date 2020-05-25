@@ -4,7 +4,7 @@
 [![DevOps By Rultor.com](http://www.rultor.com/b/artipie/npm-adapter)](http://www.rultor.com/p/artipie/npm-adapter)
 [![We recommend IntelliJ IDEA](https://www.elegantobjects.org/intellij-idea.svg)](https://www.jetbrains.com/idea/)
 
-[![Build Status](https://img.shields.io/travis/artipie/npm-adapter/master.svg)](https://travis-ci.org/artipie/npm-adapter)
+[![Maven Build](https://github.com/artipie/npm-adapter/workflows/Maven%20Build/badge.svg)](https://github.com/artipie/npm-adapter/actions?query=workflow%3A%22Maven+Build%22)
 [![Javadoc](http://www.javadoc.io/badge/com.artipie/npm-adapter.svg)](http://www.javadoc.io/doc/com.artipie/npm-adapter)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/artipie/npm-adapter/blob/master/LICENSE.txt)
 [![Hits-of-Code](https://hitsofcode.com/github/artipie/npm-adapter)](https://hitsofcode.com/view/github/artipie/npm-adapter)
