@@ -28,19 +28,26 @@ import com.artipie.asto.Concatenation;
 import com.artipie.asto.Remaining;
 import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
+import com.artipie.npm.Npm;
 import com.artipie.npm.misc.NextSafeAvailablePort;
 import com.artipie.vertx.VertxSliceServer;
+import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.buffer.Buffer;
 import io.vertx.reactivex.ext.web.client.WebClient;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.json.Json;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -109,5 +116,21 @@ public final class UploadSliceTest {
         web.close();
         server.close();
         vertx.close();
+    }
+
+    @Test
+    void shouldFailForBadRequest() {
+        final Storage storage = new InMemoryStorage();
+        final UploadSlice slice = new UploadSlice("/", new Npm(storage), storage);
+        Assertions.assertThrows(
+            Exception.class,
+            () -> slice.response(
+                "PUT /my-package HTTP/1.1",
+                Collections.emptyList(),
+                Flowable.just(ByteBuffer.wrap("{}".getBytes()))
+            ).send(
+                (rsStatus, headers, publisher) -> CompletableFuture.allOf()
+            ).toCompletableFuture().join()
+        );
     }
 }
