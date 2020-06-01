@@ -24,34 +24,21 @@
 
 package com.artipie.npm.http;
 
-import com.artipie.asto.Concatenation;
-import com.artipie.asto.Remaining;
 import com.artipie.asto.Storage;
-import com.artipie.asto.fs.FileStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.Npm;
-import com.artipie.npm.misc.NextSafeAvailablePort;
-import com.artipie.vertx.VertxSliceServer;
 import io.reactivex.Flowable;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.ext.web.client.WebClient;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import javax.json.Json;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 /**
  * UploadSliceTest.
@@ -59,63 +46,32 @@ import org.junit.jupiter.api.condition.OS;
  * @since 0.5
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
-@DisabledOnOs(OS.WINDOWS)
 public final class UploadSliceTest {
 
-    /**
-     * Test uploads works properly.
-     * @throws IOException if fails
-     * @throws InterruptedException if fails
-     * @throws ExecutionException if fails
-     * @todo #53:45m Rewrite test method to be able to enabled
-     */
     @Test
-    @Disabled
-    void uploadsFileToRemote()
-        throws IOException, InterruptedException, ExecutionException {
-        final Vertx vertx = Vertx.vertx();
-        final int port = new NextSafeAvailablePort().value();
-        final Storage storage = new FileStorage(Files.createTempDirectory("temp"));
-        final VertxSliceServer server = new VertxSliceServer(
-            vertx,
-            new NpmSlice(
-                storage
-            ),
-            port
-        );
-        server.start();
-        final WebClient web = WebClient.create(vertx);
-        final String json = Json.createObjectBuilder().add(
-            "versions", Json
-                .createObjectBuilder()
-                .add("1.0.1", Json.createObjectBuilder().build())
-                .add("1.0.4", Json.createObjectBuilder().build())
-                .add("1.0.2", Json.createObjectBuilder().build())
-        ).build().toString();
+    void uploadsFileToRemote() throws Exception {
+        final Storage storage = new InMemoryStorage();
+        final UploadSlice slice = new UploadSlice("/", new Npm(storage), storage);
+        final String json = Json.createObjectBuilder()
+            .add("name", "@hello/simple-npm-project")
+            .add("_id", "1.0.1")
+            .add("readme", "Some text")
+            .add("versions", Json.createObjectBuilder())
+            .add("dist-tags", Json.createObjectBuilder())
+            .add("_attachments", Json.createObjectBuilder())
+            .build().toString();
         MatcherAssert.assertThat(
-            Integer.toString(
-                web
-                    .put(port, "localhost", "/package")
-                    .rxSendBuffer(Buffer.buffer(json))
-                    .blockingGet()
-                    .statusCode()
+            slice.response(
+                "PUT /package HTTP/1.1",
+                Collections.emptyList(),
+                Flowable.just(ByteBuffer.wrap(json.getBytes()))
             ),
-            new IsEqual<>(RsStatus.OK.code())
+            new RsHasStatus(RsStatus.OK)
         );
-        final KeyFromPath key = new KeyFromPath("/package/-/package-1.0.4.tgz");
         MatcherAssert.assertThat(
-            storage.exists(key).get(),
+            storage.exists(new KeyFromPath("package/meta.json")).get(),
             new IsEqual<>(true)
         );
-        MatcherAssert.assertThat(
-            new Remaining(
-                new Concatenation(storage.value(key).get()).single().blockingGet(), true
-            ).bytes(),
-            new IsEqual<>(json.getBytes())
-        );
-        web.close();
-        server.close();
-        vertx.close();
     }
 
     @Test
