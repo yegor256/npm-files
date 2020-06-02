@@ -90,13 +90,9 @@ public final class UploadSlice implements Slice {
                 .map(Remaining::bytes)
                 .to(SingleInterop.get())
                 .thenCompose(bytes -> this.storage.save(uploaded, new Content.From(bytes)))
-                .thenRunAsync(
-                    () -> this.npm.publish(new Key.From(pkg), uploaded)
-                )
-                .thenRunAsync(
-                    () -> this.storage.delete(uploaded)
-                )
-                .thenApplyAsync(rsp -> new RsWithStatus(RsStatus.OK))
+                .thenCompose(ignored -> this.npm.publish(new Key.From(pkg), uploaded))
+                .thenCompose(ignored -> this.storage.delete(uploaded))
+                .thenApply(ignored -> new RsWithStatus(RsStatus.OK))
         );
     }
 }
