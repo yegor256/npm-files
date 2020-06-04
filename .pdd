@@ -1,1 +1,1 @@
---exclude src/test/resources/storage/**/*
+--exclude **/src/test/resources/storage/**/*
