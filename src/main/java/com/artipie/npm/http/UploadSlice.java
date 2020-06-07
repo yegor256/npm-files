@@ -39,6 +39,7 @@ import com.artipie.npm.PackageNameFromUrl;
 import hu.akarnokd.rxjava2.interop.SingleInterop;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.UUID;
 import org.reactivestreams.Publisher;
 
 /**
@@ -83,7 +84,13 @@ public final class UploadSlice implements Slice {
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
         final String pkg = new PackageNameFromUrl(this.path, line).value();
-        final Key uploaded = new Key.From(String.format("%s-uploaded", pkg));
+        final Key uploaded = new Key.From(
+            String.format(
+                "%s-%s-uploaded",
+                pkg,
+                UUID.randomUUID().toString()
+            )
+        );
         return new AsyncResponse(
             new Concatenation(body).single()
                 .map(Remaining::new)
