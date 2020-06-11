@@ -30,6 +30,7 @@ SOFTWARE.
   <packaging>pom</packaging>
   <modules>
     <module>npm-hosted-adapter</module>
+    <module>npm-proxy-adapter</module>
   </modules>
   <profiles>
     <profile>
