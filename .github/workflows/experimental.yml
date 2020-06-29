@@ -22,4 +22,5 @@ jobs:
           pip install aibolit
       - name: Run Aibolit
         run: |
-          aibolit recommend --folder src/main/java --format=long --full
+          aibolit recommend --folder npm-hosted-adapter/src/main/java --format=long --full
+          aibolit recommend --folder npm-proxy-adapter/src/main/java --format=long --full
