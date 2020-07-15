@@ -49,6 +49,9 @@ SOFTWARE.
     <developerConnection>scm:git:git@github.com:artipie/npm-proxy-adapter.git</developerConnection>
     <url>https://github.com/artipie/npm-proxy-adapter</url>
   </scm>
+  <properties>
+    <vertx.version>3.9.1</vertx.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>com.artipie</groupId>
@@ -68,7 +71,10 @@ SOFTWARE.
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
-      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-circuit-breaker</artifactId>
     </dependency>
     <dependency>
       <groupId>com.amihaiemil.web</groupId>
