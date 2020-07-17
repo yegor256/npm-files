@@ -33,6 +33,7 @@ import com.artipie.http.auth.Permissions;
 import com.artipie.http.auth.SliceAuth;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
+import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
 import com.artipie.npm.Npm;
@@ -105,7 +106,7 @@ public final class NpmSlice implements Slice {
         final Permissions perms,
         final Identities users) {
         this.route = new SliceRoute(
-            new SliceRoute.Path(
+            new RtRulePath(
                 new RtRule.ByMethod(RqMethod.PUT),
                     new SliceAuth(
                         new UploadSlice(path, npm, storage),
@@ -113,8 +114,8 @@ public final class NpmSlice implements Slice {
                         users
                     )
             ),
-            new SliceRoute.Path(
-                new RtRule.Multiple(
+            new RtRulePath(
+                new RtRule.All(
                     new RtRule.ByMethod(RqMethod.GET),
                     new RtRule.ByPath(".*(?<!\\.tgz)$")
                 ),
@@ -124,8 +125,8 @@ public final class NpmSlice implements Slice {
                     users
                 )
             ),
-            new SliceRoute.Path(
-                new RtRule.Multiple(
+            new RtRulePath(
+                new RtRule.All(
                     new RtRule.ByMethod(RqMethod.GET),
                     new RtRule.ByPath(".*\\.tgz$")
                 ),

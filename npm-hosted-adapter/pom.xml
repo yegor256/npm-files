@@ -96,7 +96,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
-      <version>0.20.3</version>
+      <version>0.23.2</version>
     </dependency>
     <dependency>
       <groupId>org.reactivestreams</groupId>
@@ -105,7 +105,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>0.8.4</version>
+      <version>0.14.2</version>
     </dependency>
     <!-- Test only dependencies  -->
     <dependency>
