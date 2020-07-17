@@ -45,6 +45,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
@@ -118,6 +119,7 @@ public final class HttpNpmRemoteTest {
     }
 
     @Test
+    @Disabled
     public void loadsAsset() throws IOException {
         final String path = "asdas/-/asdas-1.0.0.tgz";
         final Path tmp = Files.createTempFile("npm-asset-", "tmp");

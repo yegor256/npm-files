@@ -27,6 +27,7 @@ import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.RtRule;
+import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.LoggingSlice;
 import com.artipie.http.slice.SliceSimple;
@@ -57,8 +58,8 @@ public final class NpmProxySlice implements Slice {
         final PackagePath ppath = new PackagePath(path);
         final AssetPath apath = new AssetPath(path);
         this.route = new SliceRoute(
-            new SliceRoute.Path(
-                new RtRule.Multiple(
+            new RtRulePath(
+                new RtRule.All(
                     new RtRule.ByMethod(RqMethod.GET),
                     new RtRule.ByPath(ppath.pattern())
                 ),
@@ -66,8 +67,8 @@ public final class NpmProxySlice implements Slice {
                     new DownloadPackageSlice(npm, ppath)
                 )
             ),
-            new SliceRoute.Path(
-                new RtRule.Multiple(
+            new RtRulePath(
+                new RtRule.All(
                     new RtRule.ByMethod(RqMethod.GET),
                     new RtRule.ByPath(apath.pattern())
                 ),
@@ -75,7 +76,7 @@ public final class NpmProxySlice implements Slice {
                     new DownloadAssetSlice(npm, apath)
                 )
             ),
-            new SliceRoute.Path(
+            new RtRulePath(
                 RtRule.FALLBACK,
                 new LoggingSlice(
                     new SliceSimple(

@@ -129,10 +129,7 @@ public final class HttpNpmRemote implements NpmRemote {
                             return Maybe.just(
                                 new NpmAsset(
                                     path,
-                                    new RxFile(
-                                        tmp,
-                                        this.vertx.fileSystem()
-                                    ).flow(),
+                                    new RxFile(tmp).flow(),
                                     response.getHeader("Last-Modified"),
                                     response.getHeader("Content-Type")
                                 )
