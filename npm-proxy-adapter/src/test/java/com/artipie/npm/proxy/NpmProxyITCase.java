@@ -37,11 +37,7 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.StringContains;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -88,6 +84,7 @@ public final class NpmProxyITCase {
     private VertxSliceServer srv;
 
     @Test
+    @Disabled
     public void installModule() throws IOException, InterruptedException {
         final Container.ExecResult result = this.npmcnter.execInContainer(
             "npm",
