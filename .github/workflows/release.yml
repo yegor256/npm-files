@@ -1,0 +1,30 @@
+---
+name: Release Artifacts on git tags
+"on":
+  create:
+    tags:
+      - .*
+jobs:
+  release-to-artipie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: jdk-1.8-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            jdk-1.8-maven-
+      - name: Set env
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
+      - name: Deploy to Artipie central
+        env:
+          ARTIPIE_USERNAME: ${{ secrets.ARTIPIE_USERNAME }}
+          ARTIPIE_PASSWORD: ${{ secrets.ARTIPIE_PASSWORD }}
+        run: |
+          mvn --settings=.release/settings.xml -B versions:set "-DnewVersion=${{ env.RELEASE_VERSION }}"
+          mvn --settings=.release/settings.xml -B clean deploy -Partipie-central

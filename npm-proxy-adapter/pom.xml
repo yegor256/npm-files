@@ -26,8 +26,8 @@ SOFTWARE.
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.artipie</groupId>
-    <artifactId>ppom</artifactId>
-    <version>0.3.3</version>
+    <artifactId>npm-adapters</artifactId>
+    <version>1.0-SNAPSHOT</version>
   </parent>
   <artifactId>npm-proxy-adapter</artifactId>
   <version>1.0-SNAPSHOT</version>
