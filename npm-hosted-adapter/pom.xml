@@ -161,7 +161,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>vertx-server</artifactId>
-      <version>0.3</version>
+      <version>0.3.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
