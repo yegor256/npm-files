@@ -79,7 +79,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.amihaiemil.web</groupId>
       <artifactId>eo-yaml</artifactId>
-      <version>3.1.0</version>
+      <version>5.1.5</version>
     </dependency>
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
@@ -119,7 +119,7 @@ SOFTWARE.
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>1.13.0</version>
+      <version>1.14.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
