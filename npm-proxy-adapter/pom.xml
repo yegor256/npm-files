@@ -79,7 +79,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.amihaiemil.web</groupId>
       <artifactId>eo-yaml</artifactId>
-      <version>5.1.5</version>
+      <version>5.1.6</version>
     </dependency>
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
