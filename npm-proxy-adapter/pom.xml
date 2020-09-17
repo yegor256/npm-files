@@ -56,12 +56,12 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
-      <version>0.23.2</version>
+      <version>0.24</version>
     </dependency>
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>0.14.2</version>
+      <version>0.16.1</version>
     </dependency>
     <dependency>
       <groupId>com.artipie</groupId>

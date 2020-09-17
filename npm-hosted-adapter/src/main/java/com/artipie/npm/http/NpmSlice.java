@@ -27,11 +27,13 @@ package com.artipie.npm.http;
 import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
+import com.artipie.http.auth.Action;
 import com.artipie.http.auth.Identities;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
 import com.artipie.http.auth.SliceAuth;
 import com.artipie.http.rq.RqMethod;
+import com.artipie.http.rt.ByMethodsRule;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
@@ -48,15 +50,6 @@ import org.reactivestreams.Publisher;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class NpmSlice implements Slice {
-    /**
-     * Permission name to download files.
-     */
-    private static final String PERM_DOWNLOAD = "download";
-
-    /**
-     * Permission name to upload files.
-     */
-    private static final String PERM_UPLOAD = "upload";
 
     /**
      * Route.
@@ -107,32 +100,32 @@ public final class NpmSlice implements Slice {
         final Identities users) {
         this.route = new SliceRoute(
             new RtRulePath(
-                new RtRule.ByMethod(RqMethod.PUT),
+                new ByMethodsRule(RqMethod.PUT),
                     new SliceAuth(
                         new UploadSlice(path, npm, storage),
-                        new Permission.ByName(NpmSlice.PERM_UPLOAD, perms),
+                        new Permission.ByName(perms, Action.Standard.WRITE),
                         users
                     )
             ),
             new RtRulePath(
                 new RtRule.All(
-                    new RtRule.ByMethod(RqMethod.GET),
+                    new ByMethodsRule(RqMethod.GET),
                     new RtRule.ByPath(".*(?<!\\.tgz)$")
                 ),
                 new SliceAuth(
                     new DownloadPackageSlice(path, storage),
-                    new Permission.ByName(NpmSlice.PERM_DOWNLOAD, perms),
+                    new Permission.ByName(perms, Action.Standard.READ),
                     users
                 )
             ),
             new RtRulePath(
                 new RtRule.All(
-                    new RtRule.ByMethod(RqMethod.GET),
+                    new ByMethodsRule(RqMethod.GET),
                     new RtRule.ByPath(".*\\.tgz$")
                 ),
                 new SliceAuth(
                     new ReplacePathSlice(path, new SliceDownload(storage)),
-                    new Permission.ByName(NpmSlice.PERM_DOWNLOAD, perms),
+                    new Permission.ByName(perms, Action.Standard.READ),
                     users
                 )
             )
