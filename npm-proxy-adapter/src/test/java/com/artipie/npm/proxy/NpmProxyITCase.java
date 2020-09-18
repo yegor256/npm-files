@@ -43,6 +43,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -58,8 +60,9 @@ import org.testcontainers.containers.GenericContainer;
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @org.testcontainers.junit.jupiter.Testcontainers
+@DisabledOnOs(OS.WINDOWS)
 public final class NpmProxyITCase {
-    /**
+    /**x
      * Vertx instance.
      */
     private static final Vertx VERTX = Vertx.vertx();
