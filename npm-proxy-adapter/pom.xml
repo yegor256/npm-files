@@ -27,10 +27,10 @@ SOFTWARE.
   <parent>
     <groupId>com.artipie</groupId>
     <artifactId>npm-adapters</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.6.2</version>
   </parent>
   <artifactId>npm-proxy-adapter</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.6.2</version>
   <name>NPM Proxy Adapter</name>
   <url>https://github.com/artipie/npm-proxy-adapter</url>
   <inceptionYear>2020</inceptionYear>
