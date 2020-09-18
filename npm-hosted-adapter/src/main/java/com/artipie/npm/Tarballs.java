@@ -36,7 +36,7 @@ import javax.json.JsonPatchBuilder;
 
 /**
  * Prepends all tarball references in the package metadata json with the prefix to build
- * absolute URL: /@scope/package-name -> http://host:port/base-path/@scope/package-name.
+ * absolute URL: /@scope/package-name -&gt; http://host:port/base-path/@scope/package-name.
  * @since 0.6
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
