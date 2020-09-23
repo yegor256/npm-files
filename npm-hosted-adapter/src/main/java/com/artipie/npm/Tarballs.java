@@ -27,6 +27,7 @@ import com.artipie.asto.Concatenation;
 import com.artipie.asto.Content;
 import io.reactivex.Flowable;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
@@ -50,14 +51,14 @@ public final class Tarballs {
     /**
      * URL prefix.
      */
-    private final String prefix;
+    private final URL prefix;
 
     /**
      * Ctor.
      * @param original Original content
      * @param prefix URL prefix
      */
-    public Tarballs(final Content original, final String prefix) {
+    public Tarballs(final Content original, final URL prefix) {
         this.original = original;
         this.prefix = prefix;
     }
@@ -73,7 +74,7 @@ public final class Tarballs {
                 .map(ByteBuffer::array)
                 .map(bytes -> new String(bytes, StandardCharsets.UTF_8))
                 .map(json -> Json.createReader(new StringReader(json)).readObject())
-                .map(json -> Tarballs.updateJson(json, this.prefix))
+                .map(json -> Tarballs.updateJson(json, this.prefix.toString()))
                 .flatMapPublisher(
                     json -> new Content.From(
                         Flowable.fromArray(

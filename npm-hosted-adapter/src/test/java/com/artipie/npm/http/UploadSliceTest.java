@@ -26,9 +26,11 @@ package com.artipie.npm.http;
 
 import com.artipie.asto.Storage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.Slice;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
+import com.artipie.http.slice.TrimPathSlice;
 import com.artipie.npm.Npm;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
@@ -51,7 +53,10 @@ public final class UploadSliceTest {
     @Test
     void uploadsFileToRemote() throws Exception {
         final Storage storage = new InMemoryStorage();
-        final UploadSlice slice = new UploadSlice("/", new Npm(storage), storage);
+        final Slice slice = new TrimPathSlice(
+            new UploadSlice(new Npm(storage), storage),
+            "ctx"
+        );
         final String json = Json.createObjectBuilder()
             .add("name", "@hello/simple-npm-project")
             .add("_id", "1.0.1")
@@ -62,7 +67,7 @@ public final class UploadSliceTest {
             .build().toString();
         MatcherAssert.assertThat(
             slice.response(
-                "PUT /package HTTP/1.1",
+                "PUT /ctx/package HTTP/1.1",
                 Collections.emptyList(),
                 Flowable.just(ByteBuffer.wrap(json.getBytes()))
             ),
@@ -77,11 +82,14 @@ public final class UploadSliceTest {
     @Test
     void shouldFailForBadRequest() {
         final Storage storage = new InMemoryStorage();
-        final UploadSlice slice = new UploadSlice("/", new Npm(storage), storage);
+        final Slice slice = new TrimPathSlice(
+            new UploadSlice(new Npm(storage), storage),
+            "my-repo"
+        );
         Assertions.assertThrows(
             Exception.class,
             () -> slice.response(
-                "PUT /my-package HTTP/1.1",
+                "PUT /my-repo/my-package HTTP/1.1",
                 Collections.emptyList(),
                 Flowable.just(ByteBuffer.wrap("{}".getBytes()))
             ).send(

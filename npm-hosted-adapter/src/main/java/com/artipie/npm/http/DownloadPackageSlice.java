@@ -34,10 +34,10 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.npm.PackageNameFromUrl;
 import com.artipie.npm.Tarballs;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.StreamSupport;
 import org.cactoos.iterable.IterableOf;
 import org.cactoos.map.MapEntry;
 import org.reactivestreams.Publisher;
@@ -53,9 +53,9 @@ import org.reactivestreams.Publisher;
 public final class DownloadPackageSlice implements Slice {
 
     /**
-     * NPM repo path.
+     * Base URL.
      */
-    private final String path;
+    private final URL base;
 
     /**
      * Abstract Storage.
@@ -65,11 +65,11 @@ public final class DownloadPackageSlice implements Slice {
     /**
      * Ctor.
      *
-     * @param path NPM repo path ("/" if NPM should handle ROOT context path)
+     * @param base Base URL
      * @param storage Abstract storage
      */
-    public DownloadPackageSlice(final String path, final Storage storage) {
-        this.path = path;
+    public DownloadPackageSlice(final URL base, final Storage storage) {
+        this.base = base;
         this.storage = storage;
     }
 
@@ -78,20 +78,14 @@ public final class DownloadPackageSlice implements Slice {
     public Response response(final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        final String pkg = new PackageNameFromUrl(this.path, line).value();
-        final String host = StreamSupport.stream(headers.spliterator(), false)
-            .filter(e -> e.getKey().equalsIgnoreCase("Host"))
-            .findAny().orElseThrow(
-                () -> new RuntimeException("Could not find Host header in request")
-            ).getValue();
-        final String prefix = String.format("http://%s%s", host, this.path);
+        final String pkg = new PackageNameFromUrl(line).value();
         final Key key = new Key.From(pkg, "meta.json");
         return new AsyncResponse(
             this.storage.exists(key).thenCompose(
                 exists -> {
                     if (exists) {
                         return this.storage.value(key)
-                            .thenApply(content -> new Tarballs(content, prefix).value())
+                            .thenApply(content -> new Tarballs(content, this.base).value())
                             .thenApply(
                                 content -> new RsFull(
                                     RsStatus.OK,

@@ -27,6 +27,7 @@ import com.artipie.asto.Concatenation;
 import com.artipie.asto.Content;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import javax.json.Json;
@@ -61,7 +62,7 @@ public class TarballsTest {
         );
         final Tarballs tarballs = new Tarballs(
             new Content.From(data),
-            prefix
+            new URL(prefix)
         );
         final Content modified = tarballs.value();
         final JsonObject json = new Concatenation(modified)

@@ -51,11 +51,6 @@ import org.reactivestreams.Publisher;
 public final class UploadSlice implements Slice {
 
     /**
-     * NPM repo path.
-     */
-    private final String path;
-
-    /**
      * The npm front.
      */
     private final Npm npm;
@@ -68,12 +63,10 @@ public final class UploadSlice implements Slice {
     /**
      * Ctor.
      *
-     * @param path NPM repo path ("/" if NPM should handle ROOT context path)
      * @param npm Npm front
      * @param storage Abstract storage
      */
-    public UploadSlice(final String path, final Npm npm, final Storage storage) {
-        this.path = path;
+    public UploadSlice(final Npm npm, final Storage storage) {
         this.npm = npm;
         this.storage = storage;
     }
@@ -83,7 +76,7 @@ public final class UploadSlice implements Slice {
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        final String pkg = new PackageNameFromUrl(this.path, line).value();
+        final String pkg = new PackageNameFromUrl(line).value();
         final Key uploaded = new Key.From(
             String.format(
                 "%s-%s-uploaded",

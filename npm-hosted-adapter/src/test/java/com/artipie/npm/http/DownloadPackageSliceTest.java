@@ -28,12 +28,14 @@ import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.slice.TrimPathSlice;
 import com.artipie.npm.RandomFreePort;
 import com.artipie.vertx.VertxSliceServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.client.WebClient;
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.MatcherAssert;
@@ -43,7 +45,9 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests Download Package Slice works.
  * @since 0.6
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.AvoidUsingHardCodedIP")
 public class DownloadPackageSliceTest {
     @Test
     public void downloadMetaWorks() throws IOException, ExecutionException, InterruptedException {
@@ -58,7 +62,10 @@ public class DownloadPackageSliceTest {
         final int port = new RandomFreePort().value();
         final VertxSliceServer server = new VertxSliceServer(
             vertx,
-            new DownloadPackageSlice("/ctx", storage),
+            new TrimPathSlice(
+                new DownloadPackageSlice(new URL("http", "127.0.0.1", port, "/ctx"), storage),
+                "ctx"
+            ),
             port
         );
         server.start();

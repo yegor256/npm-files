@@ -34,6 +34,7 @@ import com.artipie.vertx.VertxSliceServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -87,14 +88,14 @@ public final class NpmCommandsTest {
     void npmPublishWorks() throws Exception {
         final Storage storage = new InMemoryStorage();
         final int port = new RandomFreePort().value();
+        final URL url = new URL(String.format("http://127.0.0.1:%d", port));
         final VertxSliceServer server = new VertxSliceServer(
             this.vertx,
-            new NpmSlice(storage),
+            new NpmSlice(url, storage),
             port
         );
         server.start();
-        final String url = String.format("http://127.0.0.1:%d", port);
-        this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url);
+        this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url.toString());
         final Key mkey = new Key.From("@hello/simple-npm-project/meta.json");
         // @checkstyle MagicNumberCheck (5 lines)
         for (int iter = 0; iter < 10; iter += 1) {
@@ -154,17 +155,17 @@ public final class NpmCommandsTest {
             )
         ).get();
         final int port = new RandomFreePort().value();
+        final URL url = new URL(String.format("http://127.0.0.1:%d", port));
         final VertxSliceServer server = new VertxSliceServer(
             this.vertx,
-            new NpmSlice(storage),
+            new NpmSlice(url, storage),
             port
         );
         server.start();
-        final String url = String.format("http://127.0.0.1:%d", port);
         this.npmExecute(
             "install @hello/simple-npm-project",
             temp.toAbsolutePath().toString(),
-            url
+            url.toString()
         );
         server.stop();
     }
