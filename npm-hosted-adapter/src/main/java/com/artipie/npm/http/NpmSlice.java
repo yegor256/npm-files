@@ -39,6 +39,7 @@ import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
 import com.artipie.npm.Npm;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import org.reactivestreams.Publisher;
@@ -58,42 +59,35 @@ public final class NpmSlice implements Slice {
 
     /**
      * Ctor with existing front and default parameters for free access.
+     * @param base Base URL.
      * @param storage Storage for package
      */
-    public NpmSlice(final Storage storage) {
-        this(new Npm(storage), storage);
+    public NpmSlice(final URL base, final Storage storage) {
+        this(base, new Npm(storage), storage);
     }
 
     /**
      * Ctor with existing front and default parameters for free access.
+     * @param base Base URL.
      * @param npm Npm existing front
      * @param storage Storage for package
      */
-    public NpmSlice(final Npm npm, final Storage storage) {
-        this("/", npm, storage);
-    }
-
-    /**
-     * Ctor with existing front and default parameters for free access.
-     * @param path NPM repo path ("/" if NPM should handle ROOT context path)
-     * @param npm Npm existing front
-     * @param storage Storage for package
-     */
-    public NpmSlice(final String path, final Npm npm, final Storage storage) {
-        this(path, npm, storage, Permissions.FREE, Identities.ANONYMOUS);
+    public NpmSlice(final URL base, final Npm npm, final Storage storage) {
+        this(base, npm, storage, Permissions.FREE, Identities.ANONYMOUS);
     }
 
     /**
      * Ctor.
      *
-     * @param path NPM repo path ("/" if NPM should handle ROOT context path).
+     * @param base Base URL.
      * @param npm Npm front.
      * @param storage Storage for package.
      * @param perms Access permissions.
      * @param users User identities.
      * @checkstyle ParameterNumberCheck (5 lines)
      */
-    public NpmSlice(final String path,
+    public NpmSlice(
+        final URL base,
         final Npm npm,
         final Storage storage,
         final Permissions perms,
@@ -102,7 +96,7 @@ public final class NpmSlice implements Slice {
             new RtRulePath(
                 new ByMethodsRule(RqMethod.PUT),
                     new SliceAuth(
-                        new UploadSlice(path, npm, storage),
+                        new UploadSlice(npm, storage),
                         new Permission.ByName(perms, Action.Standard.WRITE),
                         users
                     )
@@ -113,7 +107,7 @@ public final class NpmSlice implements Slice {
                     new RtRule.ByPath(".*(?<!\\.tgz)$")
                 ),
                 new SliceAuth(
-                    new DownloadPackageSlice(path, storage),
+                    new DownloadPackageSlice(base, storage),
                     new Permission.ByName(perms, Action.Standard.READ),
                     users
                 )
@@ -124,7 +118,7 @@ public final class NpmSlice implements Slice {
                     new RtRule.ByPath(".*\\.tgz$")
                 ),
                 new SliceAuth(
-                    new ReplacePathSlice(path, new SliceDownload(storage)),
+                    new SliceDownload(storage),
                     new Permission.ByName(perms, Action.Standard.READ),
                     users
                 )

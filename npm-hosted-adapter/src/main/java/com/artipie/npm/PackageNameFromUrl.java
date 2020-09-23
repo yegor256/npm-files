@@ -31,10 +31,6 @@ import java.util.regex.Pattern;
  * @since 0.6
  */
 public class PackageNameFromUrl {
-    /**
-     * Base path handled by adapter.
-     */
-    private final String path;
 
     /**
      * Request url.
@@ -43,11 +39,9 @@ public class PackageNameFromUrl {
 
     /**
      * Ctor.
-     * @param path Base path handled by adapter
      * @param url Request url
      */
-    public PackageNameFromUrl(final String path, final String url) {
-        this.path = path;
+    public PackageNameFromUrl(final String url) {
         this.url = url;
     }
 
@@ -57,16 +51,17 @@ public class PackageNameFromUrl {
      */
     public String value() {
         final String abspath = new RequestLineFrom(this.url).uri().getPath();
-        if (abspath.startsWith(this.path)) {
+        final String context = "/";
+        if (abspath.startsWith(context)) {
             return abspath.replaceFirst(
-                String.format("%s/?", Pattern.quote(this.path)),
+                String.format("%s/?", Pattern.quote(context)),
                 ""
             );
         } else {
             throw new IllegalArgumentException(
                 String.format(
-                    "Path is expected to start with %s but was %s",
-                    this.path,
+                    "Path is expected to start with '%s' but was '%s'",
+                    context,
                     abspath
                 )
             );
