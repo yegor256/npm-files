@@ -26,7 +26,7 @@ SOFTWARE.
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.artipie</groupId>
   <artifactId>npm-adapters</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.7</version>
   <packaging>pom</packaging>
   <parent>
     <groupId>com.artipie</groupId>
