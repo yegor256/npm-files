@@ -31,7 +31,7 @@ SOFTWARE.
   <parent>
     <groupId>com.artipie</groupId>
     <artifactId>ppom</artifactId>
-    <version>0.4</version>
+    <version>0.4.1</version>
   </parent>
   <modules>
     <module>npm-hosted-adapter</module>
