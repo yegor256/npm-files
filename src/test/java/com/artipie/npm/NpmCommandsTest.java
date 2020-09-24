@@ -47,9 +47,8 @@ import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
@@ -59,7 +58,7 @@ import org.junit.jupiter.api.io.TempDir;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-@DisabledOnOs(OS.WINDOWS)
+@Disabled
 public final class NpmCommandsTest {
 
     /**
