@@ -31,24 +31,27 @@ import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.http.NpmSlice;
 import com.artipie.vertx.VertxSliceServer;
+import com.google.common.collect.ImmutableList;
+import com.jcabi.log.Logger;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.io.File;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import org.cactoos.io.BytesOf;
 import org.cactoos.io.ResourceOf;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
@@ -58,7 +61,7 @@ import org.junit.jupiter.api.io.TempDir;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-@Disabled
+@DisabledOnOs(OS.WINDOWS)
 public final class NpmCommandsTest {
 
     /**
@@ -66,14 +69,39 @@ public final class NpmCommandsTest {
      */
     private Vertx vertx;
 
+    /**
+     * Storage used as repository.
+     */
+    private Storage storage;
+
+    /**
+     * Server.
+     */
+    private VertxSliceServer server;
+
+    /**
+     * Repository URL.
+     */
+    private URL url;
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         this.vertx = Vertx.vertx();
+        this.storage = new InMemoryStorage();
+        final int port = new RandomFreePort().value();
+        this.url = new URL(String.format("http://127.0.0.1:%d", port));
+        this.server = new VertxSliceServer(
+            this.vertx,
+            new NpmSlice(this.url, this.storage),
+            port
+        );
+        this.server.start();
     }
 
     @AfterEach
     void tearDown() {
-        this.vertx.rxClose().blockingAwait();
+        this.server.stop();
+        this.vertx.close();
     }
 
     /**
@@ -85,27 +113,19 @@ public final class NpmCommandsTest {
      */
     @Test
     void npmPublishWorks() throws Exception {
-        final Storage storage = new InMemoryStorage();
-        final int port = new RandomFreePort().value();
-        final URL url = new URL(String.format("http://127.0.0.1:%d", port));
-        final VertxSliceServer server = new VertxSliceServer(
-            this.vertx,
-            new NpmSlice(url, storage),
-            port
-        );
-        server.start();
-        this.npmExecute("publish", "./src/test/resources/simple-npm-project/", url.toString());
+        final Path project = new File("./src/test/resources/simple-npm-project/").toPath();
+        this.npmExecute("publish", project);
         final Key mkey = new Key.From("@hello/simple-npm-project/meta.json");
         // @checkstyle MagicNumberCheck (5 lines)
         for (int iter = 0; iter < 10; iter += 1) {
-            if (storage.exists(mkey).get()) {
+            if (this.storage.exists(mkey).get()) {
                 break;
             }
             Thread.sleep(100);
         }
         final JsonObject meta = new JsonObject(
             new String(
-                new Concatenation(storage.value(mkey).get()).single().blockingGet().array(),
+                new Concatenation(this.storage.value(mkey).get()).single().blockingGet().array(),
                 StandardCharsets.UTF_8
             )
         );
@@ -120,11 +140,10 @@ public final class NpmCommandsTest {
         );
         MatcherAssert.assertThat(
             "Asset is not found",
-            storage.exists(
+            this.storage.exists(
                 new KeyFromPath("/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz")
             ).get()
         );
-        server.stop();
     }
 
     /**
@@ -134,8 +153,7 @@ public final class NpmCommandsTest {
      */
     @Test
     void npmInstallWorks(final @TempDir Path temp) throws Exception {
-        final Storage storage = new InMemoryStorage();
-        storage.save(
+        this.storage.save(
             new Key.From("@hello", "simple-npm-project", "meta.json"),
             new Content.From(
                 new BytesOf(
@@ -143,7 +161,7 @@ public final class NpmCommandsTest {
                 ).asBytes()
             )
         ).get();
-        storage.save(
+        this.storage.save(
             new Key.From("@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"),
             new Content.From(
                 new BytesOf(
@@ -153,53 +171,41 @@ public final class NpmCommandsTest {
                 ).asBytes()
             )
         ).get();
-        final int port = new RandomFreePort().value();
-        final URL url = new URL(String.format("http://127.0.0.1:%d", port));
-        final VertxSliceServer server = new VertxSliceServer(
-            this.vertx,
-            new NpmSlice(url, storage),
-            port
-        );
-        server.start();
-        this.npmExecute(
-            "install @hello/simple-npm-project",
-            temp.toAbsolutePath().toString(),
-            url.toString()
-        );
-        server.stop();
+        this.npmExecute("install @hello/simple-npm-project", temp);
     }
 
     /**
      * Execute a npm command and expect 0 is returned.
      * @param command The npm command to execute
      * @param project The project path
-     * @param url The registry url
      * @throws Exception If fails
      * @todo #64:90m transform method into NpmClient class
      *  - takes the registry address in the constructor
      *  - exposes one method to publish a Path
      *  - exposes one method to install a package (denoted by a String) to a Path
      */
-    private void npmExecute(
-        final String command,
-        final String project,
-        final String url) throws Exception {
-        final List<String> cmd = new ArrayList<>(5);
-        cmd.add("npm");
-        cmd.addAll(Arrays.asList(command.split(" ")));
-        cmd.add("--registry");
-        cmd.add(url);
-        MatcherAssert.assertThat(
-            String.format("'npm %s --registry %s' failed with non-zero code", command, url),
-            new ProcessBuilder()
-                .directory(
-                    new File(project)
-                )
-                .command(cmd.toArray(new String[0]))
-                .inheritIO()
-                .start()
-                .waitFor(),
-            Matchers.equalTo(0)
+    private void npmExecute(final String command, final Path project) throws Exception {
+        final Path stdout = project.resolve(
+            String.format("%s-stdout.txt", UUID.randomUUID().toString())
         );
+        final List<String> cmd = ImmutableList.<String>builder()
+            .add("npm")
+            .addAll(Arrays.asList(command.split(" ")))
+            .add("--registry")
+            .add(this.url.toString())
+            .build();
+        Logger.info(this, "Command:\n%s", String.join(" ", cmd));
+        final int code = new ProcessBuilder()
+            .directory(project.toFile())
+            .command(cmd)
+            .redirectOutput(stdout.toFile())
+            .redirectErrorStream(true)
+            .start()
+            .waitFor();
+        final String log = new String(Files.readAllBytes(stdout));
+        Logger.info(this, "Full stdout/stderr:\n%s", log);
+        if (code != 0) {
+            throw new IllegalStateException(String.format("Not OK exit code: %d", code));
+        }
     }
 }
