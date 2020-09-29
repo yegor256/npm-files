@@ -1,9 +1,0 @@
---source=.
---verbose
---exclude target/**/*
---exclude src/test/resources-binary/**/*
---exclude src/test/resources/**/*
---exclude .idea/**/*
---rule min-words:10
---rule min-estimate:15
---rule max-estimate:120
