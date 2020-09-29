@@ -162,6 +162,19 @@ headers: {
 }
 ```
 
+## NPM Proxy
+
+NPM proxy repository could be created using `NpmProxySlice`. 
+Proxy repository forwards HTTP requests to specified URL and adapter processes them. 
+After receiving artifact from the remote server,
+it caches received data and transforms it before sending it back to client 
+and saves to local storage. 
+Similar request received afterwords will not require remote repository call - 
+the cached data will be used.
+
+Detailed explanation about used algorithms and protocols used for proxy implementation
+can be found [here](PROXY_IMPLEMENTATION.md). 
+
 ## How to contribute
 
 Fork repository, make changes, send us a pull request. We will review
