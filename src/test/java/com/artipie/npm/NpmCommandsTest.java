@@ -27,7 +27,7 @@ import com.artipie.asto.Concatenation;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.asto.fs.FileStorage;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.http.NpmSlice;
 import com.artipie.vertx.VertxSliceServer;
@@ -97,7 +97,7 @@ public final class NpmCommandsTest {
     @BeforeEach
     void setUp() throws Exception {
         this.vertx = Vertx.vertx();
-        this.storage = new InMemoryStorage();
+        this.storage = new FileStorage(this.tmp);
         final int port = new RandomFreePort().value();
         this.url = String.format("http://host.testcontainers.internal:%d", port);
         this.server = new VertxSliceServer(
@@ -118,7 +118,6 @@ public final class NpmCommandsTest {
     void tearDown() {
         this.server.stop();
         this.vertx.close();
-        this.cntn.stop();
     }
 
     /**
@@ -136,8 +135,14 @@ public final class NpmCommandsTest {
     @Test
     @Disabled
     void npmPublishWorks() throws Exception {
-        final String proj = "simple-npm-project";
-        this.exec("npm", "publish", proj, "--registry", this.url);
+        final String proj = "@hello/simple-npm-project";
+        this.saveToStorage(
+            String.format("tmp/%s/index.js", proj), "simple-npm-project/index.js"
+        );
+        this.saveToStorage(
+            String.format("tmp/%s/package.json", proj), "simple-npm-project/package.json"
+        );
+        this.exec("npm", "publish", String.format("tmp/%s", proj), "--registry", this.url);
         final Key mkey = new Key.From("@hello/simple-npm-project/meta.json");
         // @checkstyle MagicNumberCheck (5 lines)
         for (int iter = 0; iter < 10; iter += 1) {
