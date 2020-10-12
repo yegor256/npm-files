@@ -135,6 +135,12 @@ SOFTWARE.
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.8.0-alpha2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <scope>runtime</scope>
@@ -189,7 +195,7 @@ SOFTWARE.
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.13.0</version>
+      <version>1.14.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

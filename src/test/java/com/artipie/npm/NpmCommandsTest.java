@@ -27,26 +27,22 @@ import com.artipie.asto.Concatenation;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.asto.fs.FileStorage;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.http.NpmSlice;
 import com.artipie.vertx.VertxSliceServer;
-import com.google.common.collect.ImmutableList;
 import com.jcabi.log.Logger;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import java.io.File;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import org.cactoos.io.BytesOf;
 import org.cactoos.io.ResourceOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -54,6 +50,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
+import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.GenericContainer;
 
 /**
  * Make sure the library is compatible with npm cli tools.
@@ -64,6 +62,12 @@ import org.junit.jupiter.api.io.TempDir;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @DisabledOnOs(OS.WINDOWS)
 public final class NpmCommandsTest {
+
+    /**
+     * Temporary directory for all tests.
+     * @checkstyle VisibilityModifierCheck (3 lines)
+     */
+    @TempDir Path tmp;
 
     /**
      * Vert.x used to create tested FileStorage.
@@ -83,20 +87,31 @@ public final class NpmCommandsTest {
     /**
      * Repository URL.
      */
-    private URL url;
+    private String url;
+
+    /**
+     * Container.
+     */
+    private GenericContainer<?> cntn;
 
     @BeforeEach
     void setUp() throws Exception {
         this.vertx = Vertx.vertx();
-        this.storage = new InMemoryStorage();
+        this.storage = new FileStorage(this.tmp);
         final int port = new RandomFreePort().value();
-        this.url = new URL(String.format("http://127.0.0.1:%d", port));
+        this.url = String.format("http://host.testcontainers.internal:%d", port);
         this.server = new VertxSliceServer(
             this.vertx,
-            new NpmSlice(this.url, this.storage),
+            new NpmSlice(new URL(this.url), this.storage),
             port
         );
         this.server.start();
+        Testcontainers.exposeHostPorts(port);
+        this.cntn = new GenericContainer<>("node:14-alpine")
+            .withCommand("tail", "-f", "/dev/null")
+            .withWorkingDirectory("/home/")
+            .withFileSystemBind(this.tmp.toString(), "/home");
+        this.cntn.start();
     }
 
     @AfterEach
@@ -120,8 +135,14 @@ public final class NpmCommandsTest {
     @Test
     @Disabled
     void npmPublishWorks() throws Exception {
-        final Path project = new File("./src/test/resources/simple-npm-project/").toPath();
-        this.npmExecute("publish", project);
+        final String proj = "@hello/simple-npm-project";
+        this.saveToStorage(
+            String.format("tmp/%s/index.js", proj), "simple-npm-project/index.js"
+        );
+        this.saveToStorage(
+            String.format("tmp/%s/package.json", proj), "simple-npm-project/package.json"
+        );
+        this.exec("npm", "publish", String.format("tmp/%s", proj), "--registry", this.url);
         final Key mkey = new Key.From("@hello/simple-npm-project/meta.json");
         // @checkstyle MagicNumberCheck (5 lines)
         for (int iter = 0; iter < 10; iter += 1) {
@@ -153,66 +174,38 @@ public final class NpmCommandsTest {
         );
     }
 
-    /**
-     * Test {@code npm install} command works properly.
-     * @param temp Temporary working directory for npm client
-     * @throws Exception if fails
-     */
     @Test
-    void npmInstallWorks(final @TempDir Path temp) throws Exception {
-        this.storage.save(
-            new Key.From("@hello", "simple-npm-project", "meta.json"),
-            new Content.From(
-                new BytesOf(
-                    new ResourceOf("storage/@hello/simple-npm-project/meta.json")
-                ).asBytes()
+    void npmInstallWorks() throws Exception {
+        final String proj = "@hello/simple-npm-project";
+        this.saveToStorage(
+            String.format("%s/meta.json", proj), String.format("storage/%s/meta.json", proj)
+        );
+        this.saveToStorage(
+            String.format("%s/-/%s-1.0.1.tgz", proj, proj),
+            String.format("storage/%s/-/%s-1.0.1.tgz", proj, proj)
+        );
+        MatcherAssert.assertThat(
+            this.exec("npm", "install", proj, "--registry", this.url),
+            new StringContainsInOrder(
+                Arrays.asList(
+                    String.format("+ %s@1.0.1", proj),
+                    "added 1 package"
+                )
             )
-        ).get();
-        this.storage.save(
-            new Key.From("@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"),
-            new Content.From(
-                new BytesOf(
-                    new ResourceOf(
-                        "storage/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
-                    )
-                ).asBytes()
-            )
-        ).get();
-        this.npmExecute("install @hello/simple-npm-project", temp);
+        );
     }
 
-    /**
-     * Execute a npm command and expect 0 is returned.
-     * @param command The npm command to execute
-     * @param project The project path
-     * @throws Exception If fails
-     * @todo #64:90m transform method into NpmClient class
-     *  - takes the registry address in the constructor
-     *  - exposes one method to publish a Path
-     *  - exposes one method to install a package (denoted by a String) to a Path
-     */
-    private void npmExecute(final String command, final Path project) throws Exception {
-        final Path stdout = project.resolve(
-            String.format("%s-stdout.txt", UUID.randomUUID().toString())
-        );
-        final List<String> cmd = ImmutableList.<String>builder()
-            .add("npm")
-            .addAll(Arrays.asList(command.split(" ")))
-            .add("--registry")
-            .add(this.url.toString())
-            .build();
-        Logger.info(this, "Command:\n%s", String.join(" ", cmd));
-        final int code = new ProcessBuilder()
-            .directory(project.toFile())
-            .command(cmd)
-            .redirectOutput(stdout.toFile())
-            .redirectErrorStream(true)
-            .start()
-            .waitFor();
-        final String log = new String(Files.readAllBytes(stdout));
-        Logger.info(this, "Full stdout/stderr:\n%s", log);
-        if (code != 0) {
-            throw new IllegalStateException(String.format("Not OK exit code: %d", code));
-        }
+    private String exec(final String... command) throws Exception {
+        Logger.debug(this, "Command:\n%s", String.join(" ", command));
+        return this.cntn.execInContainer(command).getStdout();
+    }
+
+    private void saveToStorage(final String key, final String resource) throws Exception {
+        this.storage.save(
+            new Key.From(key),
+            new Content.From(
+                new BytesOf(new ResourceOf(resource)).asBytes()
+            )
+        ).get();
     }
 }
