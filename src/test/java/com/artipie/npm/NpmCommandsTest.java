@@ -118,6 +118,7 @@ public final class NpmCommandsTest {
     void tearDown() {
         this.server.stop();
         this.vertx.close();
+        this.cntn.stop();
     }
 
     /**
@@ -136,7 +137,7 @@ public final class NpmCommandsTest {
     @Disabled
     void npmPublishWorks() throws Exception {
         final String proj = "simple-npm-project";
-        this.exec("npm", "install", proj, "--registry", this.url);
+        this.exec("npm", "publish", proj, "--registry", this.url);
         final Key mkey = new Key.From("@hello/simple-npm-project/meta.json");
         // @checkstyle MagicNumberCheck (5 lines)
         for (int iter = 0; iter < 10; iter += 1) {
