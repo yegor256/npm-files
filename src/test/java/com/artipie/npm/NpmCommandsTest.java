@@ -23,21 +23,19 @@
  */
 package com.artipie.npm;
 
-import com.artipie.asto.Concatenation;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
-import com.artipie.http.slice.KeyFromPath;
 import com.artipie.npm.http.NpmSlice;
+import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.vertx.VertxSliceServer;
 import com.jcabi.log.Logger;
-import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import javax.json.JsonObject;
 import org.cactoos.io.BytesOf;
 import org.cactoos.io.ResourceOf;
 import org.hamcrest.MatcherAssert;
@@ -45,7 +43,6 @@ import org.hamcrest.core.IsEqual;
 import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -118,22 +115,10 @@ public final class NpmCommandsTest {
     void tearDown() {
         this.server.stop();
         this.vertx.close();
+        this.cntn.stop();
     }
 
-    /**
-     * Test {@code npm publish} command works properly.
-     * @throws Exception if fails
-     * @todo #64:60m remove the loop with Thread.sleep call:
-     *  either find the other way to do this or move it to Test NPM Client
-     *  (see the related task for npmExecute method)
-     * @todo #123:60m Fix and enable npmPublishWorks test
-     *  `npmPublishWorks` often fails with the following error in line 128:
-     *  `NpmCommandsTest.npmPublishWorks:128 » Decode Failed to decode:Illegal character`.
-     *  It seems that meta JSON is saved with corruption or there is some concurrency issue
-     *  in this code
-     */
     @Test
-    @Disabled
     void npmPublishWorks() throws Exception {
         final String proj = "@hello/simple-npm-project";
         this.saveToStorage(
@@ -143,34 +128,25 @@ public final class NpmCommandsTest {
             String.format("tmp/%s/package.json", proj), "simple-npm-project/package.json"
         );
         this.exec("npm", "publish", String.format("tmp/%s", proj), "--registry", this.url);
-        final Key mkey = new Key.From("@hello/simple-npm-project/meta.json");
-        // @checkstyle MagicNumberCheck (5 lines)
-        for (int iter = 0; iter < 10; iter += 1) {
-            if (this.storage.exists(mkey).get()) {
-                break;
-            }
-            Thread.sleep(100);
-        }
-        final JsonObject meta = new JsonObject(
-            new String(
-                new Concatenation(this.storage.value(mkey).get()).single().blockingGet().array(),
-                StandardCharsets.UTF_8
-            )
-        );
+        final JsonObject meta = new JsonFromPublisher(
+            this.storage.value(
+                new Key.From(String.format("%s/meta.json", proj))
+            ).toCompletableFuture().join()
+        ).json().toCompletableFuture().join();
         MatcherAssert.assertThat(
+            "Metadata should be valid",
             meta.getJsonObject("versions")
                 .getJsonObject("1.0.1")
                 .getJsonObject("dist")
                 .getString("tarball"),
-            new IsEqual<>(
-                "/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
-            )
+            new IsEqual<>(String.format("/%s/-/%s-1.0.1.tgz", proj, proj))
         );
         MatcherAssert.assertThat(
-            "Asset is not found",
+            "File should be in storage after publishing",
             this.storage.exists(
-                new KeyFromPath("/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz")
-            ).get()
+                new Key.From(String.format("%s/-/%s-1.0.1.tgz", proj, proj))
+            ).toCompletableFuture().join(),
+            new IsEqual<>(true)
         );
     }
 
