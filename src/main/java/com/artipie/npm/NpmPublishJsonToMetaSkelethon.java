@@ -23,10 +23,7 @@
  */
 package com.artipie.npm;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import com.artipie.npm.misc.DateTimeNowStr;
 import javax.json.Json;
 import javax.json.JsonObject;
 
@@ -71,6 +68,7 @@ final class NpmPublishJsonToMetaSkelethon {
      * @return The skeleton for meta.json file
      */
     public JsonObject skeleton() {
+        final String now = new DateTimeNowStr().value();
         return Json.createObjectBuilder()
             .add(
                 NpmPublishJsonToMetaSkelethon.NAME,
@@ -87,26 +85,12 @@ final class NpmPublishJsonToMetaSkelethon {
             .add(
                 "time",
                 Json.createObjectBuilder()
-                    .add("created", NpmPublishJsonToMetaSkelethon.now())
-                    .add("modified", NpmPublishJsonToMetaSkelethon.now())
+                    .add("created", now)
+                    .add("modified", now)
                     .build()
             )
             .add("users", Json.createObjectBuilder().build())
             .add("versions", Json.createObjectBuilder().build())
             .build();
-    }
-
-    /**
-     * Current time.
-     * @return Current time.
-     */
-    private static String now() {
-        return DateTimeFormatter.ISO_LOCAL_DATE_TIME
-            .format(
-                ZonedDateTime.ofInstant(
-                    Instant.now(),
-                    ZoneOffset.UTC
-                )
-            );
     }
 }

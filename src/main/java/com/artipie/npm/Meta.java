@@ -23,13 +23,10 @@
  */
 package com.artipie.npm;
 
+import com.artipie.npm.misc.DateTimeNowStr;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
 import javax.json.Json;
@@ -91,10 +88,11 @@ final class Meta {
                 )
             );
         }
+        final String now = new DateTimeNowStr().value();
         for (final String version : keys) {
-            patch.add(String.format("/time/%s", version), Meta.now());
+            patch.add(String.format("/time/%s", version), now);
         }
-        patch.replace("/time/modified", Meta.now());
+        patch.replace("/time/modified", now);
         return new Meta(
             patch
                 .build()
@@ -112,19 +110,5 @@ final class Meta {
                 this.json.toString().getBytes(StandardCharsets.UTF_8)
             )
         );
-    }
-
-    /**
-     * Current time.
-     * @return Current time.
-     */
-    private static String now() {
-        return DateTimeFormatter.ISO_LOCAL_DATE_TIME
-            .format(
-                ZonedDateTime.ofInstant(
-                    Instant.now(),
-                    ZoneOffset.UTC
-                )
-            );
     }
 }
