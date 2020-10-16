@@ -48,7 +48,6 @@ import org.junit.jupiter.api.Test;
  * @since 0.5
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class UploadSliceTest {
 
     @Test
@@ -98,5 +97,4 @@ public final class UploadSliceTest {
             ).toCompletableFuture().join()
         );
     }
-
 }
