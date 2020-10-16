@@ -23,13 +23,16 @@
  */
 package com.artipie.npm;
 
+import com.artipie.npm.misc.JsonFromPublisher;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonValue;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import wtf.g4s8.hamcrest.json.JsonHas;
 import wtf.g4s8.hamcrest.json.JsonValueIs;
@@ -136,5 +139,52 @@ public final class MetaTest {
                 )
             )
         );
+    }
+
+    @Test
+    @Disabled
+    void shouldContainTimeAfterUpdateMetadata() {
+        final String versone = "1.0.1";
+        final String verstwo = "1.1.0";
+        final JsonObject uploaded = this.json(versone);
+        final JsonObject updated = this.json(verstwo);
+        final Meta first = new Meta(
+            new NpmPublishJsonToMetaSkelethon(uploaded).skeleton()
+        ).updatedMeta(uploaded);
+        final Meta second = new Meta(
+            new JsonFromPublisher(first.byteFlow()).json()
+                .toCompletableFuture().join()
+        ).updatedMeta(updated);
+        final JsonObject time = new JsonFromPublisher(second.byteFlow()).json()
+            .toCompletableFuture().join()
+            .getJsonObject("time");
+        MatcherAssert.assertThat(
+            time.keySet(),
+            Matchers.contains("created", "modified", versone, verstwo)
+        );
+    }
+
+    private JsonObject json(final String version) {
+        final String proj = "@hello/simple-npm-project";
+        return Json.createObjectBuilder()
+            .add("name", proj)
+            .add("_id", proj)
+            .add("readme", "Some text in readme")
+            .add(
+                MetaTest.DISTTAGS, Json.createObjectBuilder().add(MetaTest.LATEST, version)
+            )
+            .add(
+                MetaTest.VERSIONS, Json.createObjectBuilder()
+                .add(
+                    version, Json.createObjectBuilder()
+                    .add(
+                        "dist", Json.createObjectBuilder()
+                        .add(
+                            "tarball",
+                            String.format("http://localhost:8000/proj/-/proj-%s.tgz", version)
+                        )
+                    ).build()
+                )
+            ).build();
     }
 }
