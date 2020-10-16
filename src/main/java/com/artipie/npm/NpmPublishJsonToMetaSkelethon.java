@@ -87,16 +87,8 @@ final class NpmPublishJsonToMetaSkelethon {
             .add(
                 "time",
                 Json.createObjectBuilder()
-                    .add(
-                        "created",
-                        DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                            .format(
-                                ZonedDateTime.ofInstant(
-                                    Instant.now(),
-                                    ZoneOffset.UTC
-                                )
-                            )
-                    )
+                    .add("created", NpmPublishJsonToMetaSkelethon.now())
+                    .add("modified", NpmPublishJsonToMetaSkelethon.now())
                     .build()
             )
             .add("users", Json.createObjectBuilder().build())
@@ -104,4 +96,17 @@ final class NpmPublishJsonToMetaSkelethon {
             .build();
     }
 
+    /**
+     * Current time.
+     * @return Current time.
+     */
+    private static String now() {
+        return DateTimeFormatter.ISO_LOCAL_DATE_TIME
+            .format(
+                ZonedDateTime.ofInstant(
+                    Instant.now(),
+                    ZoneOffset.UTC
+                )
+            );
+    }
 }
