@@ -25,7 +25,7 @@ package com.artipie.npm.proxy;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
-import com.artipie.asto.Concatenation;
+import com.artipie.asto.ext.PublisherAs;
 import com.artipie.npm.proxy.model.NpmAsset;
 import com.artipie.npm.proxy.model.NpmPackage;
 import io.vertx.reactivex.core.Vertx;
@@ -45,7 +45,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
@@ -93,6 +92,7 @@ public final class HttpNpmRemoteTest {
         final NpmPackage pkg = this.remote.loadPackage(name).blockingGet();
         MatcherAssert.assertThat("Package is null", pkg != null);
         MatcherAssert.assertThat(
+            "Package name is correct",
             pkg.name(),
             new IsEqual<>(name)
         );
@@ -102,6 +102,7 @@ public final class HttpNpmRemoteTest {
             true
         );
         MatcherAssert.assertThat(
+            "Metadata last modified date is correct",
             pkg.meta().lastModified(),
             new IsEqual<>(HttpNpmRemoteTest.LAST_MODIFIED)
         );
@@ -119,7 +120,6 @@ public final class HttpNpmRemoteTest {
     }
 
     @Test
-    @Disabled
     public void loadsAsset() throws IOException {
         final String path = "asdas/-/asdas-1.0.0.tgz";
         final Path tmp = Files.createTempFile("npm-asset-", "tmp");
@@ -127,21 +127,24 @@ public final class HttpNpmRemoteTest {
             final NpmAsset asset = this.remote.loadAsset(path, tmp).blockingGet();
             MatcherAssert.assertThat("Asset is null", asset != null);
             MatcherAssert.assertThat(
+                "Path to asset is correct",
                 asset.path(),
                 new IsEqual<>(path)
             );
             MatcherAssert.assertThat(
-                new String(
-                    new Concatenation(asset.dataPublisher()).single().blockingGet().array(),
-                    StandardCharsets.UTF_8
-                ),
+                "Content of asset is correct",
+                new PublisherAs(asset.dataPublisher())
+                    .asciiString()
+                    .toCompletableFuture().join(),
                 new IsEqual<>(HttpNpmRemoteTest.DEF_CONTENT)
             );
             MatcherAssert.assertThat(
+                "Modified date is correct",
                 asset.meta().lastModified(),
                 new IsEqual<>(HttpNpmRemoteTest.LAST_MODIFIED)
             );
             MatcherAssert.assertThat(
+                "Content-type of asset is correct",
                 asset.meta().contentType(),
                 new IsEqual<>(HttpNpmRemoteTest.DEF_CONTENT_TYPE)
             );

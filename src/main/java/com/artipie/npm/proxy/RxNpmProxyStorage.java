@@ -23,12 +23,13 @@
  */
 package com.artipie.npm.proxy;
 
-import com.artipie.asto.Concatenation;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
+import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.rx.RxStorage;
 import com.artipie.npm.proxy.model.NpmAsset;
 import com.artipie.npm.proxy.model.NpmPackage;
+import hu.akarnokd.rxjava2.interop.SingleInterop;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
@@ -129,16 +130,20 @@ public final class RxNpmProxyStorage implements NpmProxyStorage {
      */
     private Single<NpmPackage> readPackage(final String name) {
         return this.storage.value(new Key.From(name, "meta.json"))
-            .map(Concatenation::new).flatMap(Concatenation::single)
+            .map(PublisherAs::new)
+            .map(PublisherAs::bytes)
+            .flatMap(SingleInterop::fromFuture)
             .zipWith(
                 this.storage.value(new Key.From(name, "meta.meta"))
-                    .map(Concatenation::new).flatMap(Concatenation::single)
-                    .map(metadata -> new String(metadata.array(), StandardCharsets.UTF_8))
+                    .map(PublisherAs::new)
+                    .map(PublisherAs::bytes)
+                    .flatMap(SingleInterop::fromFuture)
+                    .map(metadata -> new String(metadata, StandardCharsets.UTF_8))
                     .map(JsonObject::new),
                 (content, metadata) ->
                     new NpmPackage(
                         name,
-                        new String(content.array(), StandardCharsets.UTF_8),
+                        new String(content, StandardCharsets.UTF_8),
                         new NpmPackage.Metadata(metadata)
                     )
                 );
@@ -153,8 +158,10 @@ public final class RxNpmProxyStorage implements NpmProxyStorage {
         return this.storage.value(new Key.From(path))
             .zipWith(
                 this.storage.value(new Key.From(String.format("%s.meta", path)))
-                    .map(Concatenation::new).flatMap(Concatenation::single)
-                    .map(metadata -> new String(metadata.array(), StandardCharsets.UTF_8))
+                    .map(PublisherAs::new)
+                    .map(PublisherAs::bytes)
+                    .flatMap(SingleInterop::fromFuture)
+                    .map(metadata -> new String(metadata, StandardCharsets.UTF_8))
                     .map(JsonObject::new),
                 (content, metadata) ->
                     new NpmAsset(
