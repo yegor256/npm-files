@@ -58,7 +58,7 @@ import org.testcontainers.containers.GenericContainer;
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @DisabledOnOs(OS.WINDOWS)
-public final class NpmCommandsTest {
+public final class NpmIT {
 
     /**
      * Temporary directory for all tests.
