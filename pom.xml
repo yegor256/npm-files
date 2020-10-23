@@ -101,7 +101,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>0.16.1</version>
+      <version>0.16.7</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

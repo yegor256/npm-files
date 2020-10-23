@@ -28,10 +28,10 @@ import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.auth.Action;
-import com.artipie.http.auth.Identities;
+import com.artipie.http.auth.Authentication;
+import com.artipie.http.auth.BasicAuthSlice;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
-import com.artipie.http.auth.SliceAuth;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.ByMethodsRule;
 import com.artipie.http.rt.RtRule;
@@ -73,7 +73,7 @@ public final class NpmSlice implements Slice {
      * @param storage Storage for package
      */
     public NpmSlice(final URL base, final Npm npm, final Storage storage) {
-        this(base, npm, storage, Permissions.FREE, Identities.ANONYMOUS);
+        this(base, npm, storage, Permissions.FREE, Authentication.ANONYMOUS);
     }
 
     /**
@@ -83,7 +83,7 @@ public final class NpmSlice implements Slice {
      * @param npm Npm front.
      * @param storage Storage for package.
      * @param perms Access permissions.
-     * @param users User identities.
+     * @param auth Authentication.
      * @checkstyle ParameterNumberCheck (5 lines)
      */
     public NpmSlice(
@@ -91,14 +91,14 @@ public final class NpmSlice implements Slice {
         final Npm npm,
         final Storage storage,
         final Permissions perms,
-        final Identities users) {
+        final Authentication auth) {
         this.route = new SliceRoute(
             new RtRulePath(
                 new ByMethodsRule(RqMethod.PUT),
-                    new SliceAuth(
+                    new BasicAuthSlice(
                         new UploadSlice(npm, storage),
-                        new Permission.ByName(perms, Action.Standard.WRITE),
-                        users
+                        auth,
+                        new Permission.ByName(perms, Action.Standard.WRITE)
                     )
             ),
             new RtRulePath(
@@ -106,10 +106,10 @@ public final class NpmSlice implements Slice {
                     new ByMethodsRule(RqMethod.GET),
                     new RtRule.ByPath(".*(?<!\\.tgz)$")
                 ),
-                new SliceAuth(
+                new BasicAuthSlice(
                     new DownloadPackageSlice(base, storage),
-                    new Permission.ByName(perms, Action.Standard.READ),
-                    users
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.READ)
                 )
             ),
             new RtRulePath(
@@ -117,10 +117,10 @@ public final class NpmSlice implements Slice {
                     new ByMethodsRule(RqMethod.GET),
                     new RtRule.ByPath(".*\\.tgz$")
                 ),
-                new SliceAuth(
+                new BasicAuthSlice(
                     new SliceDownload(storage),
-                    new Permission.ByName(perms, Action.Standard.READ),
-                    users
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.READ)
                 )
             )
         );
