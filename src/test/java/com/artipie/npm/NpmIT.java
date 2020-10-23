@@ -23,10 +23,10 @@
  */
 package com.artipie.npm;
 
-import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.test.TestResource;
 import com.artipie.npm.http.NpmSlice;
 import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.vertx.VertxSliceServer;
@@ -36,13 +36,12 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import javax.json.JsonObject;
-import org.cactoos.io.BytesOf;
-import org.cactoos.io.ResourceOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
 import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -121,11 +120,10 @@ public final class NpmIT {
     @Test
     void npmPublishWorks() throws Exception {
         final String proj = "@hello/simple-npm-project";
-        this.saveToStorage(
-            String.format("tmp/%s/index.js", proj), "simple-npm-project/index.js"
-        );
-        this.saveToStorage(
-            String.format("tmp/%s/package.json", proj), "simple-npm-project/package.json"
+        new TestResource("simple-npm-project")
+            .addFilesTo(
+                this.storage,
+                new Key.From(String.format("tmp/%s", proj))
         );
         this.exec("npm", "publish", String.format("tmp/%s", proj), "--registry", this.url);
         final JsonObject meta = new JsonFromPublisher(
@@ -151,15 +149,10 @@ public final class NpmIT {
     }
 
     @Test
+    @Disabled
     void npmInstallWorks() throws Exception {
         final String proj = "@hello/simple-npm-project";
-        this.saveToStorage(
-            String.format("%s/meta.json", proj), String.format("storage/%s/meta.json", proj)
-        );
-        this.saveToStorage(
-            String.format("%s/-/%s-1.0.1.tgz", proj, proj),
-            String.format("storage/%s/-/%s-1.0.1.tgz", proj, proj)
-        );
+        this.saveFilesToStrg(proj);
         MatcherAssert.assertThat(
             this.exec("npm", "install", proj, "--registry", this.url),
             new StringContainsInOrder(
@@ -169,19 +162,41 @@ public final class NpmIT {
                 )
             )
         );
+        MatcherAssert.assertThat(
+            "Installed project should contain index.js",
+            this.inNpmModule(proj, "index.js"),
+            new IsEqual<>(true)
+        );
+        MatcherAssert.assertThat(
+            "Installed project should contain package.json",
+            this.inNpmModule(proj, "package.json"),
+            new IsEqual<>(true)
+        );
+    }
+
+    private void saveFilesToStrg(final String proj) {
+        new TestResource(String.format("storage/%s/meta.json", proj))
+            .saveTo(
+                this.storage,
+                new Key.From(proj, "meta.json")
+        );
+        new TestResource(String.format("storage/%s/-/%s-1.0.1.tgz", proj, proj))
+            .saveTo(
+                this.storage,
+                new Key.From(
+                    proj, "-", String.format("%s-1.0.1.tgz", proj)
+                )
+        );
+    }
+
+    private boolean inNpmModule(final String proj, final String file) {
+        return this.storage.exists(
+            new Key.From("node_modules", proj, file)
+        ).join();
     }
 
     private String exec(final String... command) throws Exception {
         Logger.debug(this, "Command:\n%s", String.join(" ", command));
         return this.cntn.execInContainer(command).getStdout();
-    }
-
-    private void saveToStorage(final String key, final String resource) throws Exception {
-        this.storage.save(
-            new Key.From(key),
-            new Content.From(
-                new BytesOf(new ResourceOf(resource)).asBytes()
-            )
-        ).get();
     }
 }
