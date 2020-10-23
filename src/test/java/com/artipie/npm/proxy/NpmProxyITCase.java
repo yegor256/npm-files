@@ -212,7 +212,7 @@ public final class NpmProxyITCase {
      */
     private static class NodeContainer extends GenericContainer<NodeContainer> {
         NodeContainer() {
-            super("node:latest");
+            super("node:14-alpine");
         }
     }
 
