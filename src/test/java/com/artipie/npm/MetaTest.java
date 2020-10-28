@@ -23,13 +23,16 @@
  */
 package com.artipie.npm;
 
-import io.reactivex.Flowable;
-import java.io.ByteArrayInputStream;
-import java.nio.ByteBuffer;
+import com.artipie.npm.misc.JsonFromPublisher;
+import java.time.Instant;
+import java.util.Arrays;
 import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.Test;
 import wtf.g4s8.hamcrest.json.JsonHas;
 import wtf.g4s8.hamcrest.json.JsonValueIs;
@@ -39,6 +42,7 @@ import wtf.g4s8.hamcrest.json.JsonValueIs;
  *
  * @since 0.4.2
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class MetaTest {
 
     /**
@@ -62,79 +66,99 @@ public final class MetaTest {
     private static final String ALPHA = "alpha";
 
     @Test
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public void canUpdateMetaDistTags() {
+        final String time = Instant.now().toString();
+        final String versone = "1.0.0";
+        final String verstwo = "1.0.1";
+        final Meta uploaded = new Meta(
+            this.json(versone)
+                .add(
+                    "time", Json.createObjectBuilder()
+                        .add("created", time)
+                        .add("modified", time)
+                        .add(versone, time)
+                        .build()
+                ).build()
+        );
+        final JsonObject updated = this.json(verstwo)
+            .add(
+                MetaTest.DISTTAGS, Json.createObjectBuilder()
+                    .add(MetaTest.ALPHA, verstwo)
+                    .build()
+        ).build();
         MatcherAssert.assertThat(
-            Json.createReader(
-                new ByteArrayInputStream(
-                    new Meta(
-                        Json.createObjectBuilder()
-                            .add(
-                                MetaTest.DISTTAGS,
-                                Json.createObjectBuilder().add(
-                                    MetaTest.LATEST,
-                                    "1.0.0"
-                                )
+            new JsonFromPublisher(
+                uploaded.updatedMeta(updated).byteFlow()
+            ).json()
+            .toCompletableFuture().join(),
+            new AllOf<>(
+                Arrays.asList(
+                    new JsonHas(
+                        MetaTest.DISTTAGS,
+                        new AllOf<>(
+                            Arrays.asList(
+                                new JsonHas(MetaTest.LATEST, new JsonValueIs(versone)),
+                                new JsonHas(MetaTest.ALPHA, new JsonValueIs(verstwo))
                             )
-                            .add(
-                                MetaTest.VERSIONS,
-                                Json.createObjectBuilder().add(
-                                    "1.0.0",
-                                    Json.createObjectBuilder()
-                                )
-                            ).build()
-                    ).updatedMeta(
-                        Json.createObjectBuilder()
-                            .add("name", "package")
-                            .add("version", "1.0.1")
-                            .add(
-                                MetaTest.DISTTAGS,
-                                Json.createObjectBuilder().add(
-                                    MetaTest.ALPHA,
-                                    "1.0.1"
-                                )
+                        )
+                    ),
+                    new JsonHas(
+                        MetaTest.VERSIONS,
+                        new AllOf<>(
+                            Arrays.asList(
+                                new JsonHas(versone, Matchers.any(JsonValue.class)),
+                                new JsonHas(verstwo, Matchers.any(JsonValue.class))
                             )
-                            .add(
-                                MetaTest.VERSIONS,
-                                Json.createObjectBuilder().add(
-                                    "1.0.1",
-                                    Json.createObjectBuilder()
-                                        .add(
-                                            "dist",
-                                            Json.createObjectBuilder()
-                                                .add("tarball", "package/-/package-1.0.1.tgz")
-                                        )
-                                )
-                            )
-                            .build()
-                    )
-                    .byteFlow()
-                    .concatMap(
-                        buffer -> Flowable.just(buffer.array())
-                    ).reduce(
-                        (arr1, arr2) ->
-                            ByteBuffer.wrap(
-                                new byte[arr1.length + arr2.length]
-                            ).put(arr1).put(arr2).array()
-                    ).blockingGet()
-                )
-            ).readObject().asJsonObject(),
-            Matchers.allOf(
-                new JsonHas(
-                    MetaTest.DISTTAGS,
-                    Matchers.allOf(
-                        new JsonHas(MetaTest.LATEST, new JsonValueIs("1.0.0")),
-                        new JsonHas(MetaTest.ALPHA, new JsonValueIs("1.0.1"))
-                    )
-                ),
-                new JsonHas(
-                    MetaTest.VERSIONS,
-                    Matchers.allOf(
-                        new JsonHas("1.0.1", Matchers.any(JsonValue.class)),
-                        new JsonHas("1.0.0", Matchers.any(JsonValue.class))
+                        )
                     )
                 )
             )
         );
+    }
+
+    @Test
+    void shouldContainTimeAfterUpdateMetadata() {
+        final String versone = "1.0.1";
+        final String verstwo = "1.1.0";
+        final JsonObject uploaded = this.json(versone).build();
+        final JsonObject updated = this.json(verstwo).build();
+        final Meta first = new Meta(
+            new NpmPublishJsonToMetaSkelethon(uploaded).skeleton()
+        ).updatedMeta(uploaded);
+        final Meta second = new Meta(
+            new JsonFromPublisher(first.byteFlow()).json()
+                .toCompletableFuture().join()
+        ).updatedMeta(updated);
+        final JsonObject time = new JsonFromPublisher(second.byteFlow()).json()
+            .toCompletableFuture().join()
+            .getJsonObject("time");
+        MatcherAssert.assertThat(
+            time.keySet(),
+            Matchers.contains("created", "modified", versone, verstwo)
+        );
+    }
+
+    private JsonObjectBuilder json(final String version) {
+        final String proj = "@hello/simple-npm-project";
+        return Json.createObjectBuilder()
+            .add("name", proj)
+            .add("_id", proj)
+            .add("readme", "Some text in readme")
+            .add(
+                MetaTest.DISTTAGS, Json.createObjectBuilder().add(MetaTest.LATEST, version)
+            )
+            .add(
+                MetaTest.VERSIONS, Json.createObjectBuilder()
+                .add(
+                    version, Json.createObjectBuilder()
+                    .add(
+                        "dist", Json.createObjectBuilder()
+                        .add(
+                            "tarball",
+                            String.format("http://localhost:8000/proj/-/proj-%s.tgz", version)
+                        )
+                    ).build()
+                )
+            );
     }
 }

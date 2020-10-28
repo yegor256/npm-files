@@ -23,6 +23,7 @@
  */
 package com.artipie.npm;
 
+import com.artipie.npm.misc.DateTimeNowStr;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -87,6 +88,11 @@ final class Meta {
                 )
             );
         }
+        final String now = new DateTimeNowStr().value();
+        for (final String version : keys) {
+            patch.add(String.format("/time/%s", version), now);
+        }
+        patch.replace("/time/modified", now);
         return new Meta(
             patch
                 .build()

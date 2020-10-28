@@ -23,14 +23,15 @@ deploy:
 release:
   sensitive:
     - settings.xml
-  script: |-
+  script: |
     gpg --import /home/r/pubring.gpg
     gpg --allow-secret-key-import --no-tty --batch --import /home/r/secring.gpg
     mvn versions:set "-DnewVersion=${tag}" --settings ../settings.xml
     git commit -am "${tag}"
-    mvn clean deploy -Partipie,publish,sonatype,qulice,gpg-sign --errors --settings ../settings.xml
+    mvn clean deploy -Partipie,publish,sonatype,qulice,gpg-sign --errors --settings ../settings.xml -DskipTests
 architect:
   - g4s8
   - yegor256
   - olegmoz
   - olenagerasimova
+
