@@ -23,9 +23,11 @@
  */
 package com.artipie.npm;
 
+import com.artipie.npm.misc.DateTimeNowStr;
 import com.artipie.npm.misc.JsonFromPublisher;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -129,13 +131,36 @@ public final class MetaTest {
             new JsonFromPublisher(first.byteFlow()).json()
                 .toCompletableFuture().join()
         ).updatedMeta(updated);
-        final JsonObject time = new JsonFromPublisher(second.byteFlow()).json()
-            .toCompletableFuture().join()
-            .getJsonObject("time");
         MatcherAssert.assertThat(
-            time.keySet(),
-            Matchers.contains("created", "modified", versone, verstwo)
+            this.timeTags(second),
+            Matchers.containsInAnyOrder("created", "modified", versone, verstwo)
         );
+    }
+
+    @Test
+    void containsRequiredTimeFieldsWhenModifiedTagWasNotIncluded() {
+        final String versone = "1.2.3";
+        final String verstwo = "2.0.0";
+        final JsonObject existed = this.json(versone)
+            .add(
+                "time",
+                Json.createObjectBuilder()
+                    .add("created", new DateTimeNowStr().value())
+                    .add(versone, new DateTimeNowStr().value())
+                    .build()
+            ).build();
+        final JsonObject updated = this.json(verstwo).build();
+        MatcherAssert.assertThat(
+            this.timeTags(new Meta(existed).updatedMeta(updated)),
+            Matchers.containsInAnyOrder("created", "modified", versone, verstwo)
+        );
+    }
+
+    private Set<String> timeTags(final Meta meta) {
+        return new JsonFromPublisher(meta.byteFlow()).json()
+            .toCompletableFuture().join()
+            .getJsonObject("time")
+            .keySet();
     }
 
     private JsonObjectBuilder json(final String version) {
