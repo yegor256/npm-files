@@ -26,6 +26,7 @@ package com.artipie.npm;
 import com.artipie.npm.misc.DateTimeNowStr;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 /**
  * Bind {@code npm publish} generated json to an instance on {@link Meta}.
@@ -38,11 +39,6 @@ final class NpmPublishJsonToMetaSkelethon {
      * The name json filed.
      */
     private static final String NAME = "name";
-
-    /**
-     * The _id json filed.
-     */
-    private static final String ID = "_id";
 
     /**
      * {@code npm publish} generated json to bind.
@@ -64,14 +60,10 @@ final class NpmPublishJsonToMetaSkelethon {
      */
     public JsonObject skeleton() {
         final String now = new DateTimeNowStr().value();
-        return Json.createObjectBuilder()
+        final JsonObjectBuilder builder = Json.createObjectBuilder()
             .add(
                 NpmPublishJsonToMetaSkelethon.NAME,
                 this.json.getString(NpmPublishJsonToMetaSkelethon.NAME)
-            )
-            .add(
-                NpmPublishJsonToMetaSkelethon.ID,
-                this.json.getString(NpmPublishJsonToMetaSkelethon.ID)
             )
             .add(
                 "time",
@@ -81,7 +73,20 @@ final class NpmPublishJsonToMetaSkelethon {
                     .build()
             )
             .add("users", Json.createObjectBuilder().build())
-            .add("versions", Json.createObjectBuilder().build())
-            .build();
+            .add("versions", Json.createObjectBuilder().build());
+        this.addIfContains("_id", builder);
+        this.addIfContains("readme", builder);
+        return builder.build();
+    }
+
+    /**
+     * Add key to builder if json contains this key.
+     * @param key Key to add
+     * @param builder Json builder
+     */
+    private void addIfContains(final String key, final JsonObjectBuilder builder) {
+        if (this.json.containsKey(key)) {
+            builder.add(key, this.json.getString(key));
+        }
     }
 }
