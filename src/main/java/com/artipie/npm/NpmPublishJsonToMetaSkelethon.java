@@ -45,11 +45,6 @@ final class NpmPublishJsonToMetaSkelethon {
     private static final String ID = "_id";
 
     /**
-     * The readme json field.
-     */
-    private static final String README = "readme";
-
-    /**
      * {@code npm publish} generated json to bind.
      */
     private final JsonObject json;
@@ -77,10 +72,6 @@ final class NpmPublishJsonToMetaSkelethon {
             .add(
                 NpmPublishJsonToMetaSkelethon.ID,
                 this.json.getString(NpmPublishJsonToMetaSkelethon.ID)
-            )
-            .add(
-                NpmPublishJsonToMetaSkelethon.README,
-                this.json.getString(NpmPublishJsonToMetaSkelethon.README)
             )
             .add(
                 "time",
