@@ -168,7 +168,7 @@ public final class MetaTest {
 
     private JsonObjectBuilder json(final String version, final boolean readme) {
         final String proj = "@hello/simple-npm-project";
-        JsonObjectBuilder builder = Json.createObjectBuilder()
+        final JsonObjectBuilder builder = Json.createObjectBuilder()
             .add("name", proj)
             .add("_id", proj)
             .add(
@@ -188,7 +188,7 @@ public final class MetaTest {
                 )
             );
         if (readme) {
-            builder = builder.add("readme", "Some text in readme");
+            builder.add("readme", "Some text in readme");
         }
         return builder;
     }
