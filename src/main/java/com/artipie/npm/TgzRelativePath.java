@@ -60,10 +60,10 @@ public class TgzRelativePath {
         final String result;
         if (npms.isPresent()) {
             result = npms.get();
-        } else if (npmws.isPresent()) {
-            result = npmws.get();
         } else if (curls.isPresent()) {
             result = curls.get();
+        } else if (npmws.isPresent()) {
+            result = npmws.get();
         } else if (curlws.isPresent()) {
             result = curlws.get();
         } else {
@@ -96,7 +96,7 @@ public class TgzRelativePath {
      * @return The npm scoped path if found.
      */
     private Optional<String> curlWithScope() {
-        return this.firstGroup(Pattern.compile("(@[\\w-]+/[\\w.-]+/[\\w.-]+.tgz)"));
+        return this.firstGroup(Pattern.compile("(@[\\w-]+/[\\w.-]+/[\\w.-]+[/]?[\\w.-]+.tgz)"));
     }
 
     /**
