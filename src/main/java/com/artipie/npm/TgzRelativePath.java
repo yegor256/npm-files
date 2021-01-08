@@ -78,7 +78,7 @@ public class TgzRelativePath {
      * @return The npm scoped path if found.
      */
     private Optional<String> npmWithScope() {
-        return this.firstGroup(Pattern.compile("(@[\\w-]+/[\\w.-]+/-/@[\\w-]+/[\\w.-]+.tgz)"));
+        return this.firstGroup(Pattern.compile("(@[\\w-]+/[\\w.-]+/-/@[\\w-]+/[\\w.-]+.tgz$)"));
     }
 
     /**
@@ -87,7 +87,7 @@ public class TgzRelativePath {
      * @return The npm scoped path if found.
      */
     private Optional<String> npmWithoutScope() {
-        return this.firstGroup(Pattern.compile("([\\w.-]+/-/[\\w.-]+.tgz)"));
+        return this.firstGroup(Pattern.compile("([\\w.-]+/-/[\\w.-]+.tgz$)"));
     }
 
     /**
@@ -96,7 +96,9 @@ public class TgzRelativePath {
      * @return The npm scoped path if found.
      */
     private Optional<String> curlWithScope() {
-        return this.firstGroup(Pattern.compile("(@[\\w-]+/[\\w.-]+/[\\w.-]+[/]?[\\w.-]+.tgz)"));
+        return this.firstGroup(
+            Pattern.compile("(@[\\w-]+/[\\w.-]+/(@?(?<!-/@)[\\w.-]+/)*[\\w.-]+.tgz$)")
+        );
     }
 
     /**
@@ -105,7 +107,7 @@ public class TgzRelativePath {
      * @return The npm scoped path if found.
      */
     private Optional<String> curlWithoutScope() {
-        return this.firstGroup(Pattern.compile("([\\w.-]+/[\\w.-]+\\.tgz)"));
+        return this.firstGroup(Pattern.compile("([\\w.-]+/[\\w.-]+\\.tgz$)"));
     }
 
     /**
