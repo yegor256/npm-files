@@ -74,7 +74,12 @@ public final class RelativePathTest {
     @ParameterizedTest
     @ValueSource(strings = {
         "@scope/yuanye05/yuanye05-1.0.3.tgz",
-        "@my-org/test.suffix/test.suffix-5.5.3.tgz"
+        "@my-org/test.suffix/test.suffix-5.5.3.tgz",
+        "@test-org-test/test/-/test-1.0.0.tgz",
+        "@thepeaklab/angelis/0.3.0/angelis-0.3.0.tgz",
+        "@aa/bb/0.3.1/@aa/bb-0.3.1.tgz",
+        "@aa/bb/0.3.1-alpha/@aa/bb-0.3.1-alpha.tgz",
+        "@aa/bb.js/0.3.1-alpha/@aa/bb.js-0.3.1-alpha.tgz"
     })
     public void curlWithScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
