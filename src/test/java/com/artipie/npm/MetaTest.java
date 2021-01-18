@@ -23,9 +23,11 @@
  */
 package com.artipie.npm;
 
+import com.artipie.npm.misc.DateTimeNowStr;
 import com.artipie.npm.misc.JsonFromPublisher;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -34,6 +36,8 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import wtf.g4s8.hamcrest.json.JsonHas;
 import wtf.g4s8.hamcrest.json.JsonValueIs;
 
@@ -71,7 +75,7 @@ public final class MetaTest {
         final String versone = "1.0.0";
         final String verstwo = "1.0.1";
         final Meta uploaded = new Meta(
-            this.json(versone)
+            this.json(versone, true)
                 .add(
                     "time", Json.createObjectBuilder()
                         .add("created", time)
@@ -80,7 +84,7 @@ public final class MetaTest {
                         .build()
                 ).build()
         );
-        final JsonObject updated = this.json(verstwo)
+        final JsonObject updated = this.json(verstwo, true)
             .add(
                 MetaTest.DISTTAGS, Json.createObjectBuilder()
                     .add(MetaTest.ALPHA, verstwo)
@@ -116,12 +120,13 @@ public final class MetaTest {
         );
     }
 
-    @Test
-    void shouldContainTimeAfterUpdateMetadata() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldContainTimeAfterUpdateMetadata(final boolean withreadme) {
         final String versone = "1.0.1";
         final String verstwo = "1.1.0";
-        final JsonObject uploaded = this.json(versone).build();
-        final JsonObject updated = this.json(verstwo).build();
+        final JsonObject uploaded = this.json(versone, withreadme).build();
+        final JsonObject updated = this.json(verstwo, true).build();
         final Meta first = new Meta(
             new NpmPublishJsonToMetaSkelethon(uploaded).skeleton()
         ).updatedMeta(uploaded);
@@ -129,21 +134,43 @@ public final class MetaTest {
             new JsonFromPublisher(first.byteFlow()).json()
                 .toCompletableFuture().join()
         ).updatedMeta(updated);
-        final JsonObject time = new JsonFromPublisher(second.byteFlow()).json()
-            .toCompletableFuture().join()
-            .getJsonObject("time");
         MatcherAssert.assertThat(
-            time.keySet(),
-            Matchers.contains("created", "modified", versone, verstwo)
+            this.timeTags(second),
+            Matchers.containsInAnyOrder("created", "modified", versone, verstwo)
         );
     }
 
-    private JsonObjectBuilder json(final String version) {
+    @Test
+    void containsRequiredTimeFieldsWhenModifiedTagWasNotIncluded() {
+        final String versone = "1.2.3";
+        final String verstwo = "2.0.0";
+        final JsonObject existed = this.json(versone, true)
+            .add(
+                "time",
+                Json.createObjectBuilder()
+                    .add("created", new DateTimeNowStr().value())
+                    .add(versone, new DateTimeNowStr().value())
+                    .build()
+            ).build();
+        final JsonObject updated = this.json(verstwo, true).build();
+        MatcherAssert.assertThat(
+            this.timeTags(new Meta(existed).updatedMeta(updated)),
+            Matchers.containsInAnyOrder("created", "modified", versone, verstwo)
+        );
+    }
+
+    private Set<String> timeTags(final Meta meta) {
+        return new JsonFromPublisher(meta.byteFlow()).json()
+            .toCompletableFuture().join()
+            .getJsonObject("time")
+            .keySet();
+    }
+
+    private JsonObjectBuilder json(final String version, final boolean readme) {
         final String proj = "@hello/simple-npm-project";
-        return Json.createObjectBuilder()
+        final JsonObjectBuilder builder = Json.createObjectBuilder()
             .add("name", proj)
             .add("_id", proj)
-            .add("readme", "Some text in readme")
             .add(
                 MetaTest.DISTTAGS, Json.createObjectBuilder().add(MetaTest.LATEST, version)
             )
@@ -160,5 +187,9 @@ public final class MetaTest {
                     ).build()
                 )
             );
+        if (readme) {
+            builder.add("readme", "Some text in readme");
+        }
+        return builder;
     }
 }

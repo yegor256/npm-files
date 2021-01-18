@@ -92,7 +92,7 @@ final class Meta {
         for (final String version : keys) {
             patch.add(String.format("/time/%s", version), now);
         }
-        patch.replace("/time/modified", now);
+        patch.add("/time/modified", now);
         return new Meta(
             patch
                 .build()
