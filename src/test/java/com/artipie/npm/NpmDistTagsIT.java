@@ -25,6 +25,7 @@ package com.artipie.npm;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
@@ -35,7 +36,9 @@ import io.vertx.reactivex.core.Vertx;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import org.cactoos.list.ListOf;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.StringContains;
 import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +56,7 @@ import org.testcontainers.containers.GenericContainer;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @DisabledOnOs(OS.WINDOWS)
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class NpmDistTagsIT {
 
     /**
@@ -127,6 +131,29 @@ public final class NpmDistTagsIT {
                     "previous: 1.0.0"
                 )
             )
+        );
+    }
+
+    @Test
+    void addDistTagsWorks() throws Exception {
+        final String pkg = "@hello/simple-npm-project";
+        final Key meta = new Key.From(pkg, "meta.json");
+        new TestResource("json/dist-tags.json").saveTo(this.storage, meta);
+        final String tag = "min";
+        final String ver = "0.0.1";
+        MatcherAssert.assertThat(
+            "npm dist-tags successful",
+            this.exec(
+                "npm", "dist-tag", "add", String.format("%s@%s", pkg, ver),
+                tag, "--registry", this.url
+            ),
+            new StringContains("+min: @hello/simple-npm-project@0.0.1")
+        );
+        MatcherAssert.assertThat(
+            "Meta file was updated",
+            new PublisherAs(this.storage.value(meta).join()).asciiString()
+                .toCompletableFuture().join(),
+            new StringContainsInOrder(new ListOf<>(tag, ver))
         );
     }
 
