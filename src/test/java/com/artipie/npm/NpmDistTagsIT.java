@@ -23,19 +23,18 @@
  */
 package com.artipie.npm;
 
-import com.artipie.http.Response;
-import com.artipie.http.Slice;
-import com.artipie.http.rs.common.RsJson;
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
+import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
+import com.artipie.npm.http.NpmSlice;
 import com.artipie.vertx.VertxSliceServer;
 import com.jcabi.log.Logger;
 import io.vertx.reactivex.core.Vertx;
-import java.nio.ByteBuffer;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Map;
-import javax.json.Json;
-import org.cactoos.io.ReaderOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
@@ -44,7 +43,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
-import org.reactivestreams.Publisher;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -52,6 +50,7 @@ import org.testcontainers.containers.GenericContainer;
 /**
  * IT for npm dist-tags command.
  * @since 0.8
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @DisabledOnOs(OS.WINDOWS)
 public final class NpmDistTagsIT {
@@ -83,14 +82,20 @@ public final class NpmDistTagsIT {
      */
     private GenericContainer<?> cntn;
 
+    /**
+     * Test storage.
+     */
+    private Storage storage;
+
     @BeforeEach
     void setUp() throws Exception {
+        this.storage = new InMemoryStorage();
         this.vertx = Vertx.vertx();
         final int port = new RandomFreePort().value();
         this.url = String.format("http://host.testcontainers.internal:%d", port);
         this.server = new VertxSliceServer(
             this.vertx,
-            new LoggingSlice(new DistTag()),
+            new LoggingSlice(new NpmSlice(new URL(this.url), this.storage)),
             port
         );
         this.server.start();
@@ -112,12 +117,14 @@ public final class NpmDistTagsIT {
     @Test
     void lsDistTagsWorks() throws Exception {
         final String pkg = "@hello/simple-npm-project";
+        new TestResource("json/dist-tags.json")
+            .saveTo(this.storage, new Key.From(pkg, "meta.json"));
         MatcherAssert.assertThat(
             this.exec("npm", "dist-tag", "ls", pkg, "--registry", this.url),
             new StringContainsInOrder(
                 Arrays.asList(
                     "latest: 1.0.1",
-                    "second: 1.0.2"
+                    "previous: 1.0.0"
                 )
             )
         );
@@ -127,25 +134,5 @@ public final class NpmDistTagsIT {
         final Container.ExecResult res = this.cntn.execInContainer(command);
         Logger.debug(this, "Command:\n%s\nResult:\n%s", String.join(" ", command), res.toString());
         return res.getStdout();
-    }
-
-    /**
-     * Fake slice for dist-tag ls command.
-     * @since 0.8
-     */
-    private static final class DistTag implements Slice {
-
-        @Override
-        public Response response(
-            final String line,
-            final Iterable<Map.Entry<String, String>> iterable,
-            final Publisher<ByteBuffer> publisher
-        ) {
-            return new RsJson(
-                Json.createReader(
-                    new ReaderOf("{\"latest\":\"1.0.1\", \"second\":\"1.0.2\"}")
-                ).readObject()
-            );
-        }
     }
 }

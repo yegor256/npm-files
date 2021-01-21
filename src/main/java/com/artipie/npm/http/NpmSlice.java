@@ -104,6 +104,17 @@ public final class NpmSlice implements Slice {
             new RtRulePath(
                 new RtRule.All(
                     new ByMethodsRule(RqMethod.GET),
+                    new RtRule.ByPath(".*/dist-tags$")
+                ),
+                new BasicAuthSlice(
+                    new GetDistTagsSlice(storage),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.READ)
+                )
+            ),
+            new RtRulePath(
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.GET),
                     new RtRule.ByPath(".*(?<!\\.tgz)$")
                 ),
                 new BasicAuthSlice(
