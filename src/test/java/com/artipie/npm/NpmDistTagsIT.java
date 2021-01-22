@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import org.cactoos.list.ListOf;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.IsNot;
 import org.hamcrest.core.StringContains;
 import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
@@ -154,6 +155,27 @@ public final class NpmDistTagsIT {
             new PublisherAs(this.storage.value(meta).join()).asciiString()
                 .toCompletableFuture().join(),
             new StringContainsInOrder(new ListOf<>(tag, ver))
+        );
+    }
+
+    @Test
+    void rmDistTagsWorks() throws Exception {
+        final String pkg = "@hello/simple-npm-project";
+        final Key meta = new Key.From(pkg, "meta.json");
+        new TestResource("json/dist-tags.json").saveTo(this.storage, meta);
+        final String tag = "previous";
+        MatcherAssert.assertThat(
+            "npm dist-tags rm successful",
+            this.exec(
+                "npm", "dist-tag", "rm", pkg, tag, "--registry", this.url
+            ),
+            new StringContains(String.format("-%s: @hello/simple-npm-project@1.0.0", tag))
+        );
+        MatcherAssert.assertThat(
+            "Meta file was updated",
+            new PublisherAs(this.storage.value(meta).join()).asciiString()
+                .toCompletableFuture().join(),
+            new IsNot<>(new StringContainsInOrder(new ListOf<>(tag, "1.0.0")))
         );
     }
 
