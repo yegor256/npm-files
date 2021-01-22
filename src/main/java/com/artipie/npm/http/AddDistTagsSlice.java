@@ -53,7 +53,7 @@ public final class AddDistTagsSlice implements Slice {
     /**
      * Endpoint request line pattern.
      */
-    private static final Pattern PTRN =
+    static final Pattern PTRN =
         Pattern.compile("/-/package/(?<pkg>.*)/dist-tags/(?<tag>.*)");
 
     /**

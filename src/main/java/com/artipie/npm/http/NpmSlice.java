@@ -96,7 +96,7 @@ public final class NpmSlice implements Slice {
             new RtRulePath(
                 new RtRule.All(
                     new ByMethodsRule(RqMethod.PUT),
-                    new RtRule.ByPath(".*/dist-tags/.*")
+                    new RtRule.ByPath(AddDistTagsSlice.PTRN)
                 ),
                 new BasicAuthSlice(
                     new AddDistTagsSlice(storage),
