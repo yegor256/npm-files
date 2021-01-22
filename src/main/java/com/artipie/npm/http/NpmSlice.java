@@ -94,6 +94,17 @@ public final class NpmSlice implements Slice {
         final Authentication auth) {
         this.route = new SliceRoute(
             new RtRulePath(
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.PUT),
+                    new RtRule.ByPath(AddDistTagsSlice.PTRN)
+                ),
+                new BasicAuthSlice(
+                    new AddDistTagsSlice(storage),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.WRITE)
+                )
+            ),
+            new RtRulePath(
                 new ByMethodsRule(RqMethod.PUT),
                     new BasicAuthSlice(
                         new UploadSlice(npm, storage),
