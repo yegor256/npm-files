@@ -105,6 +105,17 @@ public final class NpmSlice implements Slice {
                 )
             ),
             new RtRulePath(
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.DELETE),
+                    new RtRule.ByPath(AddDistTagsSlice.PTRN)
+                ),
+                new BasicAuthSlice(
+                    new DeleteDistTagsSlice(storage),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.WRITE)
+                )
+            ),
+            new RtRulePath(
                 new ByMethodsRule(RqMethod.PUT),
                     new BasicAuthSlice(
                         new UploadSlice(npm, storage),
