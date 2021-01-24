@@ -25,14 +25,15 @@ package com.artipie.npm;
 
 import com.artipie.npm.misc.DateTimeNowStr;
 import io.reactivex.Flowable;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Set;
+
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonPatchBuilder;
 import javax.json.JsonValue;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The meta.json file.
@@ -40,7 +41,7 @@ import javax.json.JsonValue;
  * @since 0.1
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-final class Meta {
+public final class Meta {
     /**
      * The meta.json file.
      */
@@ -55,6 +56,16 @@ final class Meta {
         this.json = json;
     }
 
+    public String name() {
+        if (json.containsKey("name")) {
+            return json.getString("name");
+        }
+        throw new IllegalArgumentException();
+    }
+
+    public JsonObject data() {
+        return this.json;
+    }
     /**
      * Update the meta.json file by processing newly
      * uploaded {@code npm publish} generated json.

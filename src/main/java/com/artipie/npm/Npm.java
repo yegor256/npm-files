@@ -33,6 +33,9 @@ import hu.akarnokd.rxjava2.interop.CompletableInterop;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+
+import javax.json.Json;
+import javax.json.JsonObject;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -42,8 +45,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import javax.json.Json;
-import javax.json.JsonObject;
 
 /**
  * The NPM front.
@@ -110,6 +111,23 @@ public class Npm {
     }
 
     /**
+     * Publish a new version of a npm package.
+     *
+     * @param prefix Path prefix for achieves and meta information storage
+     * @param meta meta
+     * @return Completion or error signal.
+     */
+    public final CompletableFuture<Void> publish(final Key prefix, final Meta meta) {
+        return Single.just(meta.data())
+                .flatMapCompletable(
+                        uploaded -> this.updateMetaFile(prefix, uploaded)
+                                .andThen(this.updateSourceArchives(uploaded))
+                ).to(CompletableInterop.await())
+                .<Void>thenApply(r -> null)
+                .toCompletableFuture();
+    }
+
+    /**
      * Updates the meta.json file based on tgz package file.
      * @param prefix Package prefix.
      * @param file Tgz archive file.
@@ -122,7 +140,13 @@ public class Npm {
      *  you could get the metadata information from the package.json
      */
     public Completable updateMetaFile(final Key prefix, final TgzArchive file) {
-        throw new UnsupportedOperationException();
+        return this.storage.save(prefix,
+                new Content.From(
+                        Flowable.fromArray(
+                                ByteBuffer.wrap(file.bytes()))))
+                .andThen(Single.just(file).map(TgzArchive::meta)
+                .flatMapCompletable(meta -> Completable
+                    .fromFuture(this.publish(new Key.From(meta.name()), meta))));
     }
 
     /**

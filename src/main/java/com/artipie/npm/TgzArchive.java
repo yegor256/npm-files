@@ -24,28 +24,43 @@
 package com.artipie.npm;
 
 import io.reactivex.Completable;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+
+import javax.json.Json;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.stream.Collectors;
 
 /**
  * A .tgz archive.
  *
  * @since 0.1
  */
-final class TgzArchive {
+public final class TgzArchive {
 
     /**
      * The archive representation in a form of a base64 string.
      */
     private final String bitstring;
 
+    private final boolean base64Encoded;
+
     /**
      * Ctor.
      * @param bitstring The archive.
      */
-    TgzArchive(final String bitstring) {
+    public TgzArchive(final String bitstring) {
+        this(bitstring, true);
+    }
+
+    public TgzArchive(String bitstring, boolean base64Encoded) {
         this.bitstring = bitstring;
+        this.base64Encoded = base64Encoded;
     }
 
     /**
@@ -56,7 +71,7 @@ final class TgzArchive {
      */
     public Completable saveToFile(final Path path) {
         return Completable.fromAction(
-            () -> Files.write(path, Base64.getDecoder().decode(this.bitstring))
+                () -> Files.write(path, this.bytes())
         );
     }
 
@@ -66,6 +81,40 @@ final class TgzArchive {
      * @return Archive bytes
      */
     public byte[] bytes() {
-        return Base64.getDecoder().decode(this.bitstring);
+        return base64Encoded ? Base64.getDecoder().decode(this.bitstring) :
+                this.bitstring.getBytes(StandardCharsets.ISO_8859_1);
+    }
+
+    /**
+     * Obtain file by name.
+     *
+     * @param name The name of a file.
+     * @return The file content.
+     */
+    private String file(final String name) {
+        try {
+            final TarArchiveInputStream taris = new TarArchiveInputStream(
+                    new GzipCompressorInputStream(new ByteArrayInputStream(this.bytes()))
+            );
+            TarArchiveEntry entry;
+            while ((entry = taris.getNextTarEntry()) != null) {
+                if (entry.getName().endsWith(name)) {
+                    return new BufferedReader(new InputStreamReader(taris))
+                            .lines()
+                            .collect(Collectors.joining("\n"));
+                }
+            }
+            throw new IllegalStateException(String.format("'%s' file wasn't found", name));
+        } catch (final IOException exc) {
+            throw new UncheckedIOException(exc);
+        }
+    }
+
+    public Meta meta() {
+        return new Meta(
+                new NpmPublishJsonToMetaSkelethon(
+                        Json.createReader(new StringReader(this.file("package.json")))
+                                .readObject()).skeleton()
+        );
     }
 }
