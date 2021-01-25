@@ -25,7 +25,7 @@ package com.artipie.npm;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
 import com.artipie.npm.http.NpmSlice;
@@ -56,12 +56,6 @@ import org.testcontainers.containers.GenericContainer;
 final class NpmUnpublishIT {
 
     /**
-     * Temporary directory for all tests.
-     * @checkstyle VisibilityModifierCheck (3 lines)
-     */
-    @TempDir Path tmp;
-
-    /**
      * Vert.x used to create tested FileStorage.
      */
     private Vertx vertx;
@@ -87,9 +81,9 @@ final class NpmUnpublishIT {
     private GenericContainer<?> cntn;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp(final @TempDir Path tmp) throws Exception {
         this.vertx = Vertx.vertx();
-        this.storage = new FileStorage(this.tmp);
+        this.storage = new InMemoryStorage();
         final int port = new RandomFreePort().value();
         this.url = String.format("http://host.testcontainers.internal:%d", port);
         this.server = new VertxSliceServer(
@@ -102,7 +96,7 @@ final class NpmUnpublishIT {
         this.cntn = new GenericContainer<>("node:14-alpine")
             .withCommand("tail", "-f", "/dev/null")
             .withWorkingDirectory("/home/")
-            .withFileSystemBind(this.tmp.toString(), "/home");
+            .withFileSystemBind(tmp.toString(), "/home");
         this.cntn.start();
     }
 
@@ -116,8 +110,7 @@ final class NpmUnpublishIT {
     @Test
     void npmUnpublishWorks() throws Exception {
         final String proj = "@hello/simple-npm-project";
-        new TestResource("storage")
-            .addFilesTo(this.storage, Key.ROOT);
+        new TestResource("storage").addFilesTo(this.storage, Key.ROOT);
         MatcherAssert.assertThat(
             this.exec("npm", "unpublish", proj, "--force", "--registry", this.url),
             new StringContains(String.format("- %s", proj))
