@@ -28,6 +28,7 @@ import com.artipie.http.Slice;
 import com.artipie.http.rs.StandardRs;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.reactivestreams.Publisher;
 
 /**
@@ -35,6 +36,11 @@ import org.reactivestreams.Publisher;
  * @since 0.8
  */
 public final class DeprecateSlice implements Slice {
+
+    /**
+     * Patter for `referer` header value.
+     */
+    static final Pattern HEADER = Pattern.compile("deprecate.*");
 
     @Override
     public Response response(

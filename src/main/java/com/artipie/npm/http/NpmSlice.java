@@ -135,7 +135,7 @@ public final class NpmSlice implements Slice {
             new RtRulePath(
                 new RtRule.All(
                     new ByMethodsRule(RqMethod.PUT),
-                    new RtRule.ByHeader(NpmSlice.REFERER, Pattern.compile("deprecate.*"))
+                    new RtRule.ByHeader(NpmSlice.REFERER, DeprecateSlice.HEADER)
                 ),
                 new BasicAuthSlice(
                     new DeprecateSlice(),
