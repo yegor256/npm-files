@@ -4,9 +4,9 @@
 [![DevOps By Rultor.com](http://www.rultor.com/b/artipie/npm-adapter)](http://www.rultor.com/p/artipie/npm-adapter)
 [![We recommend IntelliJ IDEA](https://www.elegantobjects.org/intellij-idea.svg)](https://www.jetbrains.com/idea/)
 
-[![Maven Build](https://github.com/artipie/npm-adapter/workflows/Maven%20Build/badge.svg)](https://github.com/artipie/npm-adapter/actions?query=workflow%3A%22Maven+Build%22)
 [![Javadoc](http://www.javadoc.io/badge/com.artipie/npm-adapter.svg)](http://www.javadoc.io/doc/com.artipie/npm-adapter)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/artipie/npm-adapter/blob/master/LICENSE.txt)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/com.artipie/npm-adapter/blob/master/LICENSE.txt)
+[![codecov](https://codecov.io/gh/artipie/npm-adapter/branch/master/graph/badge.svg)](https://codecov.io/gh/artipie/npm-adapter)
 [![Hits-of-Code](https://hitsofcode.com/github/artipie/npm-adapter)](https://hitsofcode.com/view/github/artipie/npm-adapter)
 [![Maven Central](https://img.shields.io/maven-central/v/com.artipie/npm-adapter.svg)](https://maven-badges.herokuapp.com/maven-central/com.artipie/npm-adapter)
 [![PDD status](http://www.0pdd.com/svg?name=artipie/npm-adapter)](http://www.0pdd.com/p?name=artipie/npm-adapter)
