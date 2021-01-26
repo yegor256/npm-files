@@ -138,7 +138,7 @@ public final class NpmSlice implements Slice {
                     new RtRule.ByHeader(NpmSlice.REFERER, DeprecateSlice.HEADER)
                 ),
                 new BasicAuthSlice(
-                    new DeprecateSlice(),
+                    new DeprecateSlice(storage),
                     auth,
                     new Permission.ByName(perms, Action.Standard.WRITE)
                 )
