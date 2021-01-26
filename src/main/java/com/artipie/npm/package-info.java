@@ -26,5 +26,9 @@
  * Npm files.
  *
  * @since 0.1
+ * @todo #164:30min Improve code coverage by writing unit-tests:
+ *  each coverage counter (check jacoco plugin in pom.xml) should not be less than 75.
+ *  Write unit-tests to achieve such coverage. After each iteration do not forget to
+ *  correct coverage minimums and this todo to continue work.
  */
 package com.artipie.npm;
