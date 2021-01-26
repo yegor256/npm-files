@@ -42,6 +42,7 @@ import com.artipie.npm.Npm;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.reactivestreams.Publisher;
 
 /**
@@ -51,6 +52,11 @@ import org.reactivestreams.Publisher;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class NpmSlice implements Slice {
+
+    /**
+     * Header name `referer`.
+     */
+    private static final String REFERER = "referer";
 
     /**
      * Route.
@@ -116,12 +122,26 @@ public final class NpmSlice implements Slice {
                 )
             ),
             new RtRulePath(
-                new ByMethodsRule(RqMethod.PUT),
-                    new BasicAuthSlice(
-                        new UploadSlice(npm, storage),
-                        auth,
-                        new Permission.ByName(perms, Action.Standard.WRITE)
-                    )
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.PUT),
+                    new RtRule.ByHeader(NpmSlice.REFERER, Pattern.compile("publish.*"))
+                ),
+                new BasicAuthSlice(
+                    new UploadSlice(npm, storage),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.WRITE)
+                )
+            ),
+            new RtRulePath(
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.PUT),
+                    new RtRule.ByHeader(NpmSlice.REFERER, DeprecateSlice.HEADER)
+                ),
+                new BasicAuthSlice(
+                    new DeprecateSlice(),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.WRITE)
+                )
             ),
             new RtRulePath(
                 new RtRule.All(
