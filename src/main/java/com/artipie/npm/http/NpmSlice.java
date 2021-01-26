@@ -177,9 +177,12 @@ public final class NpmSlice implements Slice {
                 )
             ),
             new RtRulePath(
-                new ByMethodsRule(RqMethod.DELETE),
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.DELETE),
+                    new RtRule.ByPath(UnpublishForceSlice.PTRN)
+                ),
                 new BasicAuthSlice(
-                    new UnpublishForceSlice(),
+                    new UnpublishForceSlice(storage),
                     auth,
                     new Permission.ByName(perms, Action.Standard.DELETE)
                 )

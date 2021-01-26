@@ -35,6 +35,7 @@ import io.vertx.reactivex.core.Vertx;
 import java.net.URL;
 import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,8 +113,14 @@ final class NpmUnpublishIT {
         final String proj = "@hello/simple-npm-project";
         new TestResource("storage").addFilesTo(this.storage, Key.ROOT);
         MatcherAssert.assertThat(
+            "Unpublish command is succeeded",
             this.exec("npm", "unpublish", proj, "--force", "--registry", this.url),
             new StringContains(String.format("- %s", proj))
+        );
+        MatcherAssert.assertThat(
+            "Meta file was deleted",
+            this.storage.exists(new Key.From(proj, "meta.json")).join(),
+            new IsEqual<>(false)
         );
     }
 
