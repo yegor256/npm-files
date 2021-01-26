@@ -118,9 +118,9 @@ final class NpmUnpublishIT {
             new StringContains(String.format("- %s", proj))
         );
         MatcherAssert.assertThat(
-            "Meta file was deleted",
-            this.storage.exists(new Key.From(proj, "meta.json")).join(),
-            new IsEqual<>(false)
+            "The entire package was removed",
+            this.storage.list(new Key.From(proj)).join().isEmpty(),
+            new IsEqual<>(true)
         );
     }
 
