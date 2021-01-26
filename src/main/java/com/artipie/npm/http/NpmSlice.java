@@ -175,6 +175,14 @@ public final class NpmSlice implements Slice {
                     auth,
                     new Permission.ByName(perms, Action.Standard.READ)
                 )
+            ),
+            new RtRulePath(
+                new ByMethodsRule(RqMethod.DELETE),
+                new BasicAuthSlice(
+                    new UnpublishForceSlice(),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.DELETE)
+                )
             )
         );
     }
