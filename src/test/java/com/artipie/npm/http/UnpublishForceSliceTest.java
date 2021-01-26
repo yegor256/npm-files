@@ -72,7 +72,7 @@ final class UnpublishForceSliceTest {
         );
         MatcherAssert.assertThat(
             "Meta file was deleted",
-            this.storage.exists(new Key.From("@hello%2fsimple-npm-project", "meta.json"))
+            this.storage.exists(new Key.From("@hello/simple-npm-project", "meta.json"))
                 .toCompletableFuture().join(),
             new IsEqual<>(false)
         );
