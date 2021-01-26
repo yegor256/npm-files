@@ -64,7 +64,7 @@ final class UnpublishForceSliceTest {
             new SliceHasResponse(
                 new RsHasStatus(RsStatus.OK),
                 new RequestLine(
-                    RqMethod.DELETE, "/@hello/simple-npm-project/-rev/undefined"
+                    RqMethod.DELETE, "/@hello%2fsimple-npm-project/-rev/undefined"
                 ),
                 Headers.EMPTY,
                 Content.EMPTY
@@ -72,7 +72,7 @@ final class UnpublishForceSliceTest {
         );
         MatcherAssert.assertThat(
             "Meta file was deleted",
-            this.storage.exists(new Key.From("@hello/fsimple-npm-project", "meta.json"))
+            this.storage.exists(new Key.From("@hello%2fsimple-npm-project", "meta.json"))
                 .toCompletableFuture().join(),
             new IsEqual<>(false)
         );
