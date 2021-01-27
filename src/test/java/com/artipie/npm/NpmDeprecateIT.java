@@ -25,6 +25,7 @@ package com.artipie.npm;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
@@ -32,8 +33,10 @@ import com.artipie.npm.http.NpmSlice;
 import com.artipie.vertx.VertxSliceServer;
 import com.jcabi.log.Logger;
 import io.vertx.reactivex.core.Vertx;
+import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Path;
+import javax.json.Json;
 import org.cactoos.list.ListOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
@@ -47,6 +50,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
+import wtf.g4s8.hamcrest.json.JsonHas;
+import wtf.g4s8.hamcrest.json.JsonValueIs;
 
 /**
  * IT case for `npm deprecate` command.
@@ -121,10 +126,26 @@ public final class NpmDeprecateIT {
         final String pkg = "@hello/simple-npm-project";
         new TestResource("json/not_deprecated.json")
             .saveTo(this.storage, new Key.From(pkg, "meta.json"));
+        final String msg = "Danger! Do not use!";
         MatcherAssert.assertThat(
-            this.exec("npm", "deprecate", pkg, "Danger! Do not use!", "--registry", this.url)
-                .getExitCode(),
+            "Npm deprecate command was successful",
+            this.exec("npm", "deprecate", pkg, msg, "--registry", this.url).getExitCode(),
             new IsEqual<>(0)
+        );
+        MatcherAssert.assertThat(
+            "Metadata file was updates",
+            Json.createReader(
+                new StringReader(
+                    new PublisherAs(this.storage.value(new Key.From(pkg, "meta.json")).join())
+                        .asciiString().toCompletableFuture().join()
+                )
+            ).readObject(),
+            new JsonHas(
+                "versions",
+                new JsonHas(
+                    "1.0.1", new JsonHas("deprecated", new JsonValueIs(msg))
+                )
+            )
         );
     }
 
