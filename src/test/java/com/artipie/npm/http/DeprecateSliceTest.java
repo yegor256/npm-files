@@ -57,7 +57,12 @@ class DeprecateSliceTest {
     /**
      * Deprecated field name.
      */
-    public static final String FIELD = "deprecated";
+    private static final String FIELD = "deprecated";
+
+    /**
+     * Test project name.
+     */
+    private static final String PROJECT = "@hello/simple-npm-project";
 
     /**
      * Test storage.
@@ -72,32 +77,32 @@ class DeprecateSliceTest {
     @BeforeEach
     void init() {
         this.storage = new InMemoryStorage();
-        this.meta = new Key.From("@hello/simple-npm-project", "meta.json");
+        this.meta = new Key.From(DeprecateSliceTest.PROJECT, "meta.json");
         this.storage.save(
             this.meta,
             new Content.From(
-                String.join(
-                    "\n",
-                    "{",
-                    "\"name\": \"@hello/simple-npm-project\",",
-                    "\"versions\": {",
-                    "    \"1.0.1\": {",
-                    "      \"name\": \"@hello/simple-npm-project\",",
-                    "      \"version\": \"1.0.1\"",
-                    "    },",
-                    "    \"1.0.2\": {",
-                    "      \"name\": \"@hello/simple-npm-project\",",
-                    "      \"version\": \"1.0.2\"",
-                    "    }",
-                    "  }",
-                    "}"
-                ).getBytes(StandardCharsets.UTF_8)
+                Json.createObjectBuilder()
+                    .add("name", DeprecateSliceTest.PROJECT)
+                    .add(
+                        "versions",
+                        Json.createObjectBuilder().add(
+                            "1.0.1", Json.createObjectBuilder()
+                            .add("name", DeprecateSliceTest.PROJECT)
+                            .add("version", "1.0.1")
+                        ).add(
+                            "1.0.2",
+                            Json.createObjectBuilder()
+                                .add("name", DeprecateSliceTest.PROJECT)
+                                .add("version", "1.0.2")
+                        )
+                    ).build().toString().getBytes(StandardCharsets.UTF_8)
             )
         ).join();
     }
 
     @Test
     void addsDeprecateFieldForVersion() {
+        final String value = "This version is deprecated!";
         MatcherAssert.assertThat(
             "Response status is OK",
             new DeprecateSlice(this.storage),
@@ -108,27 +113,26 @@ class DeprecateSliceTest {
                 ),
                 Headers.EMPTY,
                 new Content.From(
-                    String.join(
-                        "\n",
-                        "{",
-                        "\"name\": \"@hello/simple-npm-project\",",
-                        "\"versions\": {",
-                        "    \"1.0.1\": {",
-                        "      \"name\": \"@hello/simple-npm-project\",",
-                        "      \"version\": \"1.0.1\"",
-                        "    },",
-                        "    \"1.0.2\": {",
-                        "      \"name\": \"@hello/simple-npm-project\",",
-                        "      \"version\": \"1.0.2\",",
-                        "      \"deprecated\": \"This version is deprecated!\"",
-                        "    }",
-                        "  }",
-                        "}"
-                    ).getBytes(StandardCharsets.UTF_8)
+                    Json.createObjectBuilder()
+                        .add("name", DeprecateSliceTest.PROJECT)
+                        .add(
+                            "versions",
+                            Json.createObjectBuilder().add(
+                                "1.0.1",
+                                Json.createObjectBuilder()
+                                    .add("name", DeprecateSliceTest.PROJECT)
+                                    .add("version", "1.0.1")
+                            ).add(
+                                "1.0.2",
+                                Json.createObjectBuilder()
+                                    .add("name", DeprecateSliceTest.PROJECT)
+                                    .add("version", "1.0.2")
+                                    .add(DeprecateSliceTest.FIELD, value)
+                            )
+                        ).build().toString().getBytes(StandardCharsets.UTF_8)
                 )
             )
         );
-        final String value = "This version is deprecated!";
         MatcherAssert.assertThat(
             "Meta.json is updated",
             this.getMetaJson(),
@@ -153,6 +157,7 @@ class DeprecateSliceTest {
 
     @Test
     void addsDeprecateFieldForVersions() {
+        final String value = "Do not use!";
         MatcherAssert.assertThat(
             "Response status is OK",
             new DeprecateSlice(this.storage),
@@ -163,28 +168,27 @@ class DeprecateSliceTest {
                 ),
                 Headers.EMPTY,
                 new Content.From(
-                    String.join(
-                        "\n",
-                        "{",
-                        "\"name\": \"@hello/simple-npm-project\",",
-                        "\"versions\": {",
-                        "    \"1.0.1\": {",
-                        "      \"name\": \"@hello/simple-npm-project\",",
-                        "      \"version\": \"1.0.1\",",
-                        "      \"deprecated\": \"Do not use!\"",
-                        "    },",
-                        "    \"1.0.2\": {",
-                        "      \"name\": \"@hello/simple-npm-project\",",
-                        "      \"version\": \"1.0.2\",",
-                        "      \"deprecated\": \"Do not use!\"",
-                        "    }",
-                        "  }",
-                        "}"
-                    ).getBytes(StandardCharsets.UTF_8)
+                    Json.createObjectBuilder()
+                        .add("name", DeprecateSliceTest.PROJECT)
+                        .add(
+                            "versions",
+                            Json.createObjectBuilder().add(
+                                "1.0.1",
+                                Json.createObjectBuilder()
+                                    .add("name", DeprecateSliceTest.PROJECT)
+                                    .add("version", "1.0.1")
+                                    .add(DeprecateSliceTest.FIELD, value)
+                            ).add(
+                                "1.0.2",
+                                Json.createObjectBuilder()
+                                    .add("name", DeprecateSliceTest.PROJECT)
+                                    .add("version", "1.0.2")
+                                    .add(DeprecateSliceTest.FIELD, value)
+                            )
+                        ).build().toString().getBytes(StandardCharsets.UTF_8)
                 )
             )
         );
-        final String value = "Do not use!";
         MatcherAssert.assertThat(
             "Meta.json is updated",
             this.getMetaJson(),
