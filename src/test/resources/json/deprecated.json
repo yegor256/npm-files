@@ -25,7 +25,7 @@
         {}
       ],
       "dist": {
-        "integrity": "sha512-IfsPak/s42nS1GjXQL40RtSC0KBr/hMhUz3kd6wkRrKx0BxraM4K0EWTC0jAiMeepREthbpjH/6NYVXZ7Qu8JQ==",
+        "integrity": "sha512-R6b7GPSbDu6gqzF6ZeViwdV1yUU8QDj+lMYkJLwETkUpygwn9Zy/RT1js1Kh5ci8ParktgaNyNlP4jbwno02xw==",
         "tarball": "/@hello/simple-npm-project/-/@hello/simple-npm-project-1.0.1.tgz"
       },
       "deprecated": "Danger! Do not use!"
