@@ -41,12 +41,12 @@ import org.hamcrest.core.IsEqual;
 import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
 /**
@@ -149,7 +149,6 @@ public final class NpmIT {
     }
 
     @Test
-    @Disabled
     void npmInstallWorks() throws Exception {
         final String proj = "@hello/simple-npm-project";
         this.saveFilesToStrg(proj);
@@ -196,7 +195,8 @@ public final class NpmIT {
     }
 
     private String exec(final String... command) throws Exception {
-        Logger.debug(this, "Command:\n%s", String.join(" ", command));
-        return this.cntn.execInContainer(command).getStdout();
+        final Container.ExecResult res = this.cntn.execInContainer(command);
+        Logger.debug(this, "Command:\n%s\nResult:\n%s", String.join(" ", command), res.toString());
+        return res.getStdout();
     }
 }
