@@ -31,7 +31,6 @@ import com.artipie.asto.rx.RxStorage;
 import com.artipie.asto.rx.RxStorageWrapper;
 import hu.akarnokd.rxjava2.interop.CompletableInterop;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -85,7 +84,7 @@ public class Npm {
     /**
      * Publish a new version of a npm package.
      *
-     * @param prefix Path prefix for achieves and meta information storage
+     * @param prefix Path prefix for archives and meta information storage
      * @param artifact Where uploaded json file is stored
      * @return Completion or error signal.
      */
@@ -122,7 +121,9 @@ public class Npm {
      *  you could get the metadata information from the package.json
      */
     public Completable updateMetaFile(final Key prefix, final TgzArchive file) {
-        throw new UnsupportedOperationException();
+        return Single.just(file)
+            .flatMap(TgzArchive::packageJson)
+            .flatMapCompletable(json -> this.updateMetaFile(prefix, json));
     }
 
     /**
@@ -149,11 +150,7 @@ public class Npm {
                                         "-",
                                         attachment
                                     ),
-                                    new Content.From(
-                                        Flowable.fromArray(
-                                            ByteBuffer.wrap(bytes)
-                                        )
-                                    )
+                                    new Content.From(bytes)
                                 );
                             }
                         ).collect(Collectors.toList())

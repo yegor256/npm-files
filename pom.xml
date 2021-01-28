@@ -108,6 +108,16 @@ SOFTWARE.
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.20</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-rx-java2</artifactId>
     </dependency>
@@ -146,12 +156,6 @@ SOFTWARE.
       <scope>runtime</scope>
     </dependency>
     <!-- Test only dependencies  -->
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.6</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>com.jcabi</groupId>
       <artifactId>jcabi-matchers</artifactId>
