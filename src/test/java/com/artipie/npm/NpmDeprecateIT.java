@@ -26,7 +26,7 @@ package com.artipie.npm;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.ext.PublisherAs;
-import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.asto.fs.FileStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
 import com.artipie.npm.http.NpmSlice;
@@ -96,7 +96,7 @@ public final class NpmDeprecateIT {
 
     @BeforeEach
     void setUp() throws Exception {
-        this.storage = new InMemoryStorage();
+        this.storage = new FileStorage(this.tmp);
         this.vertx = Vertx.vertx();
         final int port = new RandomFreePort().value();
         this.url = String.format("http://host.testcontainers.internal:%d", port);
@@ -166,9 +166,43 @@ public final class NpmDeprecateIT {
         );
     }
 
+    @Test
+    void publishThenDeprecateAndInstallWithDeprecationFromDependency() throws Exception {
+        final String proj = "@hello/simple-npm-project";
+        final String withdep = "project-with-simple-dependency";
+        new TestResource("simple-npm-project")
+            .addFilesTo(this.storage, new Key.From(String.format("tmp/%s", proj)));
+        new TestResource(withdep)
+            .addFilesTo(this.storage, new Key.From(String.format("tmp/%s", withdep)));
+        this.exec("npm", "publish", String.format("tmp/%s", proj), "--registry", this.url);
+        this.exec("npm", "publish", String.format("tmp/%s", withdep), "--registry", this.url);
+        final String msg = "Danger! Do not use!";
+        this.exec("npm", "deprecate", proj, msg, "--registry", this.url);
+        final Container.ExecResult res = this.exec("npm", "install", withdep, "--registry", this.url);
+        MatcherAssert.assertThat(
+            "Deprecation warn was shown",
+            res.getStderr(),
+            new StringContainsInOrder(
+                new ListOf<>(
+                    "WARN", "deprecated", "@hello/simple-npm-project@1.0.1: Danger! Do not use!"
+                )
+            )
+        );
+        MatcherAssert.assertThat(
+            "Package was installed",
+            res.getStdout(),
+            new StringContainsInOrder(
+                new ListOf<>(
+                    "+ project-with-simple-dependency@1.0.0", "added 2 packages"
+                )
+            )
+        );
+    }
+
     private Container.ExecResult exec(final String... command) throws Exception {
+        Logger.debug(this, "Command:\n%s\n", String.join(" ", command));
         final Container.ExecResult res = this.cntn.execInContainer(command);
-        Logger.debug(this, "Command:\n%s\nResult:\n%s", String.join(" ", command), res.toString());
+        Logger.debug(this, "STDOUT:\n%s\nSTDERR:\n%s", res.getStdout(), res.getStderr());
         return res;
     }
 
