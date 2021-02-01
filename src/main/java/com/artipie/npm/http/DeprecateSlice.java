@@ -117,15 +117,15 @@ public final class DeprecateSlice implements Slice {
         final String field = "deprecated";
         final  String path = "/versions/%s/deprecated";
         for (final String version : versions.keySet()) {
-            if (versions.getJsonObject(version).containsKey(field)
-                && !StringUtils.isEmpty(versions.getJsonObject(version).getString(field))
-            ) {
-                res.add(
-                    String.format(path, version),
-                    versions.getJsonObject(version).getString(field)
-                );
-            } else {
-                res.remove(String.format(path, version));
+            if (versions.getJsonObject(version).containsKey(field)) {
+                if (StringUtils.isEmpty(versions.getJsonObject(version).getString(field))) {
+                    res.remove(String.format(path, version));
+                } else {
+                    res.add(
+                        String.format(path, version),
+                        versions.getJsonObject(version).getString(field)
+                    );
+                }
             }
         }
         return res.build().apply(meta);
