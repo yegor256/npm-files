@@ -178,7 +178,8 @@ public final class NpmDeprecateIT {
         this.exec("npm", "publish", String.format("tmp/%s", withdep), "--registry", this.url);
         final String msg = "Danger! Do not use!";
         this.exec("npm", "deprecate", proj, msg, "--registry", this.url);
-        final Container.ExecResult res = this.exec("npm", "install", withdep, "--registry", this.url);
+        final Container.ExecResult res;
+        res = this.exec("npm", "install", withdep, "--registry", this.url);
         MatcherAssert.assertThat(
             "Deprecation warn was shown",
             res.getStderr(),
