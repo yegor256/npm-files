@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonPatchBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 
 /**
@@ -49,7 +50,6 @@ import org.reactivestreams.Publisher;
  * @since 0.8
  */
 public final class DeprecateSlice implements Slice {
-
     /**
      * Patter for `referer` header value.
      */
@@ -115,12 +115,17 @@ public final class DeprecateSlice implements Slice {
     private static JsonObject deprecate(final JsonObject versions, final JsonObject meta) {
         final JsonPatchBuilder res = Json.createPatchBuilder();
         final String field = "deprecated";
+        final  String path = "/versions/%s/deprecated";
         for (final String version : versions.keySet()) {
-            if (versions.getJsonObject(version).containsKey(field)) {
+            if (versions.getJsonObject(version).containsKey(field)
+                && !StringUtils.isEmpty(versions.getJsonObject(version).getString(field))
+            ) {
                 res.add(
-                    String.format("/versions/%s/deprecated", version),
+                    String.format(path, version),
                     versions.getJsonObject(version).getString(field)
                 );
+            } else {
+                res.remove(String.format(path, version));
             }
         }
         return res.build().apply(meta);

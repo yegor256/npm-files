@@ -25,18 +25,16 @@ package com.artipie.npm;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.fs.FileStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
 import com.artipie.npm.http.NpmSlice;
+import com.artipie.npm.misc.JsonFromPublisher;
 import com.artipie.vertx.VertxSliceServer;
 import com.jcabi.log.Logger;
 import io.vertx.reactivex.core.Vertx;
-import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Path;
-import javax.json.Json;
 import org.cactoos.list.ListOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
@@ -134,12 +132,9 @@ public final class NpmDeprecateIT {
         );
         MatcherAssert.assertThat(
             "Metadata file was updates",
-            Json.createReader(
-                new StringReader(
-                    new PublisherAs(this.storage.value(new Key.From(pkg, "meta.json")).join())
-                        .asciiString().toCompletableFuture().join()
-                )
-            ).readObject(),
+            new JsonFromPublisher(
+                this.storage.value(new Key.From(pkg, "meta.json")).join()
+            ).json().join(),
             new JsonHas(
                 "versions",
                 new JsonHas(
