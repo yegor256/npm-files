@@ -31,7 +31,6 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.http.slice.TrimPathSlice;
-import com.artipie.npm.CliPublish;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.Collections;

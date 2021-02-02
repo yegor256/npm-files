@@ -45,7 +45,7 @@ import org.reactivestreams.Publisher;
  * Request line to this slice looks like `/[<@scope>/]pkg/-rev/undefined`.
  * @since 0.8
  */
-public final class UnpublishForceSlice implements Slice {
+final class UnpublishForceSlice implements Slice {
     /**
      * Endpoint request line pattern.
      */
@@ -60,7 +60,7 @@ public final class UnpublishForceSlice implements Slice {
      * Ctor.
      * @param storage Abstract storage
      */
-    public UnpublishForceSlice(final Storage storage) {
+    UnpublishForceSlice(final Storage storage) {
         this.storage = storage;
     }
 

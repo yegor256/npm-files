@@ -38,7 +38,6 @@ import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
-import com.artipie.npm.CliPublish;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Map;
