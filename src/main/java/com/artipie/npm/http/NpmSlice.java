@@ -38,11 +38,10 @@ import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
-import com.artipie.npm.Npm;
+import com.artipie.npm.CliPublish;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.regex.Pattern;
 import org.reactivestreams.Publisher;
 
 /**
@@ -69,24 +68,13 @@ public final class NpmSlice implements Slice {
      * @param storage Storage for package
      */
     public NpmSlice(final URL base, final Storage storage) {
-        this(base, new Npm(storage), storage);
-    }
-
-    /**
-     * Ctor with existing front and default parameters for free access.
-     * @param base Base URL.
-     * @param npm Npm existing front
-     * @param storage Storage for package
-     */
-    public NpmSlice(final URL base, final Npm npm, final Storage storage) {
-        this(base, npm, storage, Permissions.FREE, Authentication.ANONYMOUS);
+        this(base, storage, Permissions.FREE, Authentication.ANONYMOUS);
     }
 
     /**
      * Ctor.
      *
      * @param base Base URL.
-     * @param npm Npm front.
      * @param storage Storage for package.
      * @param perms Access permissions.
      * @param auth Authentication.
@@ -94,7 +82,6 @@ public final class NpmSlice implements Slice {
      */
     public NpmSlice(
         final URL base,
-        final Npm npm,
         final Storage storage,
         final Permissions perms,
         final Authentication auth) {
@@ -124,10 +111,10 @@ public final class NpmSlice implements Slice {
             new RtRulePath(
                 new RtRule.All(
                     new ByMethodsRule(RqMethod.PUT),
-                    new RtRule.ByHeader(NpmSlice.REFERER, Pattern.compile("publish.*"))
+                    new RtRule.ByHeader(NpmSlice.REFERER, CliPublish.HEADER)
                 ),
                 new BasicAuthSlice(
-                    new UploadSlice(npm, storage),
+                    new UploadSlice(new CliPublish(storage), storage),
                     auth,
                     new Permission.ByName(perms, Action.Standard.WRITE)
                 )

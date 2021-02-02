@@ -29,25 +29,29 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.rx.RxStorage;
 import com.artipie.asto.rx.RxStorageWrapper;
 import com.artipie.npm.misc.JsonFromPublisher;
+import com.jcabi.log.Logger;
 import hu.akarnokd.rxjava2.interop.CompletableInterop;
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.json.JsonObject;
 
 /**
- * The NPM front.
+ * The NPM publish front.
  * The main goal is to consume a json uploaded by
  * {@code npm publish command} and to:
  *  1. to generate source archives
  *  2. meta.json file
  *
- * @since 0.1
- * @checkstyle ClassDataAbstractionCouplingCheck (500 lines).
+ * @since 0.9
  */
-public class Npm {
+public final class CliPublish implements Publish {
+    /**
+     * Pattern for `referer` header value.
+     */
+    public static final Pattern HEADER = Pattern.compile("publish.*");
 
     /**
      * The storage.
@@ -58,30 +62,12 @@ public class Npm {
      * Constructor.
      * @param storage The storage.
      */
-    public Npm(final Storage storage) {
+    public CliPublish(final Storage storage) {
         this.storage = new RxStorageWrapper(storage);
     }
 
-    /**
-     * Constructor.
-     * @param storage The storage.
-     * @param pathref The sources archive pathpref. Example: http://host:8080. Unused since 0.6
-     * @deprecated Use {@link #Npm(Storage)} instead
-     */
-    @Deprecated
-    @SuppressWarnings("PMD.UnusedFormalParameter")
-    public Npm(final Storage storage, final Optional<String> pathref) {
-        this(storage);
-    }
-
-    /**
-     * Publish a new version of a npm package.
-     *
-     * @param prefix Path prefix for archives and meta information storage
-     * @param artifact Where uploaded json file is stored
-     * @return Completion or error signal.
-     */
-    public final CompletableFuture<Void> publish(final Key prefix, final Key artifact) {
+    @Override
+    public CompletableFuture<Void> publish(final Key prefix, final Key artifact) {
         return this.storage.value(artifact)
             .map(JsonFromPublisher::new)
             .flatMap(JsonFromPublisher::jsonRx)
@@ -91,25 +77,6 @@ public class Npm {
             ).to(CompletableInterop.await())
             .<Void>thenApply(r -> null)
             .toCompletableFuture();
-    }
-
-    /**
-     * Updates the meta.json file based on tgz package file.
-     * @param prefix Package prefix.
-     * @param file Tgz archive file.
-     * @return Completion or error signal.
-     * @todo #27:30min Implement metadata update by using tgz package file.
-     *  In addition to interacting with the NPM client, the artifactory repo
-     *  also support upload NPM .tgz file manually by upload request. It mean
-     *  that all the information we can give you is the .tgz filestream. If
-     *  you Unzip the .tgz file， you could get the project package.json. Then,
-     *  you could get the metadata information from the package.json
-     */
-    public Completable updateMetaFile(final Key prefix, final TgzArchive file) {
-        return Single.just(file)
-            .flatMap(TgzArchive::packageJson)
-            .map(json -> new NpmPublishJsonToMetaSkelethon(json).skeleton())
-            .flatMapCompletable(json -> this.updateMetaFile(prefix, json));
     }
 
     /**
@@ -180,6 +147,11 @@ public class Npm {
                         meta.byteFlow()
                     )
                 )
-            );
+            ).doOnError(
+                err -> Logger.warn(
+                    this, "Failed to update meta file: %[exception]s", err
+                )
+            )
+            .onErrorComplete();
     }
 }

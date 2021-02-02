@@ -60,9 +60,9 @@ public final class JsonFromPublisher {
     /**
      * Gets json from publisher.
      *
-     * @return Json
+     * @return Rx Json.
      */
-    public CompletableFuture<JsonObject> json() {
+    public Single<JsonObject> jsonRx() {
         final ByteArrayOutputStream content = new ByteArrayOutputStream();
         return Flowable
             .fromPublisher(this.bytes)
@@ -82,7 +82,16 @@ public final class JsonFromPublisher {
                         )
                     ).readObject()
                 )
-            )
+            );
+    }
+
+    /**
+     * Gets json from publisher.
+     *
+     * @return Completable future Json.
+     */
+    public CompletableFuture<JsonObject> json() {
+        return this.jsonRx()
             .to(SingleInterop.get())
             .toCompletableFuture();
     }
