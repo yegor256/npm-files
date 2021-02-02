@@ -33,7 +33,7 @@ import org.apache.commons.lang3.NotImplementedException;
  * using `curl PUT`.
  * @since 0.9
  */
-public final class CurlPublish implements Publish {
+final class CurlPublish implements Publish {
     @Override
     public CompletableFuture<Void> publish(final Key prefix, final Key artifact) {
         throw new NotImplementedException("Not implemented yet");
