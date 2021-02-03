@@ -34,8 +34,8 @@ import com.artipie.http.Slice;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import com.artipie.npm.Npm;
 import com.artipie.npm.PackageNameFromUrl;
+import com.artipie.npm.Publish;
 import hu.akarnokd.rxjava2.interop.SingleInterop;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -51,9 +51,9 @@ import org.reactivestreams.Publisher;
 public final class UploadSlice implements Slice {
 
     /**
-     * The npm front.
+     * The npm publish front.
      */
-    private final Npm npm;
+    private final Publish npm;
 
     /**
      * Abstract Storage.
@@ -63,10 +63,10 @@ public final class UploadSlice implements Slice {
     /**
      * Ctor.
      *
-     * @param npm Npm front
+     * @param npm Npm publish front
      * @param storage Abstract storage
      */
-    public UploadSlice(final Npm npm, final Storage storage) {
+    public UploadSlice(final Publish npm, final Storage storage) {
         this.npm = npm;
         this.storage = storage;
     }

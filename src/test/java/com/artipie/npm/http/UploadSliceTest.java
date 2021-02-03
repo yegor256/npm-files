@@ -31,7 +31,6 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.http.slice.TrimPathSlice;
-import com.artipie.npm.Npm;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -54,7 +53,7 @@ public final class UploadSliceTest {
     void uploadsFileToRemote() throws Exception {
         final Storage storage = new InMemoryStorage();
         final Slice slice = new TrimPathSlice(
-            new UploadSlice(new Npm(storage), storage),
+            new UploadSlice(new CliPublish(storage), storage),
             "ctx"
         );
         final String json = Json.createObjectBuilder()
@@ -83,7 +82,7 @@ public final class UploadSliceTest {
     void shouldFailForBadRequest() {
         final Storage storage = new InMemoryStorage();
         final Slice slice = new TrimPathSlice(
-            new UploadSlice(new Npm(storage), storage),
+            new UploadSlice(new CliPublish(storage), storage),
             "my-repo"
         );
         Assertions.assertThrows(

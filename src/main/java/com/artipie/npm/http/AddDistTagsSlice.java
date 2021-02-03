@@ -48,7 +48,7 @@ import org.reactivestreams.Publisher;
  * Slice that adds dist-tags to meta.json.
  * @since 0.8
  */
-public final class AddDistTagsSlice implements Slice {
+final class AddDistTagsSlice implements Slice {
 
     /**
      * Endpoint request line pattern.
@@ -70,7 +70,7 @@ public final class AddDistTagsSlice implements Slice {
      * Ctor.
      * @param storage Abstract storage
      */
-    public AddDistTagsSlice(final Storage storage) {
+    AddDistTagsSlice(final Storage storage) {
         this.storage = storage;
     }
 

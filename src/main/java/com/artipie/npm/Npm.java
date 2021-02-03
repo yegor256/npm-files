@@ -25,23 +25,16 @@ package com.artipie.npm;
 
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
-import com.artipie.asto.Remaining;
 import com.artipie.asto.Storage;
 import com.artipie.asto.rx.RxStorage;
 import com.artipie.asto.rx.RxStorageWrapper;
+import com.artipie.npm.misc.JsonFromPublisher;
 import hu.akarnokd.rxjava2.interop.CompletableInterop;
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import javax.json.Json;
 import javax.json.JsonObject;
 
 /**
@@ -90,16 +83,8 @@ public class Npm {
      */
     public final CompletableFuture<Void> publish(final Key prefix, final Key artifact) {
         return this.storage.value(artifact)
-            .flatMapPublisher(bytes -> bytes)
-            .toList()
-            .map(
-                bytes ->
-                    Json.createReader(
-                        new ByteArrayInputStream(
-                            bytesFromListOfByteBuffers(bytes)
-                        )
-                    ).readObject()
-            )
+            .map(JsonFromPublisher::new)
+            .flatMap(JsonFromPublisher::jsonRx)
             .flatMapCompletable(
                 uploaded -> this.updateMetaFile(prefix, uploaded)
                     .andThen(this.updateSourceArchives(uploaded))
@@ -123,6 +108,7 @@ public class Npm {
     public Completable updateMetaFile(final Key prefix, final TgzArchive file) {
         return Single.just(file)
             .flatMap(TgzArchive::packageJson)
+            .map(json -> new NpmPublishJsonToMetaSkelethon(json).skeleton())
             .flatMapCompletable(json -> this.updateMetaFile(prefix, json));
     }
 
@@ -175,18 +161,9 @@ public class Npm {
                     final Single<Meta> meta;
                     if (exists) {
                         meta = this.storage.value(metafilename)
-                            .flatMapPublisher(bytes -> bytes)
-                            .toList()
-                            .map(
-                                bytes ->
-                                    new Meta(
-                                        Json.createReader(
-                                            new ByteArrayInputStream(
-                                                bytesFromListOfByteBuffers(bytes)
-                                            )
-                                        ).readObject()
-                                    )
-                            );
+                            .map(JsonFromPublisher::new)
+                            .flatMap(JsonFromPublisher::jsonRx)
+                            .map(Meta::new);
                     } else {
                         meta = Single.just(
                             new Meta(
@@ -204,24 +181,5 @@ public class Npm {
                     )
                 )
             );
-    }
-
-    /**
-     * Get bytes from list of byte buffers.
-     *
-     * @param buffers List of byte buffers.
-     * @return Bytes from list of buffers.
-     */
-    private static byte[] bytesFromListOfByteBuffers(final List<ByteBuffer> buffers) {
-        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        buffers.forEach(
-            buffer -> {
-                try {
-                    output.write(new Remaining(buffer).bytes());
-                } catch (final IOException exp) {
-                    throw new UncheckedIOException(exp);
-                }
-            });
-        return output.toByteArray();
     }
 }

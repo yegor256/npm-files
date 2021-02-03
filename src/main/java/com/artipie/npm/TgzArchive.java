@@ -48,7 +48,7 @@ import org.apache.commons.io.IOUtils;
  *
  * @since 0.1
  */
-final class TgzArchive {
+public final class TgzArchive {
 
     /**
      * The archive representation in a form of a base64 string.
@@ -64,7 +64,7 @@ final class TgzArchive {
      * Ctor.
      * @param bitstring The archive.
      */
-    TgzArchive(final String bitstring) {
+    public TgzArchive(final String bitstring) {
         this(bitstring, true);
     }
 
