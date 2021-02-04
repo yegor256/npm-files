@@ -121,18 +121,19 @@ public interface MetaUpdate {
 
         @Override
         public CompletableFuture<Void> update(final Key prefix, final Storage storage) {
+            final String version = "version";
             final JsonPatchBuilder patch = Json.createPatchBuilder();
             patch.add("/dist", Json.createObjectBuilder().build());
-            return this.hash(this.tgz, Digests.SHA512, true)
+            return ByTgz.hash(this.tgz, Digests.SHA512, true)
                 .thenAccept(sha -> patch.add("/dist/integrity", String.format("sha512-%s", sha)))
                 .thenCombine(
-                    this.hash(this.tgz, Digests.SHA1, false),
+                    ByTgz.hash(this.tgz, Digests.SHA1, false),
                     (nothing, sha) -> patch.add("/dist/shasum", sha)
                 ).thenCombine(
                     this.tgz.packageJson().to(SingleInterop.get()),
                     (nothing, pkg) -> {
                         final String name = pkg.getString("name");
-                        final String vers = pkg.getString("version");
+                        final String vers = pkg.getString(version);
                         patch.add("/_id", String.format("%s@%s", name, vers));
                         patch.add(
                             "/dist/tarball",
@@ -144,7 +145,7 @@ public interface MetaUpdate {
                 .thenApply(
                     json -> {
                         final JsonObject base = new NpmPublishJsonToMetaSkelethon(json).skeleton();
-                        final String vers = json.getString("version");
+                        final String vers = json.getString(version);
                         final JsonPatchBuilder upd = Json.createPatchBuilder();
                         upd.add("/dist-tags", Json.createObjectBuilder().build());
                         upd.add("/dist-tags/latest", vers);
@@ -163,7 +164,7 @@ public interface MetaUpdate {
          * @param encoded Is encoded64?
          * @return Hash value.
          */
-        private CompletionStage<String> hash(
+        private static CompletionStage<String> hash(
             final TgzArchive tgz, final Digests dgst, final boolean encoded
         ) {
             return new ContentDigest(new Content.From(tgz.bytes()), dgst)

@@ -49,6 +49,7 @@ import org.reactivestreams.Publisher;
  * @since 0.3
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.ExcessiveMethodLength")
 public final class NpmSlice implements Slice {
 
     /**
