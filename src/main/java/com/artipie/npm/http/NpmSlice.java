@@ -131,6 +131,17 @@ public final class NpmSlice implements Slice {
             ),
             new RtRulePath(
                 new RtRule.All(
+                    new ByMethodsRule(RqMethod.PUT),
+                    new RtRule.ByPath(CurlPublish.PTRN)
+                ),
+                new BasicAuthSlice(
+                    new UploadSlice(new CurlPublish(storage), storage),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.WRITE)
+                )
+            ),
+            new RtRulePath(
+                new RtRule.All(
                     new ByMethodsRule(RqMethod.GET),
                     new RtRule.ByPath(".*/dist-tags$")
                 ),

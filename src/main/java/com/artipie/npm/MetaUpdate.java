@@ -26,10 +26,17 @@ package com.artipie.npm;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.ext.ContentDigest;
+import com.artipie.asto.ext.Digests;
 import com.artipie.npm.misc.JsonFromPublisher;
+import hu.akarnokd.rxjava2.interop.SingleInterop;
+import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonPatchBuilder;
+import org.apache.commons.codec.binary.Hex;
 
 /**
  * Updating `meta.json` file.
@@ -89,6 +96,88 @@ public interface MetaUpdate {
                     meta -> storage.save(
                         keymeta, new Content.From(meta.byteFlow())
                     )
+                );
+        }
+    }
+
+    /**
+     * Update `meta.json` by adding information from the package file
+     * from uploaded archive.
+     * @since 0.9
+     */
+    class ByTgz implements MetaUpdate {
+        /**
+         * Uploaded tgz archive.
+         */
+        private final TgzArchive tgz;
+
+        /**
+         * Ctor.
+         * @param tgz Uploaded tgz file
+         */
+        public ByTgz(final TgzArchive tgz) {
+            this.tgz = tgz;
+        }
+
+        @Override
+        public CompletableFuture<Void> update(final Key prefix, final Storage storage) {
+            final JsonPatchBuilder patch = Json.createPatchBuilder();
+            patch.add("/dist", Json.createObjectBuilder().build());
+            return this.hash(this.tgz, Digests.SHA512, true)
+                .thenAccept(sha -> patch.add("/dist/integrity", String.format("sha512-%s", sha)))
+                .thenCombine(
+                    this.hash(this.tgz, Digests.SHA1, false),
+                    (nothing, sha) -> patch.add("/dist/shasum", sha)
+                ).thenCombine(
+                    this.tgz.packageJson().to(SingleInterop.get()),
+                    (nothing, pkg) -> {
+                        final String name = pkg.getString("name");
+                        final String vers = pkg.getString("version");
+                        patch.add("/_id", String.format("%s@%s", name, vers));
+                        patch.add(
+                            "/dist/tarball",
+                            String.format("%s/-/%s-%s.tgz", prefix.string(), name, vers)
+                        );
+                        return patch.build().apply(pkg);
+                    }
+                )
+                .thenApply(
+                    json -> {
+                        final JsonObject base = new NpmPublishJsonToMetaSkelethon(json).skeleton();
+                        final String vers = json.getString("version");
+                        final JsonPatchBuilder upd = Json.createPatchBuilder();
+                        upd.add("/dist-tags", Json.createObjectBuilder().build());
+                        upd.add("/dist-tags/latest", vers);
+                        upd.add(String.format("/versions/%s", vers), json);
+                        return upd.build().apply(base);
+                    }
+                )
+                .thenCompose(json -> new ByJson(json).update(prefix, storage))
+                .toCompletableFuture();
+        }
+
+        /**
+         * Obtains specified hash value for passed archive.
+         * @param tgz Tgz archive
+         * @param dgst Digest mode
+         * @param encoded Is encoded64?
+         * @return Hash value.
+         */
+        private CompletionStage<String> hash(
+            final TgzArchive tgz, final Digests dgst, final boolean encoded
+        ) {
+            return new ContentDigest(new Content.From(tgz.bytes()), dgst)
+                .bytes()
+                .thenApply(
+                    bytes -> {
+                        final String res;
+                        if (encoded) {
+                            res = new String(Base64.getEncoder().encode(bytes));
+                        } else {
+                            res = Hex.encodeHexString(bytes);
+                        }
+                        return res;
+                    }
                 );
         }
     }
