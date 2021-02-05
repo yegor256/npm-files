@@ -49,6 +49,7 @@ import org.reactivestreams.Publisher;
  * @since 0.3
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.ExcessiveMethodLength")
 public final class NpmSlice implements Slice {
 
     /**
@@ -125,6 +126,17 @@ public final class NpmSlice implements Slice {
                 ),
                 new BasicAuthSlice(
                     new DeprecateSlice(storage),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.WRITE)
+                )
+            ),
+            new RtRulePath(
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.PUT),
+                    new RtRule.ByPath(CurlPublish.PTRN)
+                ),
+                new BasicAuthSlice(
+                    new UploadSlice(new CurlPublish(storage), storage),
                     auth,
                     new Permission.ByName(perms, Action.Standard.WRITE)
                 )

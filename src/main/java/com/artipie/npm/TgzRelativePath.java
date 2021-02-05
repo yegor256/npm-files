@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  *
  * @since 0.3
  */
-public class TgzRelativePath {
+final class TgzRelativePath {
 
     /**
      * The full path.
@@ -43,7 +43,7 @@ public class TgzRelativePath {
      * Ctor.
      * @param full The full path.
      */
-    public TgzRelativePath(final String full) {
+    TgzRelativePath(final String full) {
         this.full = full;
     }
 
