@@ -73,7 +73,7 @@ public final class TgzArchive {
      * @param bitstring The archive
      * @param encoded Is Base64 encoded?
      */
-    TgzArchive(final String bitstring, final boolean encoded) {
+    public TgzArchive(final String bitstring, final boolean encoded) {
         this.bitstring = bitstring;
         this.encoded = encoded;
     }
