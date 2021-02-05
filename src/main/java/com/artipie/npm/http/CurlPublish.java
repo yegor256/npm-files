@@ -84,7 +84,8 @@ final class CurlPublish implements Publish {
                                     new Key.From(name, "-", String.format("%s-%s.tgz", name, vers)),
                                     new Content.From(uploaded.bytes())
                                 ),
-                                new MetaUpdate.ByTgz(uploaded).update(prefix, this.storage)
+                                new MetaUpdate.ByTgz(uploaded)
+                                    .update(new Key.From(name), this.storage)
                             );
                         }
                 )
