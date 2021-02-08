@@ -25,6 +25,7 @@ package com.artipie.npm.http;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
@@ -36,9 +37,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashSet;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,13 +105,13 @@ final class CurlPutIT {
             new JsonFromMeta(this.storage, new Key.From(proj))
                 .json().getJsonObject("versions")
                 .keySet(),
-            new IsEqual<>(new HashSet<>(Collections.singleton(vers)))
+            Matchers.contains(vers)
         );
         MatcherAssert.assertThat(
             "Tgz archive was uploaded",
-            this.storage.exists(
+            new BlockingStorage(this.storage).exists(
                 new Key.From(proj, String.format("-/%s-%s.tgz", proj, vers))
-            ).join(),
+            ),
             new IsEqual<>(true)
         );
     }
