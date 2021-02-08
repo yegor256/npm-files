@@ -25,6 +25,7 @@ package com.artipie.npm;
 
 import com.artipie.asto.test.TestResource;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
@@ -59,26 +60,15 @@ final class TgzArchiveTest {
 
     @Test
     void getArchiveEncoded() {
+        final byte[] pkgjson =
+            new TestResource("simple-npm-project/package.json").asBytes();
         final TgzArchive tgz = new TgzArchive(
-            "ewogICJuYW1lIjogIkBoZWxsby9zaW1wbGUtbnBtLXByb2plY3QiLAogICJ2ZXJzaW9uIjogIjEuMC4yIiwKICAiZGVzY3JpcHRpb24iOiAiTmV3IHZlcnNpb24iLAogICJtYWluIjogImluZGV4LmpzIiwKICAic2NyaXB0cyI6IHsKICAgICJ0ZXN0IjogImVjaG8gXCJFcnJvcjogbm8gdGVzdCBzcGVjaWZpZWRcIiAmJiBleGl0IDEiCiAgfSwKICAiYXV0aG9yIjogIiIsCiAgImxpY2Vuc2UiOiAiSVNDIgp9"
+            Base64.getEncoder().encodeToString(pkgjson)
         );
         MatcherAssert.assertThat(
-            new String(tgz.bytes(), StandardCharsets.UTF_8),
+            tgz.bytes(),
             new IsEqual<>(
-                String.join(
-                    "",
-                    "{\n",
-                    "  \"name\": \"@hello/simple-npm-project\",\n",
-                    "  \"version\": \"1.0.2\",\n",
-                    "  \"description\": \"New version\",\n",
-                    "  \"main\": \"index.js\",\n",
-                    "  \"scripts\": {\n",
-                    "    \"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"\n",
-                    "  },\n",
-                    "  \"author\": \"\",\n",
-                    "  \"license\": \"ISC\"\n",
-                    "}"
-                )
+                pkgjson
             )
         );
     }

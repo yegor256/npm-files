@@ -25,32 +25,34 @@ package com.artipie.npm.misc;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * NextSafeAvailablePort tests.
+ * Test cases for {@link NextSafeAvailablePort}.
  * @since 0.9
  * @checkstyle MagicNumberCheck (500 lines)
  */
 @SuppressWarnings("PMD.ProhibitPlainJunitAssertionsRule")
 final class NextSafeAvailablePortTest {
 
-    @Test
-    void failsByInvalidPort() {
-        Throwable thrown =
+    @ParameterizedTest
+    @ValueSource(ints = {1_023, 49_152})
+    void failsByInvalidPort(final int port) {
+        final Throwable thrown =
             Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> new NextSafeAvailablePort(1023).value()
+                () -> new NextSafeAvailablePort(port).value()
             );
-        Assert.assertThat(thrown.getMessage(), Matchers.is("Invalid start port: 1023"));
-        thrown =
-            Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> new NextSafeAvailablePort(49_152).value()
-            );
-        Assert.assertThat(thrown.getMessage(), Matchers.is("Invalid start port: 49152"));
+        MatcherAssert.assertThat(
+            thrown.getMessage(),
+            new IsEqual<>(
+                String.format("Invalid start port: %s", port)
+            )
+        );
     }
 
     @Test

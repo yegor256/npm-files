@@ -30,13 +30,13 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 /**
- * DescSortedVersions tests.
+ * Test cases for {@link DescSortedVersions}.
  * @since 0.9
  */
 final class DescSortedVersionsTest {
 
     @Test
-    void getNextValue() {
+    void sortsVersionsInDescendingOrder() {
         final JsonObject versions =
             Json.createObjectBuilder()
                 .add("1", "")
