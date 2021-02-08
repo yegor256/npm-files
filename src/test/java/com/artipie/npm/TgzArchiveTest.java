@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests for {@link TgzArchive}.
  * @since 0.9
+ * @checkstyle LineLengthCheck (500 lines)
  */
 final class TgzArchiveTest {
     @Test
@@ -53,6 +54,32 @@ final class TgzArchiveTest {
             "Version is parsed properly from package.json",
             json.getJsonString("version").getString(),
             new IsEqual<>("1.0.2")
+        );
+    }
+
+    @Test
+    void getArchiveEncoded() {
+        final TgzArchive tgz = new TgzArchive(
+            "ewogICJuYW1lIjogIkBoZWxsby9zaW1wbGUtbnBtLXByb2plY3QiLAogICJ2ZXJzaW9uIjogIjEuMC4yIiwKICAiZGVzY3JpcHRpb24iOiAiTmV3IHZlcnNpb24iLAogICJtYWluIjogImluZGV4LmpzIiwKICAic2NyaXB0cyI6IHsKICAgICJ0ZXN0IjogImVjaG8gXCJFcnJvcjogbm8gdGVzdCBzcGVjaWZpZWRcIiAmJiBleGl0IDEiCiAgfSwKICAiYXV0aG9yIjogIiIsCiAgImxpY2Vuc2UiOiAiSVNDIgp9"
+        );
+        MatcherAssert.assertThat(
+            new String(tgz.bytes(), StandardCharsets.UTF_8),
+            new IsEqual<>(
+                String.join(
+                    "",
+                    "{\n",
+                    "  \"name\": \"@hello/simple-npm-project\",\n",
+                    "  \"version\": \"1.0.2\",\n",
+                    "  \"description\": \"New version\",\n",
+                    "  \"main\": \"index.js\",\n",
+                    "  \"scripts\": {\n",
+                    "    \"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"\n",
+                    "  },\n",
+                    "  \"author\": \"\",\n",
+                    "  \"license\": \"ISC\"\n",
+                    "}"
+                )
+            )
         );
     }
 }
