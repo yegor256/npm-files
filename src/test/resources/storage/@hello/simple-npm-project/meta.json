@@ -3,7 +3,9 @@
   "_id": "@hello/simple-npm-project",
   "readme": "ERROR: No README data found!",
   "time": {
-    "created": "2020-05-13T16:30:30.381999"
+    "created": "2020-05-13T16:30:30.381999",
+    "modified": "2021-02-04T16:30:30.381999",
+    "1.0.1": "2021-02-04T16:30:30.381999"
   },
   "users": {},
   "versions": {
