@@ -25,10 +25,10 @@ package com.artipie.npm;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.asto.test.TestResource;
-import javax.json.Json;
-import javax.json.JsonObject;
+import java.nio.charset.StandardCharsets;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
@@ -36,11 +36,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for {@link MetaUpdate.ByJson}.
+ * Tests for {@link MetaUpdate.ByTgz}.
  * @since 0.9
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-final class MetaUpdateByJsonTest {
+final class MetaUpdateByTgzTest {
     /**
      * Storage.
      */
@@ -52,36 +53,64 @@ final class MetaUpdateByJsonTest {
     }
 
     @Test
-    void createsMetaFileWhenItNotExist() {
-        final Key prefix = new Key.From("prefix");
-        new MetaUpdate.ByJson(this.cliMeta())
-            .update(new Key.From(prefix), this.asto)
-            .join();
+    void createsMetaFileWhenItNotExist() throws InterruptedException {
+        final Key prefix = new Key.From("@hello/simple-npm-project");
+        this.updateByTgz(prefix);
         MatcherAssert.assertThat(
-            this.asto.exists(new Key.From(prefix, "meta.json")).join(),
+            new BlockingStorage(this.asto).exists(new Key.From(prefix, "meta.json")),
             new IsEqual<>(true)
         );
     }
 
     @Test
     void updatesExistedMetaFile() {
-        final Key prefix = new Key.From("prefix");
-        new TestResource("json/simple-project-1.0.2.json")
+        final Key prefix = new Key.From("@hello/simple-npm-project");
+        new TestResource("storage/@hello/simple-npm-project/meta.json")
             .saveTo(this.asto, new Key.From(prefix, "meta.json"));
-        new MetaUpdate.ByJson(this.cliMeta())
-            .update(new Key.From(prefix), this.asto)
-            .join();
+        this.updateByTgz(prefix);
         MatcherAssert.assertThat(
-            new JsonFromMeta(this.asto, prefix).json()
-                .getJsonObject("versions")
-                .keySet(),
+            new JsonFromMeta(this.asto, prefix).json().getJsonObject("versions").keySet(),
             Matchers.containsInAnyOrder("1.0.1", "1.0.2")
         );
     }
 
-    private JsonObject cliMeta() {
-        return Json.createReader(
-            new TestResource("json/cli_publish.json").asInputStream()
-        ).readObject();
+    @Test
+    void metaContainsDistFields() {
+        final Key prefix = new Key.From("@hello/simple-npm-project");
+        this.updateByTgz(prefix);
+        MatcherAssert.assertThat(
+            new JsonFromMeta(this.asto, prefix).json()
+                .getJsonObject("versions")
+                .getJsonObject("1.0.2")
+                .getJsonObject("dist")
+                .keySet(),
+            Matchers.containsInAnyOrder("integrity", "shasum", "tarball")
+        );
+    }
+
+    @Test
+    void containsCorrectLatestDistTag() {
+        final Key prefix = new Key.From("@hello/simple-npm-project");
+        new TestResource("storage/@hello/simple-npm-project/meta.json")
+            .saveTo(this.asto, new Key.From(prefix, "meta.json"));
+        this.updateByTgz(prefix);
+        MatcherAssert.assertThat(
+            new JsonFromMeta(this.asto, prefix).json()
+                .getJsonObject("dist-tags")
+                .getString("latest"),
+            new IsEqual<>("1.0.2")
+        );
+    }
+
+    private void updateByTgz(final Key prefix) {
+        new MetaUpdate.ByTgz(
+            new TgzArchive(
+                new String(
+                    new TestResource("binaries/simple-npm-project-1.0.2.tgz").asBytes(),
+                    StandardCharsets.ISO_8859_1
+                ), false
+            )
+        ).update(new Key.From(prefix), this.asto)
+            .join();
     }
 }
