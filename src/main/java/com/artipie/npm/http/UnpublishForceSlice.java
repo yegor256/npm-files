@@ -41,8 +41,10 @@ import java.util.regex.Pattern;
 import org.reactivestreams.Publisher;
 
 /**
- * Slice to handle `npm unpubslish` command requests.
+ * Slice to handle `npm unpublish` command requests.
  * Request line to this slice looks like `/[<@scope>/]pkg/-rev/undefined`.
+ * It unpublishes the whole package or a single version of package
+ * when only one version is published.
  * @since 0.8
  */
 final class UnpublishForceSlice implements Slice {
