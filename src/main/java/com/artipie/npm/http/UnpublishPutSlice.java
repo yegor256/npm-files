@@ -110,33 +110,35 @@ final class UnpublishPutSlice implements Slice {
     /**
      * Compare two meta files and remove from the meta file of storage info about
      * version that does not exist in another meta file.
-     * @param body Meta json file (usually this file is received from body)
-     * @param meta Meta json from storage
+     * @param update Meta json file (usually this file is received from body)
+     * @param source Meta json from storage
      * @return Meta json with removed information about unpublished version.
      */
-    private static String updateMeta(final JsonObject body, final JsonObject meta) {
+    private static String updateMeta(final JsonObject update, final JsonObject source) {
         final JsonPatchBuilder patch = Json.createPatchBuilder();
-        final String diff = versionToRemove(body, meta);
+        final String diff = versionToRemove(update, source);
         patch.remove(String.format("/versions/%s", diff));
         patch.remove(String.format("/time/%s", diff));
-        if (meta.getJsonObject("dist-tags").containsKey(diff)) {
+        if (source.getJsonObject("dist-tags").containsKey(diff)) {
             patch.remove(String.format("/dist-tags/%s", diff));
         }
-        final String latest = new DescSortedVersions(body.getJsonObject("versions")).value().get(0);
+        final String latest = new DescSortedVersions(
+            update.getJsonObject("versions")
+        ).value().get(0);
         patch.add("/dist-tags/latest", latest);
-        return patch.build().apply(meta).toString();
+        return patch.build().apply(source).toString();
     }
 
     /**
      * Compare two meta files and identify which version does not exist in one of meta files.
-     * @param body Meta json file (usually this file is received from body)
-     * @param meta Meta json from storage
+     * @param update Meta json file (usually this file is received from body)
+     * @param source Meta json from storage
      * @return Version to unpublish.
      */
-    private static String versionToRemove(final JsonObject body, final JsonObject meta) {
+    private static String versionToRemove(final JsonObject update, final JsonObject source) {
         final String field = "versions";
-        final Set<String> diff = new HashSet<>(meta.getJsonObject(field).keySet());
-        diff.removeAll(body.getJsonObject(field).keySet());
+        final Set<String> diff = new HashSet<>(source.getJsonObject(field).keySet());
+        diff.removeAll(update.getJsonObject(field).keySet());
         if (diff.size() != 1) {
             throw new IllegalStateException(
                 String.format(
