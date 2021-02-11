@@ -21,54 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.npm.proxy.http;
+package com.artipie.npm.misc;
 
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * PackagePath tests.
- * @since 0.1
+ * Test cases for {@link NextSafeAvailablePort}.
+ * @since 0.9
+ * @checkstyle MagicNumberCheck (500 lines)
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public class PackagePathTest {
-    @Test
-    public void getsPath() {
-        final PackagePath path = new PackagePath("npm-proxy");
+@SuppressWarnings("PMD.ProhibitPlainJunitAssertionsRule")
+final class NextSafeAvailablePortTest {
+
+    @ParameterizedTest
+    @ValueSource(ints = {1_023, 49_152})
+    void failsByInvalidPort(final int port) {
+        final Throwable thrown =
+            Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> new NextSafeAvailablePort(port).value()
+            );
         MatcherAssert.assertThat(
-            path.value("/npm-proxy/@vue/vue-cli"),
-            new IsEqual<>("@vue/vue-cli")
+            thrown.getMessage(),
+            new IsEqual<>(
+                String.format("Invalid start port: %s", port)
+            )
         );
     }
 
     @Test
-    public void getsPathWithRootContext() {
-        final PackagePath path = new PackagePath("");
+    void getNextValue() {
         MatcherAssert.assertThat(
-            path.value("/@vue/vue-cli"),
-            new IsEqual<>("@vue/vue-cli")
+            new NextSafeAvailablePort().value(),
+            Matchers.allOf(
+                Matchers.greaterThan(1023),
+                Matchers.lessThan(49_152)
+            )
         );
-    }
-
-    @Test
-    public void failsByPattern() {
-        final PackagePath path = new PackagePath("npm-proxy");
-        try {
-            path.value("/npm-proxy/@vue/vue-cli/-/fake");
-            MatcherAssert.assertThat("Exception is expected", false);
-        } catch (final IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void failsByPrefix() {
-        final PackagePath path = new PackagePath("npm-proxy");
-        try {
-            path.value("/@vue/vue-cli");
-            MatcherAssert.assertThat("Exception is expected", false);
-        } catch (final IllegalArgumentException ignored) {
-        }
     }
 }
-
