@@ -133,6 +133,17 @@ public final class NpmSlice implements Slice {
             new RtRulePath(
                 new RtRule.All(
                     new ByMethodsRule(RqMethod.PUT),
+                    new RtRule.ByHeader(NpmSlice.REFERER, UnpublishPutSlice.HEADER)
+                ),
+                new BasicAuthSlice(
+                    new UnpublishPutSlice(storage),
+                    auth,
+                    new Permission.ByName(perms, Action.Standard.WRITE)
+                )
+            ),
+            new RtRulePath(
+                new RtRule.All(
+                    new ByMethodsRule(RqMethod.PUT),
                     new RtRule.ByPath(CurlPublish.PTRN)
                 ),
                 new BasicAuthSlice(
