@@ -31,6 +31,7 @@ import com.artipie.http.Slice;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.StandardRs;
 import com.artipie.npm.PackageNameFromUrl;
+import com.artipie.npm.misc.DateTimeNowStr;
 import com.artipie.npm.misc.DescSortedVersions;
 import com.artipie.npm.misc.JsonFromPublisher;
 import com.google.common.collect.Sets;
@@ -126,6 +127,7 @@ final class UnpublishPutSlice implements Slice {
             update.getJsonObject("versions")
         ).value().get(0);
         patch.add("/dist-tags/latest", latest);
+        patch.add("/time/modified", new DateTimeNowStr().value());
         return patch.build().apply(source).toString();
     }
 
