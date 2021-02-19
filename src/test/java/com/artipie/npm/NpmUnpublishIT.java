@@ -109,7 +109,7 @@ final class NpmUnpublishIT {
     }
 
     @Test
-    void npmUnpublishWorks() throws Exception {
+    void npmUnpublishWholePackageWorks() throws Exception {
         final String proj = "@hello/simple-npm-project";
         new TestResource("storage").addFilesTo(this.storage, Key.ROOT);
         MatcherAssert.assertThat(
@@ -124,10 +124,57 @@ final class NpmUnpublishIT {
         );
     }
 
+    @Test
+    void npmUnpublishSingleVersionWorksWhenMultipleArePublished() throws Exception {
+        final String proj = "@hello/simple-npm-project";
+        final String name = "simple-npm-project";
+        final Key scnd = new Key.From(String.format("%s/-/%s-1.0.2.tgz", proj, proj));
+        new TestResource("storage").addFilesTo(this.storage, Key.ROOT);
+        new TestResource(String.format("binaries/%s-1.0.2.tgz", name)).saveTo(this.storage, scnd);
+        new TestResource("json/unpublish.json")
+            .saveTo(this.storage, new Key.From(String.format("%s/meta.json", proj)));
+        final String unpubl = String.format("%s@1.0.2", proj);
+        MatcherAssert.assertThat(
+            "Unpublish command is succeeded",
+            this.exec("npm", "unpublish", unpubl, "--registry", this.url),
+            new StringContains(String.format("- %s", unpubl))
+        );
+        MatcherAssert.assertThat(
+            "Archive was removed",
+            this.storage.exists(
+                new Key.From(String.format("%s/-/%s-1.0.2.tgz", proj, name))
+            ).join(),
+            new IsEqual<>(false)
+        );
+        MatcherAssert.assertThat(
+            "Meta file was updated",
+            new JsonFromMeta(this.storage, new Key.From(proj))
+                .json().containsKey("1.0.2"),
+            new IsEqual<>(false)
+        );
+    }
+
+    @Test
+    void npmUnpublishSingleVersionWorksWhenSingleIsPublished() throws Exception {
+        final String proj = "@hello/simple-npm-project";
+        new TestResource("storage").addFilesTo(this.storage, Key.ROOT);
+        final String unpubl = String.format("%s@1.0.1", proj);
+        MatcherAssert.assertThat(
+            "Unpublish command is succeeded",
+            this.exec("npm", "unpublish", unpubl, "--registry", this.url),
+            new StringContains(String.format("- %s", unpubl))
+        );
+        MatcherAssert.assertThat(
+            "Files were deleted",
+            this.storage.list(Key.ROOT).join().size(),
+            new IsEqual<>(0)
+        );
+    }
+
     private String exec(final String... command) throws Exception {
         Logger.debug(this, "Command:\n%s\n", String.join(" ", command));
         final Container.ExecResult res = this.cntn.execInContainer(command);
         Logger.debug(this, "STDOUT:\n%s\nSTDERR:\n%s", res.getStdout(), res.getStderr());
-        return this.cntn.execInContainer(command).getStdout();
+        return res.getStdout();
     }
 }

@@ -26,13 +26,12 @@ package com.artipie.npm.http;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.ext.PublisherAs;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.StandardRs;
 import com.artipie.npm.PackageNameFromUrl;
-import java.io.StringReader;
+import com.artipie.npm.misc.JsonFromPublisher;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -81,15 +80,12 @@ public final class DeprecateSlice implements Slice {
                 exists -> {
                     final CompletionStage<Response> res;
                     if (exists) {
-                        res = new PublisherAs(publisher).asciiString()
-                            .thenApply(str -> Json.createReader(new StringReader(str)).readObject())
+                        res = new JsonFromPublisher(publisher).json()
                             .thenApply(json -> json.getJsonObject("versions"))
                             .thenCombine(
-                                this.storage.value(key).thenCompose(
-                                    pub -> new PublisherAs(pub).asciiString()
-                                ).thenApply(
-                                    str -> Json.createReader(new StringReader(str)).readObject()
-                                ),
+                                this.storage.value(key)
+                                    .thenApply(JsonFromPublisher::new)
+                                    .thenCompose(JsonFromPublisher::json),
                                 (body, meta) -> DeprecateSlice.deprecate(body, meta).toString()
                             ).thenCompose(
                                 str -> this.storage.save(
