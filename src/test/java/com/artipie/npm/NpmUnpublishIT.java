@@ -175,6 +175,6 @@ final class NpmUnpublishIT {
         Logger.debug(this, "Command:\n%s\n", String.join(" ", command));
         final Container.ExecResult res = this.cntn.execInContainer(command);
         Logger.debug(this, "STDOUT:\n%s\nSTDERR:\n%s", res.getStdout(), res.getStderr());
-        return this.cntn.execInContainer(command).getStdout();
+        return res.getStdout();
     }
 }
