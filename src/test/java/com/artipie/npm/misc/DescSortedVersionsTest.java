@@ -21,54 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.npm.proxy.http;
+package com.artipie.npm.misc;
 
+import javax.json.Json;
+import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.core.IsEqual;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 /**
- * PackagePath tests.
- * @since 0.1
+ * Test cases for {@link DescSortedVersions}.
+ * @since 0.9
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public class PackagePathTest {
+final class DescSortedVersionsTest {
+
     @Test
-    public void getsPath() {
-        final PackagePath path = new PackagePath("npm-proxy");
+    void sortsVersionsInDescendingOrder() {
+        final JsonObject versions =
+            Json.createObjectBuilder()
+                .add("1", "")
+                .add("2", "1.1")
+                .add("3", "1.1.1")
+                .add("4", "1.2.1")
+                .add("5", "1.3.0")
+                .build();
         MatcherAssert.assertThat(
-            path.value("/npm-proxy/@vue/vue-cli"),
-            new IsEqual<>("@vue/vue-cli")
+            new DescSortedVersions(versions).value(),
+            Matchers.contains("5", "4", "3", "2", "1")
         );
-    }
-
-    @Test
-    public void getsPathWithRootContext() {
-        final PackagePath path = new PackagePath("");
-        MatcherAssert.assertThat(
-            path.value("/@vue/vue-cli"),
-            new IsEqual<>("@vue/vue-cli")
-        );
-    }
-
-    @Test
-    public void failsByPattern() {
-        final PackagePath path = new PackagePath("npm-proxy");
-        try {
-            path.value("/npm-proxy/@vue/vue-cli/-/fake");
-            MatcherAssert.assertThat("Exception is expected", false);
-        } catch (final IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void failsByPrefix() {
-        final PackagePath path = new PackagePath("npm-proxy");
-        try {
-            path.value("/@vue/vue-cli");
-            MatcherAssert.assertThat("Exception is expected", false);
-        } catch (final IllegalArgumentException ignored) {
-        }
     }
 }
-

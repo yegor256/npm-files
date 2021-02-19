@@ -25,6 +25,7 @@ package com.artipie.npm;
 
 import com.artipie.asto.test.TestResource;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests for {@link TgzArchive}.
  * @since 0.9
+ * @checkstyle LineLengthCheck (500 lines)
  */
 final class TgzArchiveTest {
     @Test
@@ -53,6 +55,21 @@ final class TgzArchiveTest {
             "Version is parsed properly from package.json",
             json.getJsonString("version").getString(),
             new IsEqual<>("1.2.5")
+        );
+    }
+
+    @Test
+    void getArchiveEncoded() {
+        final byte[] pkgjson =
+            new TestResource("simple-npm-project/package.json").asBytes();
+        final TgzArchive tgz = new TgzArchive(
+            Base64.getEncoder().encodeToString(pkgjson)
+        );
+        MatcherAssert.assertThat(
+            tgz.bytes(),
+            new IsEqual<>(
+                pkgjson
+            )
         );
     }
 }
