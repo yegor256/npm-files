@@ -33,9 +33,9 @@ import com.artipie.http.rs.StandardRs;
 import com.artipie.npm.PackageNameFromUrl;
 import com.artipie.npm.misc.DescSortedVersions;
 import com.artipie.npm.misc.JsonFromPublisher;
+import com.google.common.collect.Sets;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -137,8 +137,10 @@ final class UnpublishPutSlice implements Slice {
      */
     private static String versionToRemove(final JsonObject update, final JsonObject source) {
         final String field = "versions";
-        final Set<String> diff = new HashSet<>(source.getJsonObject(field).keySet());
-        diff.removeAll(update.getJsonObject(field).keySet());
+        final Set<String> diff = Sets.symmetricDifference(
+            source.getJsonObject(field).keySet(),
+            update.getJsonObject(field).keySet()
+        );
         if (diff.size() != 1) {
             throw new IllegalStateException(
                 String.format(

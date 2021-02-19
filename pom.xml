@@ -155,6 +155,11 @@ SOFTWARE.
       <artifactId>log4j</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>30.1-jre</version>
+    </dependency>
     <!-- Test only dependencies  -->
     <dependency>
       <groupId>com.jcabi</groupId>

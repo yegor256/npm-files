@@ -46,6 +46,7 @@
     }
   },
   "dist-tags":{
-    "latest":"1.0.2"
+    "latest":"1.0.2",
+    "1.0.2":"Description for 1.0.2 version"
   }
 }
