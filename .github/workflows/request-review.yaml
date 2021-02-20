@@ -1,5 +1,5 @@
 ---
-name: Codecov
+name: Request review
 "on":
   pull_request:
     branches:
