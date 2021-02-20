@@ -31,11 +31,12 @@ import com.artipie.http.Slice;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.StandardRs;
 import com.artipie.npm.PackageNameFromUrl;
+import com.artipie.npm.misc.DateTimeNowStr;
 import com.artipie.npm.misc.DescSortedVersions;
 import com.artipie.npm.misc.JsonFromPublisher;
+import com.google.common.collect.Sets;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -126,6 +127,7 @@ final class UnpublishPutSlice implements Slice {
             update.getJsonObject("versions")
         ).value().get(0);
         patch.add("/dist-tags/latest", latest);
+        patch.add("/time/modified", new DateTimeNowStr().value());
         return patch.build().apply(source).toString();
     }
 
@@ -137,8 +139,10 @@ final class UnpublishPutSlice implements Slice {
      */
     private static String versionToRemove(final JsonObject update, final JsonObject source) {
         final String field = "versions";
-        final Set<String> diff = new HashSet<>(source.getJsonObject(field).keySet());
-        diff.removeAll(update.getJsonObject(field).keySet());
+        final Set<String> diff = Sets.symmetricDifference(
+            source.getJsonObject(field).keySet(),
+            update.getJsonObject(field).keySet()
+        );
         if (diff.size() != 1) {
             throw new IllegalStateException(
                 String.format(

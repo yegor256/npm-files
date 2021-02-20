@@ -26,7 +26,6 @@ package com.artipie.npm.http;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Headers;
 import com.artipie.http.hm.RsHasStatus;
@@ -34,10 +33,9 @@ import com.artipie.http.hm.SliceHasResponse;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
-import java.io.StringReader;
+import com.artipie.npm.JsonFromMeta;
 import java.nio.charset.StandardCharsets;
 import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
@@ -118,7 +116,7 @@ class DeprecateSliceTest {
         );
         MatcherAssert.assertThat(
             "Meta.json is updated",
-            this.getMetaJson(),
+            new JsonFromMeta(this.storage, new Key.From(DeprecateSliceTest.PROJECT)).json(),
             Matchers.allOf(
                 new JsonHas(
                     "versions",
@@ -175,7 +173,7 @@ class DeprecateSliceTest {
         );
         MatcherAssert.assertThat(
             "Meta.json is updated",
-            this.getMetaJson(),
+            new JsonFromMeta(this.storage, new Key.From(DeprecateSliceTest.PROJECT)).json(),
             Matchers.allOf(
                 new JsonHas(
                     "versions",
@@ -225,7 +223,7 @@ class DeprecateSliceTest {
         );
         MatcherAssert.assertThat(
             "Meta.json is updated",
-            this.getMetaJson()
+            new JsonFromMeta(this.storage, new Key.From(DeprecateSliceTest.PROJECT)).json()
                 .getJsonObject("versions")
                 .getJsonObject("1.0.3")
                 .getJsonString(DeprecateSliceTest.FIELD),
@@ -242,15 +240,6 @@ class DeprecateSliceTest {
                 new RequestLine(RqMethod.PUT, "/some/project")
             )
         );
-    }
-
-    private JsonObject getMetaJson() {
-        return Json.createReader(
-            new StringReader(
-                new PublisherAs(this.storage.value(this.meta).join()).asciiString()
-                    .toCompletableFuture().join()
-            )
-        ).readObject();
     }
 
     private Content createMetaJson(final boolean third) {
