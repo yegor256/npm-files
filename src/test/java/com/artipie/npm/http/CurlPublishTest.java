@@ -21,67 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.npm;
+package com.artipie.npm.http;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.asto.test.TestResource;
-import javax.json.Json;
-import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for {@link MetaUpdate.ByJson}.
+ * Tests for {@link CurlPublish}.
  * @since 0.9
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-final class MetaUpdateByJsonTest {
-    /**
-     * Storage.
-     */
-    private Storage asto;
-
-    @BeforeEach
-    void setUp() {
-        this.asto = new InMemoryStorage();
-    }
-
+final class CurlPublishTest {
     @Test
-    void createsMetaFileWhenItNotExist() {
-        final Key prefix = new Key.From("prefix");
-        new MetaUpdate.ByJson(this.cliMeta())
-            .update(new Key.From(prefix), this.asto)
-            .join();
+    void metaFileAndTgzArchiveExist() {
+        final Storage asto = new InMemoryStorage();
+        final Key prefix = new Key.From("@hello/simple-npm-project");
+        final Key name = new Key.From("uploaded-artifact");
+        new TestResource("binaries/simple-npm-project-1.0.2.tgz").saveTo(asto, name);
+        new CurlPublish(asto).publish(prefix, name).join();
         MatcherAssert.assertThat(
-            this.asto.exists(new Key.From(prefix, "meta.json")).join(),
+            "Tgz archive was created",
+            asto.exists(new Key.From(String.format("%s/-/%s-1.0.2.tgz", prefix, prefix))).join(),
             new IsEqual<>(true)
         );
-    }
-
-    @Test
-    void updatesExistedMetaFile() {
-        final Key prefix = new Key.From("prefix");
-        new TestResource("json/simple-project-1.0.2.json")
-            .saveTo(this.asto, new Key.From(prefix, "meta.json"));
-        new MetaUpdate.ByJson(this.cliMeta())
-            .update(new Key.From(prefix), this.asto)
-            .join();
         MatcherAssert.assertThat(
-            new JsonFromMeta(this.asto, prefix).json()
-                .getJsonObject("versions")
-                .keySet(),
-            Matchers.containsInAnyOrder("1.0.1", "1.0.2")
+            "Meta json file was create",
+            asto.exists(new Key.From(prefix, "meta.json")).join(),
+            new IsEqual<>(true)
         );
-    }
-
-    private JsonObject cliMeta() {
-        return Json.createReader(
-            new TestResource("json/cli_publish.json").asInputStream()
-        ).readObject();
     }
 }

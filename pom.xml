@@ -156,6 +156,11 @@ SOFTWARE.
       <artifactId>log4j</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>30.1-jre</version>
+    </dependency>
     <!-- Test only dependencies  -->
     <dependency>
       <groupId>com.jcabi</groupId>
@@ -261,7 +266,7 @@ SOFTWARE.
                     <limit>
                       <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.70</minimum>
+                      <minimum>0.68</minimum>
                     </limit>
                     <limit>
                       <counter>LINE</counter>

@@ -45,9 +45,11 @@ import javax.json.JsonObject;
  *  2. meta.json file
  *
  * @since 0.1
+ * @deprecated Use {@link Publish} implementations from `http` package.
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines).
  */
-public class Npm {
+@Deprecated
+public class Npm implements Publish {
 
     /**
      * The storage.
@@ -74,13 +76,7 @@ public class Npm {
         this(storage);
     }
 
-    /**
-     * Publish a new version of a npm package.
-     *
-     * @param prefix Path prefix for archives and meta information storage
-     * @param artifact Where uploaded json file is stored
-     * @return Completion or error signal.
-     */
+    @Override
     public final CompletableFuture<Void> publish(final Key prefix, final Key artifact) {
         return this.storage.value(artifact)
             .map(JsonFromPublisher::new)
@@ -98,18 +94,9 @@ public class Npm {
      * @param prefix Package prefix.
      * @param file Tgz archive file.
      * @return Completion or error signal.
-     * @todo #27:30min Implement metadata update by using tgz package file.
-     *  In addition to interacting with the NPM client, the artifactory repo
-     *  also support upload NPM .tgz file manually by upload request. It mean
-     *  that all the information we can give you is the .tgz filestream. If
-     *  you Unzip the .tgz file， you could get the project package.json. Then,
-     *  you could get the metadata information from the package.json
      */
     public Completable updateMetaFile(final Key prefix, final TgzArchive file) {
-        return Single.just(file)
-            .flatMap(TgzArchive::packageJson)
-            .map(json -> new NpmPublishJsonToMetaSkelethon(json).skeleton())
-            .flatMapCompletable(json -> this.updateMetaFile(prefix, json));
+        throw new UnsupportedOperationException();
     }
 
     /**
