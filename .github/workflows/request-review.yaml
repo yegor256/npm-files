@@ -1,0 +1,14 @@
+---
+name: Codecov
+"on":
+  pull_request:
+    branches:
+      - master
+jobs:
+  request-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request review
+        uses: murs313/request-review@v1.0
+        with:
+          reviewers: 'artipie/contributors'
