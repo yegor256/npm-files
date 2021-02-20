@@ -11,5 +11,5 @@ jobs:
       - name: Request review
         uses: murs313/request-review@v1.0
         with:
-          reviewers: 'artipie/contributors'
+          reviewers: 'contributors'
           token: ${{ secrets.GITHUB_TOKEN }}
