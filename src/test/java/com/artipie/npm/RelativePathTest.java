@@ -106,11 +106,10 @@ public final class RelativePathTest {
         );
     }
 
-
     @ParameterizedTest
     @ValueSource(strings = {
         "foo\\bar-1.0.3.tgz",
-        "",
+        ""
     })
     void throwsForInvalidPaths(final String name) {
         final TgzRelativePath path = new TgzRelativePath(
