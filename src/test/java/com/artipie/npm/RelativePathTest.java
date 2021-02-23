@@ -24,7 +24,9 @@
 package com.artipie.npm;
 
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -101,6 +103,30 @@ public final class RelativePathTest {
                 String.format(RelativePathTest.URL, name)
             ).relative(),
             new IsEqual<>(name)
+        );
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "foo\\bar-1.0.3.tgz",
+        "",
+    })
+    void throwsForInvalidPaths(final String name) {
+        final TgzRelativePath path = new TgzRelativePath(
+            String.format(RelativePathTest.URL, name)
+        );
+        MatcherAssert.assertThat(
+            "Must fails if path is invalid",
+            Assertions.assertThrows(
+                IllegalStateException.class,
+                path::relative
+            ),
+            Matchers.hasToString(
+                Matchers.containsString(
+                    "a relative path was not found"
+                )
+            )
         );
     }
 }
