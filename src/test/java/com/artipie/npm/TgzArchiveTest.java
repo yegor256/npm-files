@@ -24,11 +24,17 @@
 package com.artipie.npm;
 
 import com.artipie.asto.test.TestResource;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -72,4 +78,66 @@ final class TgzArchiveTest {
             )
         );
     }
+
+    @Test
+    void savesToFile() throws IOException {
+        final Path temp = Files.createTempFile("temp", ".tgz");
+        new TgzArchive(
+            new String(
+                new TestResource("binaries/simple-npm-project-1.0.2.tgz").asBytes(),
+                StandardCharsets.ISO_8859_1
+            ),
+            false
+        ).saveToFile(temp).blockingGet();
+        MatcherAssert.assertThat(
+            "Must create a tgz file.",
+            temp.toFile().exists(),
+            new IsEqual<>(true)
+        );
+    }
+
+    @Test
+    void throwsOnMalformedArchive() {
+        final TgzArchive tgz = new TgzArchive(
+            Base64.getEncoder().encodeToString(
+                new byte[]{}
+            )
+        );
+        MatcherAssert.assertThat(
+            "Must fail because not a .gz file",
+            Assertions.assertThrows(
+                UncheckedIOException.class,
+                tgz::packageJson
+            ),
+            Matchers.hasToString(
+                Matchers.containsString(
+                    "Input is not in the .gz format"
+                )
+            )
+        );
+    }
+
+    /**
+     * Throws proper exception on empty tgz.
+     * {@code tar czvf - --files-from=/dev/null | base64}
+     */
+    @Test
+    void throwsOnMissingFile() {
+        final TgzArchive tgz = new TgzArchive(
+            "H4sIAAAAAAAAA+3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAAIA3A5reHScAKAAA"
+        );
+        MatcherAssert.assertThat(
+            "Must fail because package.json is missing",
+            Assertions.assertThrows(
+                IllegalStateException.class,
+                tgz::packageJson
+            ),
+            Matchers.hasToString(
+                Matchers.containsString(
+                    "'package.json' file was not found"
+                )
+            )
+        );
+    }
+
 }
