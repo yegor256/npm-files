@@ -38,10 +38,10 @@ import org.junit.jupiter.api.Test;
  */
 final class TgzArchiveTest {
     @Test
-    void getProjectNameFromPackageJson() {
+    void getProjectNameAndVersionFromPackageJson() {
         final JsonObject json = new TgzArchive(
             new String(
-                new TestResource("binaries/simple-npm-project-1.0.2.tgz").asBytes(),
+                new TestResource("binaries/vue-cli-plugin-liveapp-1.2.5.tgz").asBytes(),
                 StandardCharsets.ISO_8859_1
             ),
             false
@@ -49,12 +49,12 @@ final class TgzArchiveTest {
         MatcherAssert.assertThat(
             "Name is parsed properly from package.json",
             json.getJsonString("name").getString(),
-            new IsEqual<>("@hello/simple-npm-project")
+            new IsEqual<>("@aurora/vue-cli-plugin-liveapp")
         );
         MatcherAssert.assertThat(
             "Version is parsed properly from package.json",
             json.getJsonString("version").getString(),
-            new IsEqual<>("1.0.2")
+            new IsEqual<>("1.2.5")
         );
     }
 
