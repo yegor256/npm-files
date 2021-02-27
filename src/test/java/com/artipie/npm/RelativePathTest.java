@@ -24,7 +24,6 @@
 package com.artipie.npm;
 
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.StringContains;
