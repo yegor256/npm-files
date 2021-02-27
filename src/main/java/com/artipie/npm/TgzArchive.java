@@ -132,7 +132,8 @@ public final class TgzArchive {
         ) {
             ArchiveEntry entry;
             while ((entry = tar.getNextTarEntry()) != null) {
-                if (entry.getName().endsWith(name)) {
+                final String[] parts = entry.getName().split("/");
+                if (parts[parts.length - 1].equals(name)) {
                     return Single.just(new Content.From(IOUtils.toByteArray(tar)));
                 }
             }
