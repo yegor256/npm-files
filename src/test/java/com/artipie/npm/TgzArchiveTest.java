@@ -33,7 +33,9 @@ import java.util.Base64;
 import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.beans.HasPropertyWithValue;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -105,13 +107,13 @@ final class TgzArchiveTest {
             )
         );
         MatcherAssert.assertThat(
-            "Must fail because not a .gz file",
             Assertions.assertThrows(
                 UncheckedIOException.class,
                 tgz::packageJson
             ),
-            Matchers.hasToString(
-                Matchers.containsString(
+            new HasPropertyWithValue<>(
+                "message",
+                new StringContains(
                     "Input is not in the .gz format"
                 )
             )

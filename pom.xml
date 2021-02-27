@@ -237,6 +237,12 @@ SOFTWARE.
           <trimStackTrace>false</trimStackTrace>
         </configuration>
       </plugin>
+      <!--
+       @todo #190:30min Enable forbidden-apis plugin.
+        Check code for compliance with code style described
+        in CONTRIBUTING.md. Fix as many classes as time allows
+        and than update this todo to fix the rest.
+      -->
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
