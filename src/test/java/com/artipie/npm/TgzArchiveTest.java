@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.util.Base64;
 import javax.json.JsonObject;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.StringContains;
@@ -56,10 +55,12 @@ final class TgzArchiveTest {
             false
         ).packageJson().blockingGet();
         MatcherAssert.assertThat(
+            "Name is parsed properly from package.json",
             json.getJsonString("name").getString(),
             new IsEqual<>("@hello/simple-npm-project")
         );
         MatcherAssert.assertThat(
+            "Version is parsed properly from package.json",
             json.getJsonString("version").getString(),
             new IsEqual<>("1.0.2")
         );
