@@ -131,8 +131,9 @@ final class TgzArchiveTest {
                 IllegalStateException.class,
                 tgz::packageJson
             ),
-            Matchers.hasToString(
-                Matchers.containsString(
+            new HasPropertyWithValue<>(
+                "message",
+                new StringContains(
                     "'package.json' file was not found"
                 )
             )
