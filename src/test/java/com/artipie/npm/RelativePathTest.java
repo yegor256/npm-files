@@ -25,7 +25,9 @@ package com.artipie.npm;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.beans.HasPropertyWithValue;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -121,8 +123,9 @@ public final class RelativePathTest {
                 IllegalStateException.class,
                 path::relative
             ),
-            Matchers.hasToString(
-                Matchers.containsString(
+            new HasPropertyWithValue<>(
+                "message",
+                new StringContains(
                     "a relative path was not found"
                 )
             )
