@@ -118,7 +118,6 @@ public final class RelativePathTest {
             String.format(RelativePathTest.URL, name)
         );
         MatcherAssert.assertThat(
-            "Must fails if path is invalid",
             Assertions.assertThrows(
                 IllegalStateException.class,
                 path::relative
