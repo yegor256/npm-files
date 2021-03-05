@@ -5,7 +5,6 @@
 package com.artipie.npm;
 
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,16 +69,6 @@ public final class TgzRelativePath {
             res = matched.firstGroup();
         }
         return res;
-    }
-
-    /**
-     * Extract the relative path and apply processor to the extracted value.
-     * @param processor Custom processor for relative path
-     * @return Processed relative path.
-     */
-    public String relative(final Function<String, String> processor) {
-        final Matched matched = this.matchedValues();
-        return processor.apply(matched.firstGroup());
     }
 
     /**

@@ -6,7 +6,6 @@ package com.artipie.npm;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
-import org.junit.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -99,18 +98,6 @@ public final class RelativePathTest {
                 String.format(RelativePathTest.URL, path)
             ).relative(true),
             new IsEqual<>(target)
-        );
-    }
-
-    @Test
-    public void appliesPassedFunction() {
-        MatcherAssert.assertThat(
-            new TgzRelativePath(
-                String.format(RelativePathTest.URL, "yuanye05/-/yuanye05-1.0.3.tgz")
-            ).relative(
-                str -> str.replace("/-/", "/")
-            ),
-            new IsEqual<>("yuanye05/yuanye05-1.0.3.tgz")
         );
     }
 }
