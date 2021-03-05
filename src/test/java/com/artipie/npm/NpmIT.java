@@ -159,10 +159,13 @@ public final class NpmIT {
         );
     }
 
-    @Test
-    void installsPublishedProject() throws Exception {
-        final String proj = "simple-npm-project";
-        new TestResource("project-without-scope")
+    @ParameterizedTest
+    @CsvSource({
+        "@hello/simple-npm-project,simple-npm-project",
+        "simple-npm-project,project-without-scope"
+    })
+    void installsPublishedProject(final String proj, final String resource) throws Exception {
+        new TestResource(resource)
             .addFilesTo(
                 this.storage,
                 new Key.From(String.format("tmp/%s", proj))

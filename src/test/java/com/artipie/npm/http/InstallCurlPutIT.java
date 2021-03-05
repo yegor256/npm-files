@@ -123,6 +123,7 @@ final class InstallCurlPutIT {
             new IsEqual<>(true)
         );
         MatcherAssert.assertThat(
+            "Package was successfully installed",
             this.exec("npm", "install", proj, "--registry", this.url),
             new StringContainsInOrder(
                 Arrays.asList(
