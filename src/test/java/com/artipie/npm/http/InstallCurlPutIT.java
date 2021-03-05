@@ -7,35 +7,47 @@ package com.artipie.npm.http;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.asto.fs.FileStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.slice.LoggingSlice;
-import com.artipie.npm.JsonFromMeta;
 import com.artipie.npm.RandomFreePort;
 import com.artipie.vertx.VertxSliceServer;
+import com.jcabi.log.Logger;
 import io.vertx.reactivex.core.Vertx;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
+import java.util.Arrays;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.GenericContainer;
 
 /**
- * IT for `curl PUT` tgz archive.
+ * IT for installation after publishing through `curl PUT` tgz archive.
  * @since 0.9
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @DisabledOnOs(OS.WINDOWS)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-final class CurlPutIT {
+final class InstallCurlPutIT {
+    /**
+     * Temporary directory for all tests.
+     * @checkstyle VisibilityModifierCheck (3 lines)
+     */
+    @TempDir
+    Path tmp;
 
     /**
      * Vert.x used to create tested FileStorage.
@@ -57,24 +69,41 @@ final class CurlPutIT {
      */
     private String url;
 
+    /**
+     * Container.
+     */
+    private GenericContainer<?> cntn;
+
+    /**
+     * Server port.
+     */
+    private int port;
+
     @BeforeEach
     void setUp() throws Exception {
         this.vertx = Vertx.vertx();
-        this.storage = new InMemoryStorage();
-        final int port = new RandomFreePort().value();
-        this.url = String.format("http://localhost:%s", port);
+        this.storage = new FileStorage(this.tmp);
+        this.port = new RandomFreePort().value();
+        this.url = String.format("http://host.testcontainers.internal:%s", this.port);
         this.server = new VertxSliceServer(
             this.vertx,
             new LoggingSlice(new NpmSlice(new URL(this.url), this.storage)),
-            port
+            this.port
         );
         this.server.start();
+        Testcontainers.exposeHostPorts(this.port);
+        this.cntn = new GenericContainer<>("node:14-alpine")
+            .withCommand("tail", "-f", "/dev/null")
+            .withWorkingDirectory("/home/")
+            .withFileSystemBind(this.tmp.toString(), "/home");
+        this.cntn.start();
     }
 
     @AfterEach
     void tearDown() {
         this.server.stop();
         this.vertx.close();
+        this.cntn.stop();
     }
 
     @ParameterizedTest
@@ -82,17 +111,10 @@ final class CurlPutIT {
         "simple-npm-project-1.0.2.tgz,@hello/simple-npm-project,1.0.2",
         "jQuery-1.7.4.tgz,jQuery,1.7.4"
     })
-    void curlPutTgzArchiveWithAndWithoutScopeWorks(
+    void installationCurlPutTgzArchiveWithAndWithoutScopeWorks(
         final String tgz, final String proj, final String vers
-    )throws Exception {
+    ) throws Exception {
         this.putTgz(tgz);
-        MatcherAssert.assertThat(
-            "Meta file contains uploaded version",
-            new JsonFromMeta(this.storage, new Key.From(proj))
-                .json().getJsonObject("versions")
-                .keySet(),
-            Matchers.contains(vers)
-        );
         MatcherAssert.assertThat(
             "Tgz archive was uploaded",
             new BlockingStorage(this.storage).exists(
@@ -100,13 +122,22 @@ final class CurlPutIT {
             ),
             new IsEqual<>(true)
         );
+        MatcherAssert.assertThat(
+            this.exec("npm", "install", proj, "--registry", this.url),
+            new StringContainsInOrder(
+                Arrays.asList(
+                    String.format("+ %s@%s", proj, vers),
+                    "added 1 package"
+                )
+            )
+        );
     }
 
     private void putTgz(final String name) throws IOException {
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) new URL(
-                String.format("%s/%s", this.url, name)
+                String.format("http://localhost:%d/%s", this.port, name)
             ).openConnection();
             conn.setRequestMethod("PUT");
             conn.setDoOutput(true);
@@ -125,5 +156,11 @@ final class CurlPutIT {
                 conn.disconnect();
             }
         }
+    }
+
+    private String exec(final String... command) throws Exception {
+        final Container.ExecResult res = this.cntn.execInContainer(command);
+        Logger.debug(this, "Command:\n%s\nResult:\n%s", String.join(" ", command), res.toString());
+        return res.getStdout();
     }
 }
