@@ -27,7 +27,7 @@ SOFTWARE.
   <parent>
     <groupId>com.artipie</groupId>
     <artifactId>ppom</artifactId>
-    <version>0.4.1</version>
+    <version>0.5</version>
   </parent>
   <artifactId>npm-adapter</artifactId>
   <version>1.0-SNAPSHOT</version>
@@ -36,6 +36,9 @@ SOFTWARE.
   <description>Turns your files/objects into NPM artifacts</description>
   <url>https://github.com/artipie/npm-adapter</url>
   <inceptionYear>2019</inceptionYear>
+  <properties>
+    <qulice.license>${project.basedir}/LICENSE.header</qulice.license>
+  </properties>
   <licenses>
     <license>
       <name>MIT</name>
@@ -313,5 +316,18 @@ SOFTWARE.
         </executions>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.qulice</groupId>
+          <artifactId>qulice-maven-plugin</artifactId>
+          <configuration>
+            <excludes combine.children="append">
+              <exclude>checkstyle:.*/src/test/resources/.*</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 </project>
