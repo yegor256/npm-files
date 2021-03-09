@@ -10,6 +10,7 @@ import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -17,7 +18,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @since 0.1
  */
-public final class RelativePathTest {
+final class RelativePathTest {
 
     /**
      * URL.
@@ -108,6 +109,20 @@ public final class RelativePathTest {
                     "a relative path was not found"
                 )
             )
+        );
+    }
+
+    @CsvSource({
+        "yuanye05/-/yuanye05-1.0.3.tgz,yuanye05/1.0.3/yuanye05-1.0.3.tgz",
+        "any.suf/-/any.suf-5.5.3-alpha.tgz,any.suf/5.5.3-alpha/any.suf-5.5.3-alpha.tgz",
+        "test-some/-/test-some-5.5.3-rc1.tgz,test-some/5.5.3-rc1/test-some-5.5.3-rc1.tgz"
+    })
+    public void replacesHyphenWithVersion(final String path, final String target) {
+        MatcherAssert.assertThat(
+            new TgzRelativePath(
+                String.format(RelativePathTest.URL, path)
+            ).relative(true),
+            new IsEqual<>(target)
         );
     }
 }
