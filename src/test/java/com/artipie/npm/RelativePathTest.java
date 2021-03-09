@@ -32,7 +32,7 @@ final class RelativePathTest {
         "@test/test.suffix/-/@test/test.suffix-5.5.3.tgz",
         "@my-org/test_suffix/-/@my-org/test_suffix-5.5.3.tgz"
     })
-    public void npmClientWithScopeIdentifiedCorrectly(final String name) {
+    void npmClientWithScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -47,7 +47,7 @@ final class RelativePathTest {
         "test.suffix/-/test.suffix-5.5.3.tgz",
         "test_suffix/-/test_suffix-5.5.3.tgz"
     })
-    public void npmClientWithoutScopeIdentifiedCorrectly(final String name) {
+    void npmClientWithoutScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -66,7 +66,7 @@ final class RelativePathTest {
         "@aa/bb/0.3.1-alpha/@aa/bb-0.3.1-alpha.tgz",
         "@aa/bb.js/0.3.1-alpha/@aa/bb.js-0.3.1-alpha.tgz"
     })
-    public void curlWithScopeIdentifiedCorrectly(final String name) {
+    void curlWithScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -80,7 +80,7 @@ final class RelativePathTest {
         "yuanye05/yuanye05-1.0.3.tgz",
         "test.suffix/test.suffix-5.5.3.tgz"
     })
-    public void curlWithoutScopeIdentifiedCorrectly(final String name) {
+    void curlWithoutScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -117,7 +117,7 @@ final class RelativePathTest {
         "any.suf/-/any.suf-5.5.3-alpha.tgz,any.suf/5.5.3-alpha/any.suf-5.5.3-alpha.tgz",
         "test-some/-/test-some-5.5.3-rc1.tgz,test-some/5.5.3-rc1/test-some-5.5.3-rc1.tgz"
     })
-    public void replacesHyphenWithVersion(final String path, final String target) {
+    void replacesHyphenWithVersion(final String path, final String target) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, path)
