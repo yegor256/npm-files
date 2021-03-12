@@ -5,7 +5,10 @@
 package com.artipie.npm;
 
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.beans.HasPropertyWithValue;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.StringContains;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -15,7 +18,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @since 0.1
  */
-public final class RelativePathTest {
+final class RelativePathTest {
 
     /**
      * URL.
@@ -29,7 +32,7 @@ public final class RelativePathTest {
         "@test/test.suffix/-/@test/test.suffix-5.5.3.tgz",
         "@my-org/test_suffix/-/@my-org/test_suffix-5.5.3.tgz"
     })
-    public void npmClientWithScopeIdentifiedCorrectly(final String name) {
+    void npmClientWithScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -44,7 +47,7 @@ public final class RelativePathTest {
         "test.suffix/-/test.suffix-5.5.3.tgz",
         "test_suffix/-/test_suffix-5.5.3.tgz"
     })
-    public void npmClientWithoutScopeIdentifiedCorrectly(final String name) {
+    void npmClientWithoutScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -63,7 +66,7 @@ public final class RelativePathTest {
         "@aa/bb/0.3.1-alpha/@aa/bb-0.3.1-alpha.tgz",
         "@aa/bb.js/0.3.1-alpha/@aa/bb.js-0.3.1-alpha.tgz"
     })
-    public void curlWithScopeIdentifiedCorrectly(final String name) {
+    void curlWithScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -77,7 +80,7 @@ public final class RelativePathTest {
         "yuanye05/yuanye05-1.0.3.tgz",
         "test.suffix/test.suffix-5.5.3.tgz"
     })
-    public void curlWithoutScopeIdentifiedCorrectly(final String name) {
+    void curlWithoutScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, name)
@@ -87,12 +90,34 @@ public final class RelativePathTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {
+        "foo\\bar-1.0.3.tgz",
+        ""
+    })
+    void throwsForInvalidPaths(final String name) {
+        final TgzRelativePath path = new TgzRelativePath(
+            String.format(RelativePathTest.URL, name)
+        );
+        MatcherAssert.assertThat(
+            Assertions.assertThrows(
+                IllegalStateException.class,
+                path::relative
+            ),
+            new HasPropertyWithValue<>(
+                "message",
+                new StringContains(
+                    "a relative path was not found"
+                )
+            )
+        );
+    }
+
     @CsvSource({
         "yuanye05/-/yuanye05-1.0.3.tgz,yuanye05/1.0.3/yuanye05-1.0.3.tgz",
         "any.suf/-/any.suf-5.5.3-alpha.tgz,any.suf/5.5.3-alpha/any.suf-5.5.3-alpha.tgz",
         "test-some/-/test-some-5.5.3-rc1.tgz,test-some/5.5.3-rc1/test-some-5.5.3-rc1.tgz"
     })
-    public void replacesHyphenWithVersion(final String path, final String target) {
+    void replacesHyphenWithVersion(final String path, final String target) {
         MatcherAssert.assertThat(
             new TgzRelativePath(
                 String.format(RelativePathTest.URL, path)
