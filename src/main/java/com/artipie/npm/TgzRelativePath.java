@@ -43,30 +43,30 @@ public final class TgzRelativePath {
 
     /**
      * Extract the relative path.
-     * @param process Is it necessary to process path value by replacing
-     *  `/-/` with `/version/`. It could be required for some cases.
+     * @param replace Is it necessary to replace `/-/` with `/version/`
+     *  in the path. It could be required for some cases.
      *  See <a href="https://www.jfrog.com/confluence/display/BT/npm+Repositories">
      *  Deploying with cURL</a> section.
      * @return The relative path.
      */
-    public String relative(final boolean process) {
+    public String relative(final boolean replace) {
         final Matched matched = this.matchedValues();
         final String res;
-        if (process) {
+        if (replace) {
             final Matcher matcher = TgzRelativePath.VRSN.matcher(matched.name());
             if (!matcher.matches()) {
                 throw new IllegalStateException(
                     String.format(
-                        "Failed to process path `%s` with name `%s`",
-                        matched.firstGroup(),
+                        "Failed to replace `/-/` in path `%s` with name `%s`",
+                        matched.group(),
                         matched.name()
                     )
                 );
             }
-            res = matched.firstGroup()
+            res = matched.group()
                 .replace("/-/", String.format("/%s/", matcher.group(1)));
         } else {
-            res = matched.firstGroup();
+            res = matched.group();
         }
         return res;
     }
@@ -143,8 +143,8 @@ public final class TgzRelativePath {
     /**
      * Find fist group match if found.
      *
-     * @param pattern The patter to match against.
-     * @return The first group match if found.
+     * @param pattern The pattern to match against.
+     * @return The group from matcher and name if found.
      */
     private Optional<Matched> matches(final Pattern pattern) {
         final Matcher matcher = pattern.matcher(this.full);
@@ -166,9 +166,9 @@ public final class TgzRelativePath {
      */
     private static final class Matched {
         /**
-         * First group from matcher.
+         * Group from matcher.
          */
-        private final String cfirstgroup;
+        private final String fgroup;
 
         /**
          * Group `name` from matcher.
@@ -177,11 +177,11 @@ public final class TgzRelativePath {
 
         /**
          * Ctor.
-         * @param firstgroup First group from matcher
+         * @param fgroup Group from matcher
          * @param name Group `name` from matcher
          */
-        Matched(final String firstgroup, final String name) {
-            this.cfirstgroup = firstgroup;
+        Matched(final String fgroup, final String name) {
+            this.fgroup = fgroup;
             this.cname = name;
         }
 
@@ -194,11 +194,11 @@ public final class TgzRelativePath {
         }
 
         /**
-         * First group.
-         * @return First group from matcher.
+         * Group.
+         * @return Group from matcher.
          */
-        public String firstGroup() {
-            return this.cfirstgroup;
+        public String group() {
+            return this.fgroup;
         }
     }
 }
