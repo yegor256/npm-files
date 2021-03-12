@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -98,10 +100,13 @@ public final class NpmIT {
         this.cntn.stop();
     }
 
-    @Test
-    void npmPublishWorks() throws Exception {
-        final String proj = "@hello/simple-npm-project";
-        new TestResource("simple-npm-project")
+    @ParameterizedTest
+    @CsvSource({
+        "@hello/simple-npm-project,simple-npm-project",
+        "simple-npm-project,project-without-scope"
+    })
+    void npmPublishWorks(final String proj, final String resource) throws Exception {
+        new TestResource(resource)
             .addFilesTo(
                 this.storage,
                 new Key.From(String.format("tmp/%s", proj))
@@ -151,6 +156,29 @@ public final class NpmIT {
             "Installed project should contain package.json",
             this.inNpmModule(proj, "package.json"),
             new IsEqual<>(true)
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "@hello/simple-npm-project,simple-npm-project",
+        "simple-npm-project,project-without-scope"
+    })
+    void installsPublishedProject(final String proj, final String resource) throws Exception {
+        new TestResource(resource)
+            .addFilesTo(
+                this.storage,
+                new Key.From(String.format("tmp/%s", proj))
+        );
+        this.exec("npm", "publish", String.format("tmp/%s", proj), "--registry", this.url);
+        MatcherAssert.assertThat(
+            this.exec("npm", "install", proj, "--registry", this.url),
+            new StringContainsInOrder(
+                Arrays.asList(
+                    String.format("+ %s@1.0.1", proj),
+                    "added 1 package"
+                )
+            )
         );
     }
 
