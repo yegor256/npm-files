@@ -78,7 +78,9 @@ final class RelativePathTest {
     @ParameterizedTest
     @ValueSource(strings = {
         "yuanye05/yuanye05-1.0.3.tgz",
-        "test.suffix/test.suffix-5.5.3.tgz"
+        "yuanye05/1.0.3/yuanye05-1.0.3.tgz",
+        "test.suffix/test.suffix-5.5.3.tgz",
+        "test.suffix/5.5.3/test.suffix-5.5.3.tgz"
     })
     void curlWithoutScopeIdentifiedCorrectly(final String name) {
         MatcherAssert.assertThat(

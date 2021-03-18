@@ -136,7 +136,7 @@ public final class TgzRelativePath {
      */
     private Optional<Matched> curlWithoutScope() {
         return this.matches(
-            Pattern.compile("([\\w.-]+/(?<name>[\\w.-]+\\.tgz)$)")
+            Pattern.compile("([\\w.-]+(/\\d+.\\d+.\\d+[\\w.-]*)?/(?<name>[\\w.-]+\\.tgz)$)")
         );
     }
 
