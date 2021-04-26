@@ -13,9 +13,11 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
+import org.cactoos.set.SetOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -26,6 +28,7 @@ import wtf.g4s8.hamcrest.json.JsonValueIs;
  * Tests for {@link Meta}.
  *
  * @since 0.4.2
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class MetaTest {
@@ -126,7 +129,7 @@ public final class MetaTest {
         final String vers = "1.0.1";
         final String tag = "sometag";
         final JsonObject uploaded = this.json(vers, true)
-            .add("dist-tags", Json.createObjectBuilder().add(tag, vers).build())
+            .add(MetaTest.DISTTAGS, Json.createObjectBuilder().add(tag, vers).build())
             .build();
         final Meta meta = new Meta(
             new NpmPublishJsonToMetaSkelethon(uploaded).skeleton()
@@ -134,9 +137,24 @@ public final class MetaTest {
         MatcherAssert.assertThat(
             new JsonFromPublisher(meta.byteFlow()).json()
                 .toCompletableFuture().join()
-                .getJsonObject("dist-tags")
+                .getJsonObject(MetaTest.DISTTAGS)
                 .keySet(),
-            Matchers.containsInAnyOrder(tag, "latest")
+            Matchers.containsInAnyOrder(tag, MetaTest.LATEST)
+        );
+    }
+
+    @Test
+    void shouldContainLatestTagOnFirstUploadWithoutUserTag() {
+        final JsonObject uploaded = this.json("1.0.1", true).build();
+        final Meta meta = new Meta(
+            new NpmPublishJsonToMetaSkelethon(uploaded).skeleton()
+        ).updatedMeta(uploaded);
+        MatcherAssert.assertThat(
+            new JsonFromPublisher(meta.byteFlow()).json()
+                .toCompletableFuture().join()
+                .getJsonObject(MetaTest.DISTTAGS)
+                .keySet(),
+            new IsEqual<>(new SetOf<>(MetaTest.LATEST))
         );
     }
 
