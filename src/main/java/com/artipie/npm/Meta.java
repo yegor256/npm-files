@@ -27,6 +27,11 @@ import javax.json.JsonValue;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 final class Meta {
     /**
+     * Latest tag name.
+     */
+    static final String LATEST = "latest";
+
+    /**
      * The meta.json file.
      */
     private final JsonObject json;
@@ -48,13 +53,12 @@ final class Meta {
      * @return Completion or error signal.
      */
     public Meta updatedMeta(final JsonObject uploaded) {
-        final String latest = "latest";
         boolean haslatest = false;
         final JsonObject versions = uploaded.getJsonObject("versions");
         final Set<String> keys = versions.keySet();
         final JsonPatchBuilder patch = Json.createPatchBuilder();
         if (this.json.containsKey("dist-tags")) {
-            haslatest = this.json.getJsonObject("dist-tags").containsKey(latest);
+            haslatest = this.json.getJsonObject("dist-tags").containsKey(Meta.LATEST);
         } else {
             patch.add("/dist-tags", Json.createObjectBuilder().build());
         }
@@ -62,7 +66,7 @@ final class Meta {
             : uploaded.getJsonObject("dist-tags").entrySet()
         ) {
             patch.add(String.format("/dist-tags/%s", tag.getKey()), tag.getValue());
-            if (tag.getKey().equals(latest)) {
+            if (tag.getKey().equals(Meta.LATEST)) {
                 haslatest = true;
             }
         }
