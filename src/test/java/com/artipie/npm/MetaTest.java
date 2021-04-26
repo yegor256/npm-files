@@ -122,6 +122,25 @@ public final class MetaTest {
     }
 
     @Test
+    void shouldContainLatestTagOnFirstUploadWithUserTag() {
+        final String vers = "1.0.1";
+        final String tag = "sometag";
+        final JsonObject uploaded = this.json(vers, true)
+            .add("dist-tags", Json.createObjectBuilder().add(tag, vers).build())
+            .build();
+        final Meta meta = new Meta(
+            new NpmPublishJsonToMetaSkelethon(uploaded).skeleton()
+        ).updatedMeta(uploaded);
+        MatcherAssert.assertThat(
+            new JsonFromPublisher(meta.byteFlow()).json()
+                .toCompletableFuture().join()
+                .getJsonObject("dist-tags")
+                .keySet(),
+            Matchers.containsInAnyOrder(tag, "latest")
+        );
+    }
+
+    @Test
     void containsRequiredTimeFieldsWhenModifiedTagWasNotIncluded() {
         final String versone = "1.2.3";
         final String verstwo = "2.0.0";
