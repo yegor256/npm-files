@@ -1,0 +1,18 @@
+# Please see the documentation for all configuration options:
+# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "bot"
+    assignees:
+      - "genryxy"
+    reviewers:
+      - "artipie/maintainers"
+    schedule:
+      interval: "daily"
