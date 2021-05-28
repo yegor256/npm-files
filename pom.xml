@@ -90,7 +90,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.jcabi</groupId>
       <artifactId>jcabi-log</artifactId>
-      <version>0.18.1</version>
+      <version>0.19.0</version>
     </dependency>
     <dependency>
       <groupId>com.artipie</groupId>
@@ -104,7 +104,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>0.18.2</version>
+      <version>0.18.4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
