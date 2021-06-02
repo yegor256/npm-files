@@ -27,7 +27,7 @@ SOFTWARE.
   <parent>
     <groupId>com.artipie</groupId>
     <artifactId>ppom</artifactId>
-    <version>0.5</version>
+    <version>0.5.1</version>
   </parent>
   <artifactId>npm-adapter</artifactId>
   <version>1.0-SNAPSHOT</version>
@@ -140,7 +140,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.amihaiemil.web</groupId>
       <artifactId>eo-yaml</artifactId>
-      <version>5.1.5</version>
+      <version>5.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
