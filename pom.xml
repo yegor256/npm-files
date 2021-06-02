@@ -161,7 +161,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>30.1-jre</version>
+      <version>30.1.1-jre</version>
     </dependency>
     <!-- Test only dependencies  -->
     <dependency>
@@ -243,7 +243,7 @@ SOFTWARE.
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.5</version>
+        <version>0.8.7</version>
         <configuration>
           <output>file</output>
         </configuration>
