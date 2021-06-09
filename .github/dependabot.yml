@@ -13,6 +13,6 @@ updates:
     assignees:
       - "genryxy"
     reviewers:
-      - "artipie/maintainers"
+      - "genryxy"
     schedule:
       interval: "daily"
