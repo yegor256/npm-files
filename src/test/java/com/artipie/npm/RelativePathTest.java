@@ -4,6 +4,7 @@
  */
 package com.artipie.npm;
 
+import com.artipie.ArtipieException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.hamcrest.core.IsEqual;
@@ -102,7 +103,7 @@ final class RelativePathTest {
         );
         MatcherAssert.assertThat(
             Assertions.assertThrows(
-                IllegalStateException.class,
+                ArtipieException.class,
                 path::relative
             ),
             new HasPropertyWithValue<>(
@@ -114,6 +115,7 @@ final class RelativePathTest {
         );
     }
 
+    @ParameterizedTest
     @CsvSource({
         "yuanye05/-/yuanye05-1.0.3.tgz,yuanye05/1.0.3/yuanye05-1.0.3.tgz",
         "any.suf/-/any.suf-5.5.3-alpha.tgz,any.suf/5.5.3-alpha/any.suf-5.5.3-alpha.tgz",

@@ -4,6 +4,7 @@
  */
 package com.artipie.npm;
 
+import com.artipie.ArtipieException;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +56,7 @@ public final class TgzRelativePath {
         if (replace) {
             final Matcher matcher = TgzRelativePath.VRSN.matcher(matched.name());
             if (!matcher.matches()) {
-                throw new IllegalStateException(
+                throw new ArtipieException(
                     String.format(
                         "Failed to replace `/-/` in path `%s` with name `%s`",
                         matched.group(),
@@ -91,7 +92,7 @@ public final class TgzRelativePath {
         } else if (curlws.isPresent()) {
             matched = curlws.get();
         } else {
-            throw new IllegalStateException("a relative path was not found");
+            throw new ArtipieException("a relative path was not found");
         }
         return matched;
     }
