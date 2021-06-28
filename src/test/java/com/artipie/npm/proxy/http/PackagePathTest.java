@@ -4,8 +4,10 @@
  */
 package com.artipie.npm.proxy.http;
 
+import com.artipie.ArtipieException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,21 +37,19 @@ public class PackagePathTest {
     @Test
     public void failsByPattern() {
         final PackagePath path = new PackagePath("npm-proxy");
-        try {
-            path.value("/npm-proxy/@vue/vue-cli/-/fake");
-            MatcherAssert.assertThat("Exception is expected", false);
-        } catch (final IllegalArgumentException ignored) {
-        }
+        Assertions.assertThrows(
+            ArtipieException.class,
+            () -> path.value("/npm-proxy/@vue/vue-cli/-/fake")
+        );
     }
 
     @Test
     public void failsByPrefix() {
         final PackagePath path = new PackagePath("npm-proxy");
-        try {
-            path.value("/@vue/vue-cli");
-            MatcherAssert.assertThat("Exception is expected", false);
-        } catch (final IllegalArgumentException ignored) {
-        }
+        Assertions.assertThrows(
+            ArtipieException.class,
+            () -> path.value("/@vue/vue-cli")
+        );
     }
 }
 
