@@ -4,6 +4,7 @@
  */
 package com.artipie.npm.http;
 
+import com.artipie.ArtipieException;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
@@ -33,6 +34,7 @@ import org.reactivestreams.Publisher;
  * It unpublishes a single version of package when multiple
  * versions are published.
  * @since 0.9
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 final class UnpublishPutSlice implements Slice {
@@ -125,7 +127,7 @@ final class UnpublishPutSlice implements Slice {
             update.getJsonObject(field).keySet()
         );
         if (diff.size() != 1) {
-            throw new IllegalStateException(
+            throw new ArtipieException(
                 String.format(
                     "Failed to unpublish single version. Should be one version, but were `%s`",
                     diff.toString()

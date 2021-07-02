@@ -4,9 +4,10 @@
  */
 package com.artipie.npm;
 
+import com.artipie.ArtipieException;
+import com.artipie.asto.ArtipieIOException;
 import com.artipie.asto.test.TestResource;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,7 +88,7 @@ final class TgzArchiveTest {
         );
         MatcherAssert.assertThat(
             Assertions.assertThrows(
-                UncheckedIOException.class,
+                ArtipieIOException.class,
                 tgz::packageJson
             ),
             new HasPropertyWithValue<>(
@@ -110,7 +111,7 @@ final class TgzArchiveTest {
         );
         MatcherAssert.assertThat(
             Assertions.assertThrows(
-                IllegalStateException.class,
+                ArtipieException.class,
                 tgz::packageJson
             ),
             new HasPropertyWithValue<>(
