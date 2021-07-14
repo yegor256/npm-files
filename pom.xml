@@ -95,7 +95,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
-      <version>0.35</version>
+      <version>1.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.reactivestreams</groupId>
@@ -118,7 +118,7 @@ SOFTWARE.
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.7</version>
+      <version>2.9.0</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>

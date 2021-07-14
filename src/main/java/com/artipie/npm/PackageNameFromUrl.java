@@ -4,6 +4,7 @@
  */
 package com.artipie.npm;
 
+import com.artipie.ArtipieException;
 import com.artipie.http.rq.RequestLineFrom;
 import java.util.regex.Pattern;
 
@@ -39,11 +40,13 @@ public class PackageNameFromUrl {
                 ""
             );
         } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "Path is expected to start with '%s' but was '%s'",
-                    context,
-                    abspath
+            throw new ArtipieException(
+                new IllegalArgumentException(
+                    String.format(
+                        "Path is expected to start with '%s' but was '%s'",
+                        context,
+                        abspath
+                    )
                 )
             );
         }

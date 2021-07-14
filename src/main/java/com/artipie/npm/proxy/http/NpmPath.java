@@ -4,6 +4,7 @@
  */
 package com.artipie.npm.proxy.http;
 
+import com.artipie.ArtipieException;
 import com.jcabi.log.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,11 +39,13 @@ public abstract class NpmPath {
             Logger.debug(this, "Determined path is: %s", path);
             return path;
         } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "Given absolute path [%s] does not match with pattern [%s]",
-                    abspath,
-                    this.pattern().toString()
+            throw new ArtipieException(
+                new IllegalArgumentException(
+                    String.format(
+                        "Given absolute path [%s] does not match with pattern [%s]",
+                        abspath,
+                        this.pattern().toString()
+                    )
                 )
             );
         }
